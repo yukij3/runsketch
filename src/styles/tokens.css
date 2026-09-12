@@ -20,7 +20,7 @@
 
   /* Data inks (charts, map overlays only) */
   --ink-hr: #c21f3a;
-  --ink-hr-demand: #e39aa8;
+  --ink-hr-demand: #d6697c; /* 3.3:1 on --sheet, still lighter than --ink-hr */
   --ink-speed: #2154c4;
   --ink-speed-soft: #9db4e6;
   --ink-elevation: #8d939a;
@@ -94,6 +94,22 @@
   /* Layout */
   --sheet-width: 380px;
   --toolbar-h: 40px;
+
+  /* App shell (controls, washes, layout) */
+  --route-dash: #7d838b;
+  --control-h: 30px;
+  --control-h-sm: 26px;
+  --row-min-h: 36px;
+  --sheet-pad: 20px;
+  --traces-h: clamp(230px, 34vh, 340px);
+  --measure: 68ch;
+  --wash-hover: rgb(27 29 34 / 0.05);
+  --wash-press: rgb(27 29 34 / 0.1);
+  --wash-selected: rgb(33 84 196 / 0.08);
+  --ink-primary-hover: #33363d;
+  --danger-hover: #8c1b18;
+  --field: #ffffff;
+  --playhead-halo: rgb(194 31 58 / 0.22);
 }
 
 @media (prefers-reduced-motion: reduce) {

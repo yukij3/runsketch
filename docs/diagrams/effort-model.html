@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The effort model · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for effort-model.svg (profile: runsketch, see .diagram-design). Flowchart grammar, doc-wide, left-to-right. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f6f4;
+      --color-ink:    #1b1d22;
+      --color-muted:  #474c55;
+      --color-accent: #c21f3a;
+      --font-sans:    'Public Sans', system-ui, sans-serif;
+      --font-serif:   'Instrument Serif', serif;
+      --font-mono:    'Red Hat Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Flowchart · Runsketch</p>
+    <h1>One effort model, every channel</h1>
+
+    <svg viewBox="0 0 1056 448" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="effort-model-title effort-model-desc">
+      <title id="effort-model-title">The Runsketch effort model</title>
+      <desc id="effort-model-desc">Terrain grade sets a speed plan, the speed plan sets heart-rate demand, a lagging two-stage kinetics turns demand into recorded heart rate, and cadence, power, GPS error and altimeter come from the same run; one seeded result feeds both the preview and the FIT, TCX and GPX files.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#474c55"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#c21f3a"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- ─── Arrows first (behind nodes) ─── -->
+      <line x1="216" y1="150" x2="238" y2="150" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="416" y1="150" x2="438" y2="150" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="616" y1="150" x2="638" y2="150" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="816" y1="150" x2="838" y2="150" stroke="#c21f3a" stroke-width="1.6" marker-end="url(#arrow-accent)"/>
+      <line x1="328" y1="212" x2="328" y2="266" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="928" y1="212" x2="928" y2="266" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="616" y1="314" x2="638" y2="314" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Arrow label (vertical segment: label to the side, 8px gap) -->
+      <rect x="336" y="232" width="104" height="16" rx="2" fill="#f5f6f4"/>
+      <text x="340" y="244" fill="#474c55" font-size="11" font-family="'Red Hat Mono', monospace">v(t), grade(t)</text>
+
+      <!-- ─── Node 01 · Terrain grade (input) ─── -->
+      <rect x="40" y="88" width="176" height="124" rx="6" fill="#f5f6f4"/>
+      <rect x="40" y="88" width="176" height="124" rx="6" fill="rgba(71,76,85,0.10)" stroke="#636973" stroke-width="1"/>
+      <text x="56" y="114" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">01</text>
+      <text x="56" y="140" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Terrain grade</text>
+      <text x="56" y="164" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">open DEM, every 5 m</text>
+      <text x="56" y="182" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">de-spiked, smoothed</text>
+      <text x="56" y="200" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">grade on 40 m</text>
+
+      <!-- ─── Node 02 · Speed plan ─── -->
+      <rect x="240" y="88" width="176" height="124" rx="6" fill="#f5f6f4"/>
+      <rect x="240" y="88" width="176" height="124" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="256" y="114" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">02</text>
+      <text x="256" y="140" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Speed plan</text>
+      <text x="256" y="164" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">HR-calibrated F(g)</text>
+      <text x="256" y="182" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">β 0.8 · turn caps</text>
+      <text x="256" y="200" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">pacing · OU noise</text>
+
+      <!-- ─── Node 03 · HR demand ─── -->
+      <rect x="440" y="88" width="176" height="124" rx="6" fill="#f5f6f4"/>
+      <rect x="440" y="88" width="176" height="124" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="456" y="114" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">03</text>
+      <text x="456" y="140" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">HR demand</text>
+      <text x="456" y="164" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">metabolic %VO2R</text>
+      <text x="456" y="182" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">= %HRR (Swain)</text>
+      <text x="456" y="200" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">+ slow comp., drift</text>
+
+      <!-- ─── Node 04 · HR kinetics (focal) ─── -->
+      <rect x="640" y="88" width="176" height="124" rx="6" fill="#f5f6f4"/>
+      <rect x="640" y="88" width="176" height="124" rx="6" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
+      <text x="656" y="114" fill="#c21f3a" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">04</text>
+      <text x="656" y="140" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">HR kinetics</text>
+      <text x="656" y="164" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">rise τ 18 + 38 s</text>
+      <text x="656" y="182" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">recover τ 30 + 80 s</text>
+      <text x="656" y="200" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">× fitness scale</text>
+
+      <!-- ─── Node 05 · Recorded HR ─── -->
+      <rect x="840" y="88" width="176" height="124" rx="6" fill="#f5f6f4"/>
+      <rect x="840" y="88" width="176" height="124" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="856" y="114" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">05</text>
+      <text x="856" y="140" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Recorded HR</text>
+      <text x="856" y="164" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">strap or optical</text>
+      <text x="856" y="182" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">sensor noise</text>
+      <text x="856" y="200" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">integer bpm</text>
+
+      <!-- ─── Node 06 · Other channels ─── -->
+      <rect x="240" y="268" width="376" height="92" rx="6" fill="#f5f6f4"/>
+      <rect x="240" y="268" width="376" height="92" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="256" y="294" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">06</text>
+      <text x="256" y="320" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Other channels, same run</text>
+      <text x="256" y="344" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">cadence · power · GPS error · altimeter</text>
+
+      <!-- ─── Node 07 · Preview = file (output) ─── -->
+      <rect x="640" y="268" width="376" height="92" rx="6" fill="#f5f6f4"/>
+      <rect x="640" y="268" width="376" height="92" rx="6" fill="rgba(27,29,34,0.05)" stroke="#474c55" stroke-width="1"/>
+      <text x="656" y="294" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">07</text>
+      <text x="656" y="320" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Preview = file</text>
+      <text x="656" y="344" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">FIT · TCX · GPX from one seeded run</text>
+
+      <!-- ─── Editorial callout (top margin) ─── -->
+      <text x="1016" y="52" fill="#1b1d22" font-size="20" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">the heart lags the hill</text>
+      <path d="M 828 46 Q 736 46 728 84" fill="none" stroke="rgba(27,29,34,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="728" cy="86" r="2" fill="#1b1d22"/>
+
+      <!-- ─── Legend strip ─── -->
+      <line x1="40" y1="392" x2="1016" y2="392" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="424" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="128" y="414" width="16" height="12" rx="2" fill="rgba(71,76,85,0.10)" stroke="#636973" stroke-width="1"/>
+      <text x="152" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Input</text>
+
+      <rect x="212" y="414" width="16" height="12" rx="2" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="236" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Model step</text>
+
+      <rect x="336" y="414" width="16" height="12" rx="2" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
+      <text x="360" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Focal: the lag</text>
+
+      <rect x="472" y="414" width="16" height="12" rx="2" fill="rgba(27,29,34,0.05)" stroke="#474c55" stroke-width="1"/>
+      <text x="496" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Output</text>
+
+      <line x1="572" y1="420" x2="598" y2="420" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="608" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Data flow</text>
+
+      <line x1="700" y1="420" x2="726" y2="420" stroke="#c21f3a" stroke-width="1.6" marker-end="url(#arrow-accent)"/>
+      <text x="736" y="424" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Heart-rate path</text>
+    </svg>
+  </div>
+</body>
+</html>

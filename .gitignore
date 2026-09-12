@@ -5,3 +5,7 @@ dist
 .impeccable/config.local.json
 .vite
 coverage
+
+# impeccable review captures and mocks
+.impeccable/review/
+.impeccable/mocks/

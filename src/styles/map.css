@@ -1,0 +1,438 @@
+/* Map plate, floating toolbar, overlays and map markers. */
+
+.map-plate {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #eceeea;
+}
+
+/* Two classes: maplibre-gl.css loads later and sets .maplibregl-map { position: relative }. */
+.map-plate .map-plate__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.map-plate .maplibregl-canvas-container.maplibregl-interactive {
+  cursor: crosshair;
+}
+
+.map-plate .maplibregl-canvas-container.maplibregl-interactive:active {
+  cursor: grabbing;
+}
+
+.map-plate .maplibregl-canvas:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.map-plate__failure {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding: 96px var(--space-8) var(--space-8);
+  background: var(--paper);
+}
+
+.map-plate__failure h2 {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.map-plate__failure p {
+  max-width: 56ch;
+  color: var(--ink-2);
+}
+
+/* Toolbar */
+
+.toolbar-wrap {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-2);
+  background: var(--sheet);
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
+}
+
+.toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 4px;
+  border-left: 1px solid var(--rule);
+}
+
+.toolbar__clear {
+  display: inline-flex;
+}
+
+.select--toolbar {
+  height: 32px;
+  max-width: 172px;
+  border-color: transparent;
+  background-color: transparent;
+  font-weight: var(--weight-medium);
+}
+
+.select--toolbar:hover {
+  border-color: transparent;
+  background-color: var(--wash-hover);
+}
+
+.toolbar__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px 0 6px;
+}
+
+.toolbar__confirm-text {
+  color: var(--danger);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search__icon {
+  position: absolute;
+  left: 9px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+.search__input {
+  width: 232px;
+  height: 32px;
+  padding-left: 30px;
+  padding-right: 28px;
+  border-color: var(--rule);
+}
+
+.search__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search__spinner {
+  position: absolute;
+  right: 9px;
+  color: var(--ink-3);
+}
+
+.search__popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -4px;
+  z-index: 50;
+  width: max(calc(100% + 8px), 320px);
+  padding: 4px 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-2);
+  background: var(--sheet);
+  box-shadow: var(--shadow-float);
+}
+
+.search__popover[hidden] {
+  display: none;
+}
+
+.search__meta {
+  padding: 8px 12px;
+  color: var(--ink-3);
+  font-size: var(--text-sm);
+}
+
+.search__meta--error {
+  color: var(--danger);
+}
+
+.search__list:empty {
+  display: none;
+}
+
+.search__option {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.search__option:first-child {
+  border-top: 0;
+}
+
+.search__option.is-active {
+  background: var(--wash-selected);
+}
+
+.search__name {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.search__detail {
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+
+.notice-slot {
+  max-width: min(480px, 100%);
+  pointer-events: auto;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: 6px 4px 6px 12px;
+  border: 1px solid var(--rule-ink);
+  border-radius: var(--radius-1);
+  background: var(--sheet);
+  font-size: var(--text-sm);
+}
+
+.notice p {
+  flex: 1;
+  padding-top: 3px;
+  max-width: var(--measure);
+}
+
+.notice--error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Empty state */
+
+.empty-plate {
+  position: absolute;
+  left: 12px;
+  bottom: 40px;
+  z-index: 10;
+  width: min(372px, calc(100% - 24px));
+  padding: var(--space-4);
+  border: 1px solid var(--rule-ink);
+  border-radius: var(--radius-1);
+  background: var(--sheet);
+}
+
+.empty-plate__title {
+  margin-bottom: 6px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.empty-plate__body {
+  margin-bottom: var(--space-3);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.empty-plate__hint {
+  margin-top: var(--space-2);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+
+/* Status chip and playhead readout */
+
+.map-foot {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: calc(100% - 72px);
+  pointer-events: none;
+}
+
+.map-status__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-1);
+  background: var(--sheet);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  pointer-events: auto;
+  /* Sub-200 ms recomputes finish before the chip shows, so edits do not flicker it. */
+  animation: rs-appear 0s 200ms both;
+}
+
+.map-status__chip.is-error {
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: none;
+}
+
+/* Markers */
+
+.rs-wp {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  cursor: grab;
+}
+
+.rs-wp.is-dragging {
+  cursor: grabbing;
+}
+
+.rs-wp__dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--route);
+  border-radius: 50%;
+  background: var(--route-casing);
+  box-shadow: 0 0 0 1.5px var(--route-casing);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.rs-wp[data-role='start'] .rs-wp__dot {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--route-casing);
+  background: var(--route);
+  box-shadow: 0 0 0 1px var(--route);
+}
+
+.rs-wp[data-role='finish'] .rs-wp__dot {
+  width: 19px;
+  height: 19px;
+  border: 2.5px solid var(--route);
+  background: transparent;
+  box-shadow:
+    0 0 0 1.5px var(--route-casing),
+    inset 0 0 0 1.5px var(--route-casing);
+}
+
+.rs-wp:hover .rs-wp__dot {
+  transform: scale(1.15);
+}
+
+.rs-wp.is-selected .rs-wp__dot {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.rs-playhead {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--route-casing);
+  border-radius: 50%;
+  background: var(--ink-hr);
+  box-shadow: 0 0 0 6px var(--playhead-halo);
+  pointer-events: none;
+}
+
+/* MapLibre attribution, restyled as a ruled label */
+
+.map-plate .maplibregl-ctrl-bottom-right .maplibregl-ctrl {
+  margin: 0 8px 8px 0;
+}
+
+.map-plate .maplibregl-ctrl-attrib {
+  color: var(--ink-2);
+  font: var(--text-2xs) / 1.45 var(--font-ui);
+}
+
+.map-plate .maplibregl-ctrl-attrib.maplibregl-compact {
+  min-height: 24px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-1);
+  background-color: var(--sheet);
+}
+
+.map-plate .maplibregl-ctrl-attrib.maplibregl-compact-show {
+  padding: 3px 28px 3px 8px;
+}
+
+.map-plate .maplibregl-ctrl-attrib-button {
+  top: 1px;
+  right: 1px;
+  border-radius: var(--radius-1);
+  background-color: var(--sheet);
+}
+
+.map-plate .maplibregl-ctrl-attrib a {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+}
+
+.map-plate .maplibregl-ctrl-attrib a:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 1023.98px) {
+  .toolbar {
+    width: 100%;
+  }
+
+  .search {
+    flex: 1 1 100%;
+  }
+
+  .search__input {
+    width: 100%;
+  }
+
+  .search__popover {
+    width: calc(100% + 8px);
+  }
+
+  .select--toolbar {
+    max-width: 124px;
+  }
+
+  .toolbar .icon-btn {
+    width: 30px;
+  }
+
+  .empty-plate {
+    bottom: 12px;
+  }
+}

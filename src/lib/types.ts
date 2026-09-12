@@ -73,12 +73,17 @@ export type PacingStrategy = 'even' | 'negative' | 'positive';
 export type StopsLevel = 'none' | 'few' | 'urban';
 export type GpsNoiseLevel = 'off' | 'low' | 'normal' | 'high';
 
+/**
+ * What the simulation is normalised to. Every kind resolves to a target MOVING time for the whole route
+ * (stops excluded); the engine varies speed with grade, warm-up, fatigue, pacing, corners and noise, then
+ * scales effort so the resulting moving time lands within ±0.5 % of it.
+ */
 export type TargetSpec =
-  /** Seconds per km on flat ground (running/walking/hiking) — effort is held, not raw pace. */
+  /** Average moving pace over the whole route, seconds per km (what Strava shows as avg pace). Moving time = distance·secPerKm/1000. */
   | { kind: 'pace'; secPerKm: number }
-  /** Average moving speed, m/s (cycling). */
+  /** Average moving speed over the whole route, m/s (rides; also valid for foot sports). Moving time = distance/mps. */
   | { kind: 'speed'; mps: number }
-  /** Total moving time for the route, seconds. */
+  /** Total moving time for the route, seconds (stopped time is added on top in elapsed time). */
   | { kind: 'duration'; seconds: number };
 
 export interface SessionSettings {

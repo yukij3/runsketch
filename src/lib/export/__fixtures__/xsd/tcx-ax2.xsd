@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test-only wrapper: TrainingCenterDatabase v2 plus ActivityExtension v2, resolved from local copies. -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" schemaLocation="TrainingCenterDatabasev2.xsd"/>
+  <xsd:import namespace="http://www.garmin.com/xmlschemas/ActivityExtension/v2" schemaLocation="ActivityExtensionv2.xsd"/>
+</xsd:schema>

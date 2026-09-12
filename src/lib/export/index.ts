@@ -1,9 +1,25 @@
 import type { ExportFormat, ExportInput } from '../types';
+import { buildFit } from './fit';
+import { EXPORT_MIME, exportFilename } from './filename';
+import { buildGpx } from './gpx';
+import { buildTcx } from './tcx';
 
-const NI = (): never => { throw new Error('not implemented'); };
+export { buildFit, buildGpx, buildTcx };
+export { downloadBlob } from './download';
+export { EXPORT_MIME, exportFilename, slugify } from './filename';
 
-export function buildGpx(_input: ExportInput): string { return NI(); }
-export function buildTcx(_input: ExportInput): string { return NI(); }
-export function buildFit(_input: ExportInput): Uint8Array { return NI(); }
-export function exportActivity(_format: ExportFormat, _input: ExportInput): { filename: string; mime: string; blob: Blob } { return NI(); }
-export function downloadBlob(_blob: Blob, _filename: string): void { NI(); }
+export function exportActivity(
+  format: ExportFormat,
+  input: ExportInput,
+): { filename: string; mime: string; blob: Blob } {
+  const mime = EXPORT_MIME[format];
+  const filename = exportFilename(format, input.session);
+  if (format === 'fit') {
+    const bytes = buildFit(input);
+    const owned = new Uint8Array(bytes.byteLength); // ArrayBuffer-backed copy, as BlobPart requires
+    owned.set(bytes);
+    return { filename, mime, blob: new Blob([owned], { type: mime }) };
+  }
+  const xml = format === 'gpx' ? buildGpx(input) : buildTcx(input);
+  return { filename, mime, blob: new Blob([xml], { type: mime }) };
+}

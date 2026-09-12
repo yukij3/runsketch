@@ -1,0 +1,463 @@
+/* Traces strip — lab protocol sheet. Ink on paper; plotter inks only on data. */
+
+.traces {
+  --traces-demand: var(--ink-hr-demand);
+
+  container: traces / inline-size;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  caret-color: var(--ink);
+}
+
+.traces:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.traces ::selection {
+  background: var(--selection);
+  color: var(--ink);
+}
+
+/* Readout row */
+
+.traces__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 30px;
+  padding-inline: var(--space-3);
+  border-block-end: var(--hairline) solid var(--rule);
+}
+
+.traces__readouts {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: var(--space-1);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.traces__readouts::-webkit-scrollbar {
+  block-size: 4px;
+}
+
+.traces__readouts::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+  border-radius: var(--radius-1);
+}
+
+.traces__cell {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.traces__cell dt {
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+}
+
+.traces__cell dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.traces__value {
+  font-family: var(--font-data);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.traces__unit {
+  margin-inline-start: 3px;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+}
+
+.traces__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.traces__seg {
+  display: inline-flex;
+  border: var(--hairline) solid var(--rule-strong);
+  border-radius: var(--radius-1);
+}
+
+.traces__seg button,
+.traces__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 22px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--text-2xs);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) linear, color var(--dur-fast) linear;
+}
+
+.traces__seg button + button {
+  border-inline-start: var(--hairline) solid var(--rule-strong);
+}
+
+.traces__seg button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--ink-inverse);
+}
+
+.traces__button {
+  border: var(--hairline) solid var(--rule-strong);
+  border-radius: var(--radius-1);
+}
+
+.traces__seg button:hover:not(:disabled, [aria-pressed='true']),
+.traces__button:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.traces__seg button:focus-visible,
+.traces__button:focus-visible {
+  position: relative;
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.traces__seg button:disabled {
+  color: var(--ink-3);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Body and layers */
+
+.traces__body {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.traces__layer {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.traces__hit {
+  position: absolute;
+  inset-block-start: 0;
+  cursor: crosshair;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The authored moment: the plotter pen draws the new result left to right. */
+.traces__ink {
+  animation: traces-plot var(--dur-plot) var(--ease-out) both;
+  transition: opacity var(--dur-fast) linear;
+}
+
+@keyframes traces-plot {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.traces--busy .traces__ink,
+.traces--busy .traces__overlay {
+  opacity: 0.4;
+}
+
+.traces__caption {
+  position: absolute;
+  inset-block-start: 50%;
+  margin: 0;
+  max-inline-size: 65ch;
+  padding-inline: var(--space-3);
+  transform: translateY(-50%);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Foot: legend and status */
+
+.traces__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 30px;
+  padding: 3px var(--space-3);
+  border-block-start: var(--hairline) solid var(--rule);
+  color: var(--ink-2);
+  font-size: var(--text-2xs);
+}
+
+.traces__legend {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
+  row-gap: 2px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.traces__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.traces__key {
+  flex: none;
+}
+
+.traces__status {
+  flex: none;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.traces__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* SVG: rules, grid, labels */
+
+.traces__rule,
+.traces__grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.traces__rule--strong {
+  stroke: var(--rule-strong);
+}
+
+.traces__grid--y {
+  stroke-dasharray: 1 3;
+}
+
+.traces__name {
+  fill: var(--ink-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+}
+
+.traces__name-unit {
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-regular);
+}
+
+.traces__name--inset {
+  paint-order: stroke;
+  stroke: var(--sheet);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.traces__tick,
+.traces__zone-label {
+  fill: var(--ink-3);
+  font-family: var(--font-data);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.traces__zone { fill-opacity: 0.6; }
+.traces__zone--1 { fill: var(--zone-1); }
+.traces__zone--2 { fill: var(--zone-2); }
+.traces__zone--3 { fill: var(--zone-3); }
+.traces__zone--4 { fill: var(--zone-4); }
+.traces__zone--5 { fill: var(--zone-5); }
+
+/* SVG: data ink */
+
+.traces__line {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.traces__grade--up { fill: var(--ink-grade-up); }
+.traces__grade--down { fill: var(--ink-grade-down); }
+
+.traces__ele-area { fill: var(--ink-elevation-fill); }
+
+.traces__ele-line {
+  stroke: var(--ink-elevation);
+  stroke-width: 1;
+}
+
+.traces__speed-raw {
+  stroke: var(--ink-speed-soft);
+  stroke-width: 1;
+  stroke-opacity: 0.75;
+}
+
+.traces__speed {
+  stroke: var(--ink-speed);
+  stroke-width: 1.5;
+}
+
+.traces__lag { stroke: none; }
+
+.traces__hatch-line {
+  stroke: var(--ink-hr);
+  stroke-width: 1;
+  stroke-opacity: 0.32;
+}
+
+.traces__hr-demand {
+  stroke: var(--traces-demand);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  stroke-linecap: butt;
+}
+
+.traces__hr {
+  stroke: var(--ink-hr);
+  stroke-width: 1.5;
+}
+
+.traces__cadence {
+  stroke: var(--ink-cadence);
+  stroke-width: 1;
+}
+
+.traces__stop { fill: var(--ink-2); }
+
+/* SVG: playhead and readouts */
+
+.traces__playhead {
+  stroke: var(--rule-ink);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.traces__pin { fill: var(--ink); }
+
+.traces__dot {
+  stroke: var(--sheet);
+  stroke-width: 1.5;
+}
+
+.traces__dot--ele { fill: var(--ink-2); }
+.traces__dot--speed { fill: var(--ink-speed); }
+.traces__dot--hr { fill: var(--ink-hr); }
+.traces__dot--cadence { fill: var(--ink-cadence); }
+
+.traces__dot--demand {
+  fill: var(--sheet);
+  stroke: var(--traces-demand);
+}
+
+.traces__read {
+  fill: var(--ink);
+  font-family: var(--font-data);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.traces__read-unit,
+.traces__read-caption {
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+}
+
+.traces__swatch {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.traces__swatch--solid { stroke: var(--ink-hr); }
+
+.traces__swatch--dashed {
+  stroke: var(--traces-demand);
+  stroke-dasharray: 4 3;
+}
+
+/* Narrow strips: the legend gets its own rows instead of being squeezed beside the tools. */
+@container traces (max-width: 639px) {
+  .traces__readouts {
+    padding-inline-end: var(--space-6);
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--space-6)), transparent);
+  }
+
+  .traces__foot {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .traces__legend {
+    flex-basis: 100%;
+    flex-direction: column;
+  }
+
+  .traces__legend li {
+    white-space: nowrap;
+  }
+
+  .traces__legend li:nth-child(3) {
+    display: none;
+  }
+
+  .traces__status {
+    margin-inline-end: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .traces__ink {
+    animation: none;
+    transition: none;
+  }
+
+  .traces__seg button,
+  .traces__button {
+    transition: none;
+  }
+}

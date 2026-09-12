@@ -1,0 +1,97 @@
+/* Desktop: [map plate over traces][protocol sheet]. Below 1024 px everything stacks and export sticks to the bottom. */
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--sheet-width);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'map head'
+    'map sheet'
+    'map export';
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.masthead {
+  grid-area: head;
+  padding: var(--space-4) var(--sheet-pad) var(--space-3);
+  border-left: 1px solid var(--rule-ink);
+  border-bottom: 1px solid var(--rule-ink);
+  background: var(--sheet);
+}
+
+.map-area {
+  grid-area: map;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) var(--traces-h);
+  min-width: 0;
+  min-height: 0;
+}
+
+.traces-slot {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--rule-ink);
+  background: var(--sheet);
+}
+
+.sheet {
+  grid-area: sheet;
+  min-height: 0;
+  padding: 0 var(--sheet-pad) var(--space-8);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid var(--rule-ink);
+  background: var(--sheet);
+}
+
+.export-bar {
+  grid-area: export;
+  padding: var(--space-3) var(--sheet-pad);
+  border-top: 1px solid var(--rule-ink);
+  border-left: 1px solid var(--rule-ink);
+  background: var(--sheet);
+}
+
+@media (max-width: 1023.98px) {
+  :root {
+    --sheet-pad: 16px;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .masthead,
+  .sheet,
+  .export-bar {
+    border-left: 0;
+  }
+
+  .masthead {
+    padding-top: var(--space-3);
+  }
+
+  .map-area {
+    grid-template-rows: 46vh var(--traces-h);
+    grid-template-rows: 46svh var(--traces-h);
+  }
+
+  .sheet {
+    overflow: visible;
+    padding-bottom: var(--space-6);
+  }
+
+  .export-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  }
+}
