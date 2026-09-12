@@ -1,0 +1,105 @@
+/* Runsketch design tokens — "lab protocol sheet".
+   Paper, graphite ink, hairline rules; two plotter inks reserved for data. */
+
+@import '@fontsource-variable/public-sans';
+@import '@fontsource-variable/red-hat-mono';
+
+:root {
+  /* Ground and ink */
+  --paper: #f5f6f4;
+  --sheet: #fbfbfa;
+  --ink: #1b1d22;
+  --ink-2: #474c55;
+  --ink-3: #636973;
+  --ink-inverse: #fbfbfa;
+
+  /* Rules */
+  --rule: #dcdfdc;
+  --rule-strong: #b7bcb8;
+  --rule-ink: #1b1d22;
+
+  /* Data inks (charts, map overlays only) */
+  --ink-hr: #c21f3a;
+  --ink-hr-demand: #e39aa8;
+  --ink-speed: #2154c4;
+  --ink-speed-soft: #9db4e6;
+  --ink-elevation: #8d939a;
+  --ink-elevation-fill: rgb(141 147 154 / 0.22);
+  --ink-cadence: #56613b;
+  --ink-grade-up: rgb(27 29 34 / 0.10);
+  --ink-grade-down: rgb(33 84 196 / 0.07);
+
+  /* Route on map */
+  --route: #1b1d22;
+  --route-casing: #ffffff;
+  --route-fallback: #b7bcb8;
+
+  /* Heart-rate zone bands (named + patterned in UI; colour never alone) */
+  --zone-1: #eef0ee;
+  --zone-2: #e3e6e3;
+  --zone-3: #d5d9d5;
+  --zone-4: #f3d9de;
+  --zone-5: #eab8c2;
+
+  /* Feedback */
+  --focus: #2154c4;
+  --danger: #a8211d;
+  --warn: #7a5200;
+  --ok: #2f6b3a;
+  --selection: rgb(33 84 196 / 0.18);
+
+  /* Type */
+  --font-ui: 'Public Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'Red Hat Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-2xs: 0.6875rem; /* 11 */
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.8125rem; /* 13 */
+  --text-md: 0.875rem; /* 14 */
+  --text-lg: 1rem; /* 16 */
+  --text-xl: 1.25rem; /* 20 */
+  --text-2xl: 1.625rem; /* 26 */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+
+  --weight-regular: 420;
+  --weight-medium: 540;
+  --weight-bold: 680;
+
+  /* Space (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Shape */
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --hairline: 1px;
+
+  /* Elevation: only floating tools over the map */
+  --shadow-float: 0 1px 2px rgb(27 29 34 / 0.10), 0 6px 16px -4px rgb(27 29 34 / 0.14);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-plot: 520ms;
+
+  /* Layout */
+  --sheet-width: 380px;
+  --toolbar-h: 40px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-med: 0ms;
+    --dur-plot: 0ms;
+  }
+}

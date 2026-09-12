@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Free, open-source activity file generator. Draw a route on an open map, get a GPX/TCX/FIT file whose heart rate responds to hills with real physiological lag." />
+    <meta name="theme-color" content="#f6f6f4" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Runsketch — realistic activity files from a drawn route</title>
+  </head>
+  <body>
+    <!--
+      THESIS: A route becomes an exercise-physiology test protocol: terrain is the load, the athlete is the subject, the file is the lab printout. Refuses the category default of a Strava-orange map with sliders and a hump-shaped HR chart.
+      OWN-WORLD: Lab protocol sheet. Cool paper white ground, graphite ink, 1px hairline rules, ruled parameter tables instead of cards, tabular mono numerals for every measurement, two plotter inks reserved for data (HR crimson, speed blue), elevation as graphite fill. Controls are black ink on paper, square-cornered.
+      STORY: The visitor draws a course, sees the effort model react (demand vs heart-rate response, lag visible after each climb), trusts it, downloads FIT/TCX/GPX.
+      FIRST VIEWPORT: Desktop: map plate fills the left ~64%, drawing toolbar floating top-left; stacked time-series strip (elevation+grade, pace, HR demand/response) under the map with one shared playhead; right column is the protocol sheet (route, athlete, session, export) with export pinned at its foot. Mobile: map 46vh, sheet below.
+      FORM: Exercise-physiology lab report, candidate 3 of 7; seed key 21566b38.
+      RAISES: from drum-machine step row — one chase playhead marks "now" across map, charts and readouts. From Japanese high-density web — hairline-ruled modules, dense without whitespace inflation. From industrial quote grammar — every zone labelled with its literal function. From cyclorama — effort zones are named discrete bands, colour never the sole signal.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and every shipping raster carrying its provenance
+    -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
