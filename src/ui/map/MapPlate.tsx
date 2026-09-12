@@ -8,8 +8,9 @@ import { routeCoords } from '../../app/pipeline';
 import { useApp, useRuntime, useT } from '../../app/runtime';
 import type { LngLat } from '../../lib/types';
 import { waypointLabel, waypointRole } from '../labels';
-import { distanceTicks, nearestSample, routeFeatures } from './geometry';
+import { distanceTicks, nearestSample, placeTickLabels, routeFeatures, type ScreenPoint } from './geometry';
 import { ROUTE_HIT_LAYER, ROUTE_SOURCE, TICK_SOURCE, installRouteLayers, readInks } from './layers';
+import { restPoint } from '../traces/rest';
 import { EmptyPlate, MapFoot } from './MapOverlay';
 import { transformPositron } from './mapStyle';
 import { Toolbar } from './Toolbar';
@@ -18,6 +19,9 @@ maplibregl.setWorkerUrl(workerUrl);
 
 const DEFAULT_VIEW = { center: [10.5, 48.5] as LngLat, zoom: 3.6 };
 const Z_INDEX = { start: '3', mid: '2', finish: '1' } as const;
+/** Drawn radius of each marker in px (halo and selection ring included), kept clear of km labels. */
+const DISC_R = { start: 9, mid: 8, finish: 12 } as const;
+const PLAYHEAD_R = 13;
 
 export type MapFailure = 'webgl' | 'style';
 
@@ -196,16 +200,42 @@ export function MapPlate() {
     geojsonSource(map, ROUTE_SOURCE)?.setData(routeFeatures(waypoints, profile, legs));
   }, [ready, waypoints, profile, legs]);
 
-  // Distance ticks
+  // Distance ticks. Labels are placed in screen space after every camera move, clear of the route,
+  // the waypoint handles and the resting playhead (a scrubbed playhead passes over them instead of shoving them).
+  const routeLine = useMemo(() => routeCoords({ waypoints, profile, legs }), [waypoints, profile, legs]);
   const ticks = useMemo(
-    () => distanceTicks(routeCoords({ waypoints, profile, legs }), units === 'metric' ? 1000 : 1609.344),
-    [waypoints, profile, legs, units],
+    () => distanceTicks(routeLine, units === 'metric' ? 1000 : 1609.344, t(units === 'metric' ? 'unit_km' : 'unit_mi')),
+    [routeLine, units, t],
   );
+  const rest = useMemo(() => restPoint(result), [result]);
+  const restAt = useMemo<LngLat | null>(() => {
+    const streams = result?.streams;
+    const i = rest?.index;
+    return streams && i !== undefined && i < streams.lat.length && Number.isFinite(streams.lat[i]) ? [streams.lon[i], streams.lat[i]] : null;
+  }, [result, rest]);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
-    geojsonSource(map, TICK_SOURCE)?.setData(ticks);
-  }, [ready, ticks]);
+    const place = () => {
+      const project = (ll: LngLat): ScreenPoint => {
+        const p = map.project(ll);
+        return [p.x, p.y];
+      };
+      const discs: Array<{ at: ScreenPoint; r: number }> = waypoints.map((w, i) => ({
+        at: project([w.lon, w.lat]),
+        r: DISC_R[waypointRole(i, waypoints.length)],
+      }));
+      if (restAt) discs.push({ at: project(restAt), r: PLAYHEAD_R });
+      const anchors = ticks.features.map((f) => project(f.geometry.coordinates as LngLat));
+      const lines = routeLine ? [routeLine.map(project)] : [];
+      geojsonSource(map, TICK_SOURCE)?.setData(placeTickLabels(ticks, anchors, { lines, discs }));
+    };
+    place();
+    map.on('moveend', place);
+    return () => {
+      map.off('moveend', place);
+    };
+  }, [ready, ticks, routeLine, waypoints, restAt]);
 
   // Waypoint markers
   useEffect(() => {
@@ -277,18 +307,19 @@ export function MapPlate() {
     }
   }, [ready, waypoints, selectedId, t, store, actions]);
 
-  // Playhead
+  // Playhead: a scrubbed sample, else the rest point the traces strip also marks.
+  const shown = playhead ?? rest?.index ?? null;
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
     const streams = result?.streams;
-    const valid = playhead !== null && streams !== undefined && playhead < streams.lat.length && Number.isFinite(streams.lat[playhead]);
+    const valid = shown !== null && streams !== undefined && shown < streams.lat.length && Number.isFinite(streams.lat[shown]);
     if (!valid) {
       playheadRef.current?.remove();
       playheadRef.current = null;
       return;
     }
-    const at: LngLat = [streams.lon[playhead], streams.lat[playhead]];
+    const at: LngLat = [streams.lon[shown], streams.lat[shown]];
     if (playheadRef.current) {
       playheadRef.current.setLngLat(at);
     } else {
@@ -297,7 +328,7 @@ export function MapPlate() {
       el.setAttribute('aria-hidden', 'true');
       playheadRef.current = new maplibregl.Marker({ element: el }).setLngLat(at).addTo(map);
     }
-  }, [ready, playhead, result]);
+  }, [ready, shown, result]);
 
   // Attribution: tile sources attribute themselves; routing providers and the OSM "fix the map" link are added here.
   const providers = useMemo(() => [...new Set([...legs.values()].map((l) => l.provider))].sort().join(','), [legs]);

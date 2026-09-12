@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useActions, useApp } from '../app/runtime';
 import { hrZones } from '../lib/sim';
+import { restPoint } from './traces/rest';
 import { Traces } from './traces/Traces';
 
 export function TracesStrip() {
@@ -13,9 +14,10 @@ export function TracesStrip() {
   const athlete = useApp((s) => s.athlete);
   const busy = useApp((s) => s.routing.state === 'busy' || s.terrain.state === 'busy' || s.sim.state === 'busy');
   const zones = useMemo(() => hrZones(athlete), [athlete]);
+  const rest = useMemo(() => restPoint(result), [result]);
   return (
     <div className="traces-slot">
-      <Traces result={result} activity={activity} units={units} lang={lang} zones={zones} playhead={playhead} onPlayhead={actions.setPlayhead} busy={busy} />
+      <Traces result={result} activity={activity} units={units} lang={lang} zones={zones} playhead={playhead} rest={rest} onPlayhead={actions.setPlayhead} busy={busy} />
     </div>
   );
 }

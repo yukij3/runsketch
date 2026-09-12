@@ -4,12 +4,16 @@ import { memo, useId } from 'react';
 import { formatDuration } from '../../lib/format';
 import type { InkGeometry } from './ink';
 import { panelBox, type PanelId, type StripLayout } from './layout';
+import { crisp } from './StaticLayer';
 
 interface InkLayerProps {
   layout: StripLayout;
   ink: InkGeometry;
   stoppedLabel: string;
 }
+
+/** Panels below elevation that carry each climb forward, so the heart-rate lag after it can be read. */
+const CARRIED: readonly PanelId[] = ['pace', 'hr', 'cadence'];
 
 /** useId output is not guaranteed to be a valid url(#…) fragment. */
 function useSvgId(): string {
@@ -21,6 +25,14 @@ export const InkLayer = memo(function InkLayer({ layout, ink, stoppedLabel }: In
   const clipId = (id: PanelId) => `${uid}-clip-${id}`;
   const clip = (id: PanelId) => `url(#${clipId(id)})`;
   const ele = panelBox(layout, 'elevation');
+  const climbs = ink.gradeBands.filter((b) => b.kind === 'up');
+  const carried = CARRIED.map((id) => panelBox(layout, id));
+  const onsets = climbs
+    .map((b) => {
+      const x = crisp(b.x);
+      return [ele, ...carried].map((p) => `M${x} ${p.top}V${p.top + p.height}`).join('');
+    })
+    .join('');
 
   return (
     <svg
@@ -40,7 +52,28 @@ export const InkLayer = memo(function InkLayer({ layout, ink, stoppedLabel }: In
         <pattern id={`${uid}-hatch`} patternUnits="userSpaceOnUse" width={4} height={4} patternTransform="rotate(45)">
           <line className="traces__hatch-line" x1={0.5} y1={0} x2={0.5} y2={4} />
         </pattern>
+        {/* Descents are stippled, not hatched: the hatch belongs to the heart-rate lag alone. */}
+        <pattern id={`${uid}-descent`} patternUnits="userSpaceOnUse" width={6} height={6}>
+          <circle className="traces__stipple" cx={1.5} cy={1.5} r={0.85} />
+          <circle className="traces__stipple" cx={4.5} cy={4.5} r={0.85} />
+        </pattern>
       </defs>
+
+      <g data-layer="climbs">
+        {climbs.flatMap((b) =>
+          carried.map((p) => (
+            <rect
+              key={`c${b.x}${p.id}`}
+              className="traces__climb-column"
+              x={b.x}
+              y={p.top}
+              width={Math.max(1, b.w)}
+              height={p.height}
+            />
+          )),
+        )}
+        {onsets && <path className="traces__onset" d={onsets} />}
+      </g>
 
       <g data-panel="elevation" clipPath={clip('elevation')}>
         {ink.gradeBands.map((b) => (
@@ -51,6 +84,7 @@ export const InkLayer = memo(function InkLayer({ layout, ink, stoppedLabel }: In
             y={ele.top}
             width={Math.max(1, b.w)}
             height={ele.height}
+            fill={b.kind === 'down' ? `url(#${uid}-descent)` : undefined}
           />
         ))}
         {ink.eleArea && <path className="traces__ele-area" d={ink.eleArea} />}

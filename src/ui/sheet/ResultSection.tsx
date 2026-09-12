@@ -1,7 +1,7 @@
 import { TriangleAlert } from 'lucide-react';
 import { useActions, useApp, useT } from '../../app/runtime';
 import { localizeWarning } from '../../app/warnings';
-import { formatDistance, formatDuration, formatElevation, formatPace, formatSpeed } from '../../lib/format';
+import { formatDecimal, formatDistance, formatDuration, formatElevation, formatPace, formatSpeed } from '../../lib/format';
 import { DataRow, Section, cx } from '../controls';
 import { unitLabels } from '../units';
 
@@ -35,14 +35,18 @@ export function ResultSection() {
           <DataRow label={t('movingTime')} value={formatDuration(summary.moving)} />
           <DataRow label={t('elapsedTime')} value={formatDuration(summary.elapsed)} />
           {ride ? (
-            <DataRow label={t('avgSpeed')} value={formatSpeed(summary.avgSpeed, units)} unit={u.speed} />
+            <DataRow label={t('avgSpeed')} value={formatSpeed(summary.avgSpeed, units, 1, lang)} unit={u.speed} />
           ) : (
             <DataRow label={t('avgPace')} value={formatPace(summary.avgSpeed, units)} unit={u.pace} />
           )}
           <DataRow label={t('avgHr')} value={whole(summary.avgHr)} unit={t('unit_bpm')} />
           <DataRow label={t('peakHr')} value={whole(summary.maxHr)} unit={t('unit_bpm')} />
+          {sim.result?.impliedVo2max !== undefined ? (
+            <DataRow label={t('impliedVo2max')} value={formatDecimal(sim.result.impliedVo2max, 1, lang)} unit={t('unit_vo2')} />
+          ) : null}
           <DataRow label={t('avgCadence')} value={whole(summary.avgCadence)} unit={t(ride ? 'unit_rpm' : 'unit_spm')} />
           {ride ? <DataRow label={t('avgPower')} value={whole(summary.avgPower)} unit={t('unit_w')} /> : null}
+          <DataRow label={t('recordedAscent')} value={formatElevation(summary.ascent, units)} unit={u.elevation} />
           <DataRow label={t('calories')} value={whole(summary.calories)} unit={t('unit_kcal')} />
         </dl>
       )}
@@ -67,6 +71,7 @@ export function SplitsSection() {
   const t = useT();
   const actions = useActions();
   const units = useApp((s) => s.units);
+  const lang = useApp((s) => s.lang);
   const result = useApp((s) => s.sim.result);
   const activity = useApp((s) => s.sim.activity);
   const lapDistance = useApp((s) => s.session.lapDistance);
@@ -103,9 +108,9 @@ export function SplitsSection() {
                 <tr key={lap.startIndex} onMouseEnter={() => actions.setPlayhead(lap.startIndex)}>
                   <th scope="row" className="num">
                     {i + 1}
-                    {partial ? <span className="splits__part"> · {formatDistance(lap.distance, units)}</span> : null}
+                    {partial ? <span className="splits__part"> · {formatDistance(lap.distance, units, 2, lang)}</span> : null}
                   </th>
-                  <td className="num">{ride ? formatSpeed(lap.avgSpeed, units) : formatPace(lap.avgSpeed, units)}</td>
+                  <td className="num">{ride ? formatSpeed(lap.avgSpeed, units, 1, lang) : formatPace(lap.avgSpeed, units)}</td>
                   <td className="num">{whole(lap.avgHr)}</td>
                   <td className="num">
                     +{formatElevation(lap.ascent, units)} −{formatElevation(lap.descent, units)}

@@ -6,16 +6,17 @@
 
 :root {
   /* Ground and ink */
-  --paper: #f5f6f4;
-  --sheet: #fbfbfa;
+  /* Cool paper: blue is the highest channel on every ground and rule. */
+  --paper: #f1f3f6;
+  --sheet: #f9fafc;
   --ink: #1b1d22;
   --ink-2: #474c55;
   --ink-3: #636973;
-  --ink-inverse: #fbfbfa;
+  --ink-inverse: #f9fafc;
 
   /* Rules */
-  --rule: #dcdfdc;
-  --rule-strong: #b7bcb8;
+  --rule: #d9dde3;
+  --rule-strong: #b3b9c2;
   --rule-ink: #1b1d22;
 
   /* Data inks (charts, map overlays only) */
@@ -23,30 +24,33 @@
   --ink-hr-demand: #d6697c; /* 3.3:1 on --sheet, still lighter than --ink-hr */
   --ink-speed: #2154c4;
   --ink-speed-soft: #9db4e6;
-  --ink-elevation: #8d939a;
-  --ink-elevation-fill: rgb(141 147 154 / 0.22);
+  --ink-elevation: #6f757e;
+  --ink-elevation-fill: rgb(111 117 126 / 0.2);
   --ink-cadence: #56613b;
-  --ink-grade-up: rgb(27 29 34 / 0.10);
-  --ink-grade-down: rgb(33 84 196 / 0.07);
+  /* Terrain bands are graphite: climbs a flat tint, descents a dot stipple (pattern, not hue, tells them apart). */
+  --ink-grade-up: rgb(27 29 34 / 0.09);
+  --ink-grade-up-column: rgb(27 29 34 / 0.045);
+  --ink-grade-onset: rgb(27 29 34 / 0.38);
+  --ink-grade-down: rgb(27 29 34 / 0.42);
 
   /* Route on map */
   --route: #1b1d22;
   --route-casing: #ffffff;
-  --route-fallback: #b7bcb8;
+  --route-fallback: #b3b9c2;
 
   /* Heart-rate zone bands (named + patterned in UI; colour never alone) */
-  --zone-1: #eef0ee;
-  --zone-2: #e3e6e3;
-  --zone-3: #d5d9d5;
+  --zone-1: #edf0f4;
+  --zone-2: #e2e6eb;
+  --zone-3: #d4d9e0;
   --zone-4: #f3d9de;
   --zone-5: #eab8c2;
 
   /* Feedback */
-  --focus: #2154c4;
+  --focus: #1b1d22;
   --danger: #a8211d;
   --warn: #7a5200;
   --ok: #2f6b3a;
-  --selection: rgb(33 84 196 / 0.18);
+  --selection: rgb(27 29 34 / 0.14);
 
   /* Type */
   --font-ui: 'Public Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -105,7 +109,7 @@
   --measure: 68ch;
   --wash-hover: rgb(27 29 34 / 0.05);
   --wash-press: rgb(27 29 34 / 0.1);
-  --wash-selected: rgb(33 84 196 / 0.08);
+  --wash-selected: rgb(27 29 34 / 0.09);
   --ink-primary-hover: #33363d;
   --danger-hover: #8c1b18;
   --field: #ffffff;

@@ -1,5 +1,6 @@
 import type { FeatureCollection } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
+import { TICK_TEXT_PX } from './geometry';
 
 export const ROUTE_SOURCE = 'rs-route';
 export const TICK_SOURCE = 'rs-ticks';
@@ -12,6 +13,7 @@ export interface MapInks {
   casing: string;
   dash: string;
   paper: string;
+  label: string;
 }
 
 export function readInks(el: Element = document.documentElement): MapInks {
@@ -21,26 +23,28 @@ export function readInks(el: Element = document.documentElement): MapInks {
     route: v('--route', '#1b1d22'),
     casing: v('--route-casing', '#ffffff'),
     dash: v('--route-dash', '#7d838b'),
-    paper: v('--sheet', '#fbfbfa'),
+    paper: v('--sheet', '#f9fafc'),
+    label: v('--ink-2', '#474c55'),
   };
 }
 
-/** Round km/mi tick drawn on a 2× canvas, so labels collide as one symbol with their disc. */
+/**
+ * Distance tick: a cased ink hairline drawn on a 2× canvas, rotated across the route by the layer.
+ * Deliberately not a disc, so it cannot be mistaken for a waypoint handle.
+ */
 function tickImage(inks: MapInks): ImageData | null {
-  const size = 40;
+  const w = 40;
+  const h = 8;
   const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
   ctx.fillStyle = inks.casing;
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = inks.route;
-  ctx.stroke();
-  return ctx.getImageData(0, 0, size, size);
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = inks.route;
+  ctx.fillRect(2, 2, w - 4, h - 4);
+  return ctx.getImageData(0, 0, w, h);
 }
 
 export function installRouteLayers(map: MapLibreMap, inks: MapInks): void {
@@ -92,13 +96,17 @@ export function installRouteLayers(map: MapLibreMap, inks: MapInks): void {
     source: TICK_SOURCE,
     layout: {
       'icon-image': image ? 'rs-tick' : '',
-      'text-field': ['get', 'label'],
-      'text-font': ['Noto Sans Bold'],
-      'text-size': 10,
+      'icon-rotate': ['get', 'rotate'] as unknown as number,
+      'icon-rotation-alignment': 'map',
+      'text-field': ['get', 'text'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': TICK_TEXT_PX,
+      'text-offset': ['get', 'offset'] as unknown as [number, number],
+      'text-anchor': 'center',
       'icon-allow-overlap': false,
       'text-allow-overlap': false,
       'symbol-sort-key': ['to-number', ['get', 'label']],
     },
-    paint: { 'text-color': inks.route },
+    paint: { 'text-color': inks.route, 'text-halo-color': inks.casing, 'text-halo-width': 1.5 },
   });
 }

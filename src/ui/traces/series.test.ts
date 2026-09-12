@@ -133,7 +133,7 @@ describe('readouts', () => {
 
   it('shows whole-activity figures without a playhead', () => {
     const cells = readoutCells(model, null, en);
-    expect(cells.map((c) => c.label)).toEqual(['Elapsed', 'Distance', 'Avg pace', 'Avg HR / demand', 'Ascent', 'Avg cadence', 'Elevation']);
+    expect(cells.map((c) => c.label)).toEqual(['Elapsed', 'Distance', 'Avg pace', 'Avg HR / demand', 'Recorded ascent', 'Avg cadence', 'Recorded elevation']);
     expect(cells[0].value).toBe('9:59');
     expect(panelReadouts(model, null, en).hr.caption).toBe('avg');
   });
@@ -151,6 +151,15 @@ describe('readouts', () => {
     expect(cells.find((c) => c.key === 'speed')!.unit).toBe('/км');
     expect(cells.find((c) => c.key === 'hr')!.label).toBe('Пульс / требуемый');
     expect(emptyCells(ru, 'ride', 'imperial').find((c) => c.key === 'speed')!.unit).toBe('миль/ч');
+  });
+
+  it('writes decimal commas in Russian readouts', () => {
+    const ru = stringsFor('ru');
+    expect(readoutCells(model, 100, ru).find((c) => c.key === 'distance')!.value).toMatch(/^0,\d\d$/);
+    expect(readoutCells(model, 300, ru).find((c) => c.key === 'grade')!.value).toBe('8,0');
+    const ride = buildTraceModel(result, 'ride', 'metric');
+    expect(readoutCells(ride, null, ru).find((c) => c.key === 'speed')!.value).toMatch(/^\d+,\d$/);
+    expect(readoutCells(ride, null, en).find((c) => c.key === 'speed')!.value).toMatch(/^\d+\.\d$/);
   });
 
   it('writes one sentence for the live region', () => {

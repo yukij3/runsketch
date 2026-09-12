@@ -31,7 +31,7 @@
 
     <svg viewBox="0 0 1056 448" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="effort-model-dark-title effort-model-dark-desc">
       <title id="effort-model-dark-title">The Runsketch effort model</title>
-      <desc id="effort-model-dark-desc">Terrain grade sets a speed plan, the speed plan sets heart-rate demand, a lagging two-stage kinetics turns demand into recorded heart rate, and cadence, power, GPS error and altimeter come from the same run; one seeded result feeds both the preview and the FIT, TCX and GPX files.</desc>
+      <desc id="effort-model-dark-desc">Terrain grade sets a speed plan, the speed plan sets heart-rate demand, fast vagal and slow sympathetic kinetics lag behind demand to give recorded heart rate, and cadence, power, GPS error and altimeter come from the same run; one seeded result feeds both the preview and the FIT, TCX and GPX files.</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b7bcb8"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ef6479"/></marker>
@@ -84,9 +84,9 @@
       <rect x="640" y="88" width="176" height="124" rx="6" fill="rgba(239,100,121,0.12)" stroke="#ef6479" stroke-width="1.2"/>
       <text x="656" y="114" fill="#ef6479" font-size="11" font-family="'Red Hat Mono', monospace" letter-spacing="0.12em">04</text>
       <text x="656" y="140" fill="#f5f6f4" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">HR kinetics</text>
-      <text x="656" y="164" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">rise τ 18 + 38 s</text>
-      <text x="656" y="182" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">recover τ 30 + 80 s</text>
-      <text x="656" y="200" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">× fitness scale</text>
+      <text x="656" y="164" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">fast τ 10 s / 30 s</text>
+      <text x="656" y="182" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">slow τ 50 s / 160 s</text>
+      <text x="656" y="200" fill="#b7bcb8" font-size="12" font-family="'Red Hat Mono', monospace">rise / recovery</text>
 
       <!-- ─── Node 05 · Recorded HR ─── -->
       <rect x="840" y="88" width="176" height="124" rx="6" fill="#16181c"/>

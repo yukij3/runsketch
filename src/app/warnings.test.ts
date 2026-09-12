@@ -16,6 +16,23 @@ describe('localizeWarning (ru)', () => {
     expect(cyrillicOnly(ru)).toBe(true);
   });
 
+  it.each([
+    'The target average heart rate of 190 bpm is outside this athlete\'s plausible range of 65–182 bpm.',
+    'The target average heart rate of 190 bpm could not be matched on this route, so the average over moving time is 178 bpm.',
+    'Matching an average heart rate of 178 bpm at this pace implies a VO2max of about 23 ml/kg/min, outside the usual range of 25–85.',
+  ])('translates heart-rate matching note %s', (sentence) => {
+    expect(cyrillicOnly(localizeWarning('ru', sentence))).toBe(true);
+  });
+
+  it('writes decimal commas and Russian units inside numbers', () => {
+    expect(
+      localizeWarning('ru', 'The target needs about 420 W on flat road (6.0 W/kg, 151 % of VO2 reserve), more than this athlete can sustain; heart rate stays pinned near maximum.'),
+    ).toContain('(6,0 Вт/кг, 151 %');
+    expect(
+      localizeWarning('ru', "On flat ground this target means 3:30/km, about 120 % of this athlete's VO2 reserve, which is not sustainable; heart rate stays pinned near maximum."),
+    ).toContain('3:30/км');
+  });
+
   it('keeps the numbers from the English sentence', () => {
     expect(localizeWarning('ru', 'The target moving time of 10:00 could not be matched: the maximum plausible power (2000 W) and speed cap how fast this route can be ridden, so the moving time is 12:31.')).toContain('2000 Вт');
     expect(localizeWarning('en', 'anything')).toBe('anything');

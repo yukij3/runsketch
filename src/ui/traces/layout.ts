@@ -16,13 +16,19 @@ export interface PanelBox {
 export interface StripLayout {
   width: number;
   height: number;
-  /** Narrow strip: panel names sit inside the plot and the right readout column is dropped. */
+  /** Narrow strip: panel names get a label band above each plot and the right readout column is dropped. */
   compact: boolean;
+  /** Left margin before the tick gutter (compact strips only, so tick labels clear the screen edge). */
+  padL: number;
+  /** Right margin after the zone column (compact strips only), mirroring padL. */
+  padR: number;
+  /** Height of the band above each panel that carries its name (compact strips only). */
+  labelH: number;
   nameW: number;
   tickW: number;
   plotX: number;
   plotW: number;
-  /** Column right of the plot holding HR zone labels. */
+  /** Column right of the plot holding HR zone labels (number, plus the zone's function when wide). */
   zoneX: number;
   zoneW: number;
   readoutX: number;
@@ -35,6 +41,8 @@ export interface StripLayout {
 export const COMPACT_BELOW = 640;
 const PANEL_GAP = 6;
 const TOP_PAD = 6;
+const COMPACT_PAD_L = 12;
+const COMPACT_LABEL_H = 15;
 const AXIS_H = 18;
 const MIN_PANEL_H = 18;
 
@@ -42,24 +50,29 @@ export function layoutStrip(width: number, height: number): StripLayout {
   const w = Math.max(160, Math.floor(width));
   const h = Math.max(120, Math.floor(height));
   const compact = w < COMPACT_BELOW;
+  const padL = compact ? COMPACT_PAD_L : 0;
+  const padR = compact ? COMPACT_PAD_L : 0;
+  const labelH = compact ? COMPACT_LABEL_H : 0;
   const nameW = compact ? 0 : 78;
   const tickW = 40;
-  const zoneW = compact ? 22 : 26;
+  const zoneW = compact ? 22 : 84;
   const readoutW = compact ? 0 : 92;
-  const plotX = nameW + tickW;
-  const plotW = Math.max(40, w - plotX - zoneW - readoutW);
+  const plotX = padL + nameW + tickW;
+  const plotW = Math.max(40, w - plotX - zoneW - readoutW - padR);
 
-  const gaps = PANEL_GAP * (PANEL_ORDER.length - 1);
-  const avail = Math.max(PANEL_ORDER.length * MIN_PANEL_H, h - TOP_PAD - AXIS_H - gaps);
+  const gap = PANEL_GAP + labelH;
+  const topPad = TOP_PAD + labelH;
+  const gaps = gap * (PANEL_ORDER.length - 1);
+  const avail = Math.max(PANEL_ORDER.length * MIN_PANEL_H, h - topPad - AXIS_H - gaps);
   const totalWeight = PANEL_ORDER.reduce((sum, id) => sum + WEIGHTS[id], 0);
   const heights = PANEL_ORDER.map((id) => Math.max(MIN_PANEL_H, Math.floor((avail * WEIGHTS[id]) / totalWeight)));
   const leftover = avail - heights.reduce((a, b) => a + b, 0);
   heights[PANEL_ORDER.indexOf('hr')] += Math.max(0, leftover);
 
-  let top = TOP_PAD;
+  let top = topPad;
   const panels = PANEL_ORDER.map((id, k) => {
     const box = { id, top, height: heights[k] };
-    top += heights[k] + PANEL_GAP;
+    top += heights[k] + gap;
     return box;
   });
   const last = panels[panels.length - 1];
@@ -68,6 +81,9 @@ export function layoutStrip(width: number, height: number): StripLayout {
     width: w,
     height: h,
     compact,
+    padL,
+    padR,
+    labelH,
     nameW,
     tickW,
     plotX,

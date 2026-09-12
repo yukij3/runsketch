@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { LngLat } from '../types';
 import { FIXTURE_NAME, makeExportInput } from '../export/__fixtures__/activity';
 import { buildGpx, buildTcx } from '../export';
-import { parseRouteFile } from './index';
+import { RouteImportError, parseRouteFile } from './index';
 
 function expectedCoords(): LngLat[] {
   const s = makeExportInput('run').result.streams;
@@ -62,5 +62,23 @@ describe('parseRouteFile', () => {
     );
     expect(() => parseRouteFile('<gpx><wpt lat="1" lon="2"/></gpx>', 'x.gpx')).toThrow(/only one point/);
     expect(() => parseRouteFile('', 'activity.FIT')).toThrow(/FIT files cannot be imported/);
+  });
+
+  it('tags every failure with a code for localized messages', () => {
+    const codeOf = (text: string, name: string) => {
+      try {
+        parseRouteFile(text, name);
+      } catch (err) {
+        expect(err).toBeInstanceOf(RouteImportError);
+        return [(err as RouteImportError).code, (err as RouteImportError).detail];
+      }
+      return null;
+    };
+    expect(codeOf('<gpx><trk>', 'bad.gpx')?.[0]).toBe('invalidXml');
+    expect(codeOf(' ', 'e.gpx')).toEqual(['empty', undefined]);
+    expect(codeOf('<kml/>', 'x.kml')).toEqual(['unsupported', 'kml']);
+    expect(codeOf('<gpx/>', 'x.gpx')).toEqual(['noPoints', undefined]);
+    expect(codeOf('<gpx><wpt lat="1" lon="2"/></gpx>', 'x.gpx')).toEqual(['onePoint', undefined]);
+    expect(codeOf('', 'a.fit')).toEqual(['fit', undefined]);
   });
 });

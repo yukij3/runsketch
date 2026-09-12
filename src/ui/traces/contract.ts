@@ -1,6 +1,7 @@
 // Props contract between the app shell (owner of state) and the traces strip.
 import type { HrZone } from '../../lib/sim';
 import type { SimulationResult, Units, ActivityType } from '../../lib/types';
+import type { RestPoint } from './rest';
 
 export type Lang = 'en' | 'ru';
 
@@ -13,6 +14,8 @@ export interface TracesProps {
   zones: HrZone[];
   /** Index into result.streams (seconds from start), or null when not scrubbing. */
   playhead: number | null;
+  /** Where the playhead sits while `playhead` is null (see rest.ts); omitted or null hides it at rest. */
+  rest?: RestPoint | null;
   onPlayhead: (index: number | null) => void;
   /** True while terrain/simulation is recomputing; traces show a quiet pending state. */
   busy: boolean;

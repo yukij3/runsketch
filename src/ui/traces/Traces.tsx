@@ -34,7 +34,7 @@ export const MIN_TIME_SPAN_S = 10;
 let revealSerial = 0;
 
 export function Traces(props: TracesProps) {
-  const { result, activity, units, lang, zones, playhead, onPlayhead, busy } = props;
+  const { result, activity, units, lang, zones, playhead, rest = null, onPlayhead, busy } = props;
   const s = stringsFor(lang);
   const [axisPref, setAxisPref] = useState<XAxis>('distance');
   const [pinnedState, setPinned] = useState(false);
@@ -64,8 +64,8 @@ export function Traces(props: TracesProps) {
   const yMaps = useMemo(() => (model ? panelYMaps(model, layout) : null), [model, layout]);
   const ink = useMemo(() => (model && scale ? buildInk(model, scale, layout) : null), [model, scale, layout]);
   const axes = useMemo(
-    () => (model && scale && yMaps ? buildAxes(model, scale, layout, yMaps, stableZones) : null),
-    [model, scale, layout, yMaps, stableZones],
+    () => (model && scale && yMaps ? buildAxes(model, scale, layout, yMaps, stableZones, lang) : null),
+    [model, scale, layout, yMaps, stableZones, lang],
   );
   // A new result object gets a new key, remounting the ink layer and replaying the pen reveal.
   const revealKey = useMemo(() => ++revealSerial, [usable]);
@@ -83,17 +83,21 @@ export function Traces(props: TracesProps) {
     [s, units, foot],
   );
 
-  const index = model ? clampIndex(model, playhead) : null;
-  const pinned = pinnedState && index !== null;
+  // `scrub` is the playhead someone set; with none, the line rests at the rest point (crest of the largest climb).
+  const scrub = model ? clampIndex(model, playhead) : null;
+  const restIndex = model && rest ? clampIndex(model, rest.index) : null;
+  const index = scrub ?? restIndex;
+  const pinned = pinnedState && scrub !== null;
+  const releasedText = rest && restIndex !== null ? s.rested[rest.kind] : s.cleared;
 
   useEffect(() => {
-    if (index === null) setPinned(false);
-  }, [index]);
+    if (scrub === null) setPinned(false);
+  }, [scrub]);
 
   useEffect(() => setLive(''), [lang]);
 
   const emit = (next: number | null) => {
-    if (next !== index) onPlayhead(next);
+    if (next !== scrub) onPlayhead(next);
   };
 
   const indexFromPointer = (e: ReactPointerEvent<HTMLDivElement> | ReactMouseEvent<HTMLDivElement>): number | null => {
@@ -138,7 +142,7 @@ export function Traces(props: TracesProps) {
   const clear = () => {
     setPinned(false);
     emit(null);
-    setLive(s.cleared);
+    setLive(releasedText);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -148,7 +152,7 @@ export function Traces(props: TracesProps) {
     e.preventDefault();
     setPinned(next !== null);
     emit(next);
-    setLive(next === null ? s.cleared : liveText(readoutCells(model, next, s)));
+    setLive(next === null ? releasedText : liveText(readoutCells(model, next, s)));
   };
 
   const cells = model ? readoutCells(model, index, s) : emptyCells(s, activity, units);
@@ -167,12 +171,36 @@ export function Traces(props: TracesProps) {
     >
       <div className="traces__bar">
         <ReadoutRow cells={cells} />
+        <div className="traces__tools">
+          <span className="traces__status" role="status">
+            {busy && model ? s.recomputing : ''}
+          </span>
+          {pinned && (
+            <button type="button" className="traces__button" onClick={clear}>
+              <X size={14} strokeWidth={1.75} aria-hidden="true" />
+              <span>{s.clearPlayhead}</span>
+            </button>
+          )}
+          <div className="traces__seg" role="group" aria-label={s.axisLabel}>
+            <button
+              type="button"
+              aria-pressed={axis === 'distance'}
+              disabled={model !== null && !canUseDistance}
+              onClick={() => setAxisPref('distance')}
+            >
+              {s.axisDistance}
+            </button>
+            <button type="button" aria-pressed={axis === 'time'} onClick={() => setAxisPref('time')}>
+              {s.axisTime}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="traces__body" ref={bodyRef}>
-        <StaticLayer layout={layout} axes={axes} names={names} />
+        <StaticLayer layout={layout} axes={axes} names={names} zoneNames={s.zone} />
         {ink && <InkLayer key={revealKey} layout={layout} ink={ink} stoppedLabel={s.stopped} />}
-        <LabelLayer layout={layout} names={names} />
+        <LabelLayer layout={layout} names={names} zones={axes?.zones ?? null} zoneNames={s.zone} />
         {model && scale && yMaps && (
           <PlayheadLayer
             layout={layout}
@@ -205,30 +233,6 @@ export function Traces(props: TracesProps) {
 
       <div className="traces__foot">
         <Legend s={s} showStops={model !== null && model.stops.length > 0} />
-        <span className="traces__status" role="status">
-          {busy && model ? s.recomputing : ''}
-        </span>
-        <div className="traces__tools">
-          {pinned && (
-            <button type="button" className="traces__button" onClick={clear}>
-              <X size={14} strokeWidth={1.75} aria-hidden="true" />
-              <span>{s.clearPlayhead}</span>
-            </button>
-          )}
-          <div className="traces__seg" role="group" aria-label={s.axisLabel}>
-            <button
-              type="button"
-              aria-pressed={axis === 'distance'}
-              disabled={model !== null && !canUseDistance}
-              onClick={() => setAxisPref('distance')}
-            >
-              {s.axisDistance}
-            </button>
-            <button type="button" aria-pressed={axis === 'time'} onClick={() => setAxisPref('time')}>
-              {s.axisTime}
-            </button>
-          </div>
-        </div>
       </div>
 
       <p id={hintId} className="traces__sr">

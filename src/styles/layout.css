@@ -58,6 +58,7 @@
 @media (max-width: 1023.98px) {
   :root {
     --sheet-pad: 16px;
+    --traces-h: clamp(340px, 46svh, 440px);
   }
 
   .app {
@@ -93,5 +94,12 @@
     bottom: 0;
     z-index: 30;
     padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Phones: the strip carries a three-row readout grid and a label band per panel, so it gets more height. */
+@media (max-width: 639.98px) {
+  :root {
+    --traces-h: clamp(440px, 58svh, 540px);
   }
 }

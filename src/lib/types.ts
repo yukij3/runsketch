@@ -107,6 +107,12 @@ export interface SessionSettings {
   description: string;
   /** Lap length for exports and splits, metres (1000 or 1609.344). */
   lapDistance: number;
+  /**
+   * Average recorded heart rate to match, bpm. When set, the engine solves the athlete's effective VO2max so the
+   * mean HR over moving time lands on it; pace, speed and every other kinematic stream stay unchanged.
+   * Absent or null: heart rate follows the athlete profile.
+   */
+  hrTarget?: number | null;
 }
 
 /** 1 Hz simulated streams. Index i is second i from the start (elapsed time). */
@@ -171,6 +177,8 @@ export interface SimulationResult {
   summary: ActivitySummary;
   /** Human-readable notes, e.g. "Target pace too fast for 18% climb — capped". */
   warnings: string[];
+  /** ml/kg/min: the effective VO2max solved for session.hrTarget. Present only when an HR target was matched. */
+  impliedVo2max?: number;
 }
 
 export interface SimulationInput {

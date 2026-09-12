@@ -5,7 +5,7 @@ import { legsSummary } from '../../app/i18n';
 import { countLegs, routeCoords } from '../../app/pipeline';
 import { useApp, useRuntime, useT } from '../../app/runtime';
 import { shareHash } from '../../app/sync';
-import { formatDistance, formatElevation } from '../../lib/format';
+import { formatDecimal, formatDistance, formatElevation } from '../../lib/format';
 import { polylineLength } from '../../lib/geo';
 import { DataRow, IconButton, Section, cx } from '../controls';
 import { waypointLabel, waypointRole } from '../labels';
@@ -55,7 +55,7 @@ export function RouteSection() {
   return (
     <Section id="route" title={t('sectionRoute')} busy={stale}>
       <dl className={cx('table', stale && 'is-stale')}>
-        <DataRow label={t('distance')} value={distance !== null ? formatDistance(distance, units) : undefined} unit={u.distance} />
+        <DataRow label={t('distance')} value={distance !== null ? formatDistance(distance, units, 2, lang) : undefined} unit={u.distance} />
         <DataRow label={t('ascentDescent')}>
           <span className="num">{p ? `+${elev(p.ascent)} / −${elev(p.descent)}` : '–'}</span>
           {p ? <span className="unit">{u.elevation}</span> : null}
@@ -102,7 +102,9 @@ export function RouteSection() {
                   {label}
                 </button>
                 <span className="wp-list__coord num">
-                  {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
+                  {lang === 'ru'
+                    ? `${formatDecimal(w.lat, 5, lang)}; ${formatDecimal(w.lon, 5, lang)}`
+                    : `${formatDecimal(w.lat, 5)}, ${formatDecimal(w.lon, 5)}`}
                 </span>
                 <IconButton icon={X} label={t('removeWaypoint', { name: label })} onClick={() => actions.removeWaypoint(w.id)} className="icon-btn--sm" tipSide="left" />
               </li>

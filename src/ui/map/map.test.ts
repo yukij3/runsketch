@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { StyleSpecification } from 'maplibre-gl';
 import { legKey } from '../../lib/route';
 import type { RouteLeg, Waypoint } from '../../lib/types';
-import { distanceTicks, nearestSample, routeFeatures } from './geometry';
+import { TICK_TEXT_PX, distanceTicks, nearestSample, placeTickLabels, routeFeatures, segmentBoxDist, type ScreenPoint } from './geometry';
 import { DEM_SOURCE_ID, HILLSHADE_LAYER_ID, transformPositron } from './mapStyle';
 
 const wps: Waypoint[] = [
@@ -39,6 +39,12 @@ describe('distanceTicks', () => {
     const ticks = distanceTicks(line, 1000);
     expect(ticks.features.map((f) => f.properties.label)).toEqual(['1', '2', '3', '4']);
     expect(ticks.features[0].geometry.coordinates[0]).toBeCloseTo(0.00898, 4);
+    const labelled = distanceTicks(line, 1000, 'km').features[0].properties;
+    expect(labelled.text).toBe('1 km');
+    // Eastbound: the hairline turns a quarter across the route and the label sits below it, clear of the line.
+    expect(labelled.rotate).toBe(90);
+    expect(labelled.offset[0]).toBeCloseTo(0, 5);
+    expect(labelled.offset[1]).toBeGreaterThan(1);
 
     const long = distanceTicks(
       [
@@ -83,5 +89,47 @@ describe('transformPositron', () => {
     const city = out.layers.find((l) => l.id === 'label_city') as { paint: Record<string, unknown> };
     expect(city.paint['text-color']).not.toBe('#000');
     expect(style.layers).toHaveLength(6);
+  });
+});
+
+describe('placeTickLabels', () => {
+  const box = (at: ScreenPoint, offset: [number, number], text: string) => {
+    const cx = at[0] + offset[0] * TICK_TEXT_PX;
+    const cy = at[1] + offset[1] * TICK_TEXT_PX;
+    const w = text.length * 6;
+    return { x0: cx - w / 2, y0: cy - 8, x1: cx + w / 2, y1: cy + 8 };
+  };
+
+  it('keeps labels off the route line, the markers and each other', () => {
+    const ticks = distanceTicks(
+      [
+        [0, 0],
+        [0.04, 0],
+      ],
+      1000,
+      'km',
+    );
+    // Eastbound on screen along y = 100; a hairpin comes back just below the route, and a waypoint sits right of 2 km.
+    const anchors: ScreenPoint[] = ticks.features.map((_, k) => [100 + k * 40, 100]);
+    const lines: ScreenPoint[][] = [
+      [
+        [0, 100],
+        [400, 100],
+        [400, 122],
+        [0, 122],
+      ],
+    ];
+    const discs = [{ at: [140, 80] as ScreenPoint, r: 8 }];
+    const placed = placeTickLabels(ticks, anchors, { lines, discs });
+    const boxes = placed.features.map((f, k) => box(anchors[k], f.properties.offset, f.properties.text));
+    boxes.forEach((b, k) => {
+      for (const line of lines) for (let i = 1; i < line.length; i++) expect(segmentBoxDist(line[i - 1], line[i], b)).toBeGreaterThan(4);
+      const [dx, dy] = [Math.max(b.x0 - 140, 0, 140 - b.x1), Math.max(b.y0 - 80, 0, 80 - b.y1)];
+      expect(Math.hypot(dx, dy)).toBeGreaterThan(8);
+      for (let j = 0; j < k; j++) {
+        const o = boxes[j];
+        expect(o.x1 < b.x0 || b.x1 < o.x0 || o.y1 < b.y0 || b.y1 < o.y0).toBe(true);
+      }
+    });
   });
 });

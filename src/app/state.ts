@@ -10,6 +10,7 @@ import type {
   Units,
   Waypoint,
 } from '../lib/types';
+import type { EffortPreset } from '../lib/sim';
 import type { Lang } from './i18n';
 
 export type StageState = 'idle' | 'busy' | 'done' | 'error';
@@ -66,6 +67,13 @@ export interface AppState {
   session: SessionSettings;
   /** Name follows activity, start hour and language until the user edits it. */
   nameAuto: boolean;
+  /**
+   * True until the user edits the target by hand. While true, switching the activity applies an effort preset
+   * (the chosen one, or Steady) instead of a fixed default.
+   */
+  targetAuto: boolean;
+  /** Effort the target is solved for on the current route and athlete; null when the target is a plain value. */
+  effortPreset: EffortPreset | null;
   units: Units;
   lang: Lang;
   playhead: number | null;

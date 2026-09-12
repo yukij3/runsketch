@@ -2,7 +2,7 @@ import pkg from '../../package.json';
 
 export const APP_NAME = 'Runsketch';
 export const APP_VERSION: string = pkg.version;
-export const REPO_URL = 'https://github.com/';
+export const REPO_URL = 'https://github.com/yukij3/runsketch';
 
 /**
  * Name written into GPX creator, TCX Creator and FIT device_info. Empty by owner decision

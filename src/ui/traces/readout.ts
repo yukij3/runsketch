@@ -40,8 +40,8 @@ export interface PanelReadout {
 const DASH = '–';
 const round = (v: number) => (Number.isFinite(v) ? String(Math.round(v)) : DASH);
 
-function speedText(model: TraceModel, mps: number): string {
-  return model.kind === 'pace' ? formatPace(mps, model.units) : formatSpeed(mps, model.units);
+function speedText(model: TraceModel, mps: number, s: TraceStrings): string {
+  return model.kind === 'pace' ? formatPace(mps, model.units) : formatSpeed(mps, model.units, 1, s.lang);
 }
 
 function speedUnitText(model: TraceModel, s: TraceStrings): string {
@@ -69,8 +69,8 @@ export function readoutCells(model: TraceModel, index: number | null, s: TraceSt
         : DASH;
     return [
       { key: 'elapsed', label: s.cell.elapsed, value: formatDuration(a.elapsed), unit: '' },
-      { key: 'distance', label: s.cell.distance, value: formatDistance(a.distance, u), unit: unitText(s, distanceUnit(u)) },
-      { key: 'speed', label: pace ? s.cell.avgPace : s.cell.avgSpeed, value: speedText(model, a.speed), unit: speedUnitText(model, s) },
+      { key: 'distance', label: s.cell.distance, value: formatDistance(a.distance, u, 2, s.lang), unit: unitText(s, distanceUnit(u)) },
+      { key: 'speed', label: pace ? s.cell.avgPace : s.cell.avgSpeed, value: speedText(model, a.speed, s), unit: speedUnitText(model, s) },
       { key: 'hr', label: s.cell.avgHr, value: `${round(a.hr)}/${round(a.demand)}`, unit: unitText(s, 'bpm') },
       { key: 'grade', label: s.cell.ascent, value: formatElevation(a.ascent, u), unit: unitText(s, elevationUnit(u)) },
       { key: 'cadence', label: s.cell.avgCadence, value: round(a.cadence), unit: cad },
@@ -81,10 +81,10 @@ export function readoutCells(model: TraceModel, index: number | null, s: TraceSt
   const moving = st.moving[i] !== 0;
   return [
     { key: 'elapsed', label: s.cell.elapsed, value: formatDuration(st.t[i]), unit: '' },
-    { key: 'distance', label: s.cell.distance, value: formatDistance(st.dist[i], u), unit: unitText(s, distanceUnit(u)) },
-    { key: 'speed', label: pace ? s.cell.pace : s.cell.speed, value: speedText(model, model.smoothSpeed[i]), unit: speedUnitText(model, s) },
+    { key: 'distance', label: s.cell.distance, value: formatDistance(st.dist[i], u, 2, s.lang), unit: unitText(s, distanceUnit(u)) },
+    { key: 'speed', label: pace ? s.cell.pace : s.cell.speed, value: speedText(model, model.smoothSpeed[i], s), unit: speedUnitText(model, s) },
     { key: 'hr', label: s.cell.hr, value: `${round(st.hr[i])}/${round(st.hrDemand[i])}`, unit: unitText(s, 'bpm') },
-    { key: 'grade', label: s.cell.grade, value: formatGrade(st.grade[i]), unit: '%' },
+    { key: 'grade', label: s.cell.grade, value: formatGrade(st.grade[i], s.lang), unit: '%' },
     { key: 'cadence', label: s.cell.cadence, value: moving ? round(st.cadence[i]) : DASH, unit: cad },
     { key: 'elevation', label: s.cell.elevation, value: formatElevation(st.ele[i], u), unit: unitText(s, elevationUnit(u)) },
   ];
@@ -103,7 +103,7 @@ export function panelReadouts(model: TraceModel, index: number | null, s: TraceS
     const a = model.averages;
     return {
       elevation: { lines: [{ value: formatElevation(a.ascent, u), unit: eleUnit }], caption: s.ascent },
-      pace: { lines: [{ value: speedText(model, a.speed), unit: speedUnitLabel }], caption: s.avg },
+      pace: { lines: [{ value: speedText(model, a.speed, s), unit: speedUnitLabel }], caption: s.avg },
       hr: {
         lines: [
           { value: round(a.hr), unit: bpm, swatch: 'solid' },
@@ -116,7 +116,7 @@ export function panelReadouts(model: TraceModel, index: number | null, s: TraceS
   }
   return {
     elevation: { lines: [{ value: formatElevation(st.ele[i], u), unit: eleUnit }], caption: '' },
-    pace: { lines: [{ value: speedText(model, model.smoothSpeed[i]), unit: speedUnitLabel }], caption: '' },
+    pace: { lines: [{ value: speedText(model, model.smoothSpeed[i], s), unit: speedUnitLabel }], caption: '' },
     hr: {
       lines: [
         { value: round(st.hr[i]), unit: bpm, swatch: 'solid' },

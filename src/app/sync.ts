@@ -1,14 +1,30 @@
-// Mirrors preferences into localStorage and the route into location.hash (debounced).
+// Mirrors preferences into localStorage, routed legs into the leg cache, and the route into location.hash (debounced).
+import type { LegCache } from './legCache';
 import { encodeShare, saveStored } from './persistence';
 import type { AppState } from './state';
 import type { Store } from './store';
 
-const PERSISTED: ReadonlyArray<keyof AppState> = ['athlete', 'maxHrAuto', 'session', 'nameAuto', 'units', 'lang', 'profile', 'waypoints', 'view'];
+const PERSISTED: ReadonlyArray<keyof AppState> = [
+  'athlete',
+  'maxHrAuto',
+  'session',
+  'nameAuto',
+  'targetAuto',
+  'effortPreset',
+  'units',
+  'lang',
+  'profile',
+  'waypoints',
+  'view',
+  'legs',
+];
 
 export interface SyncEnv {
   storage: Pick<Storage, 'setItem'> | undefined;
   location: Pick<Location, 'hash' | 'pathname' | 'search'>;
   history: Pick<History, 'replaceState'>;
+  /** Routed legs survive reloads through this cache (optional). */
+  legCache?: Pick<LegCache, 'remember' | 'save'>;
 }
 
 export function shareHash(state: AppState): string {
@@ -23,6 +39,10 @@ export function startSync(store: Store<AppState>, env: SyncEnv, delayMs = 300): 
     timer = undefined;
     const s = store.get();
     saveStored(env.storage, s);
+    if (env.legCache) {
+      env.legCache.remember(s.legs);
+      env.legCache.save(env.storage);
+    }
     const hash = shareHash(s);
     if (env.location.hash !== hash && !(hash === '' && env.location.hash === '#')) {
       env.history.replaceState(null, '', `${env.location.pathname}${env.location.search}${hash}`);

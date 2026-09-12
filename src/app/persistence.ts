@@ -1,7 +1,8 @@
 // localStorage preferences and the share link in location.hash. Everything read back is validated.
 import { decodePolyline, encodePolyline } from '../lib/geo';
-import { newWaypointId } from '../lib/route';
-import { defaultAthlete, defaultSession, estimateMaxHr } from '../lib/sim';
+import { legKey, newWaypointId } from '../lib/route';
+import { EFFORT_PRESETS, defaultAthlete, defaultSession, estimateMaxHr, type EffortPreset } from '../lib/sim';
+import type { LegGeometry } from '../lib/services/routing';
 import type {
   ActivityType,
   Athlete,
@@ -10,6 +11,7 @@ import type {
   HrSensor,
   LngLat,
   PacingStrategy,
+  RouteLeg,
   SessionSettings,
   SnapProfile,
   StopsLevel,
@@ -64,6 +66,11 @@ export function sanitizeTarget(raw: unknown, fallback: TargetSpec): TargetSpec {
   return fallback;
 }
 
+/** Average HR target, whole bpm in 40–230, or null (heart rate from the athlete profile). */
+export function sanitizeHrTarget(raw: unknown): number | null {
+  return typeof raw === 'number' && Number.isFinite(raw) && raw >= 40 && raw <= 230 ? Math.round(raw) : null;
+}
+
 /** Stored session preferences over today's defaults; start time is always "now". */
 export function sanitizeSession(raw: unknown, base: SessionSettings): SessionSettings {
   const r = isObject(raw) ? raw : {};
@@ -82,6 +89,7 @@ export function sanitizeSession(raw: unknown, base: SessionSettings): SessionSet
     seed: Math.trunc(num(r.seed, 0, 0xffffffff, typed.seed)),
     name: str(r.name, 120, typed.name),
     description: str(r.description, 2000, typed.description),
+    hrTarget: sanitizeHrTarget(r.hrTarget),
   };
 }
 
@@ -113,6 +121,8 @@ export interface PersistedState {
   maxHrAuto: boolean;
   session: Omit<SessionSettings, 'startTime' | 'utcOffsetMin' | 'lapDistance'>;
   nameAuto: boolean;
+  targetAuto: boolean;
+  effortPreset: EffortPreset | null;
   units: Units;
   lang: Lang;
   profile: SnapProfile;
@@ -126,8 +136,10 @@ export function toPersisted(s: AppState): PersistedState {
     v: 1,
     athlete: s.athlete,
     maxHrAuto: s.maxHrAuto,
-    session,
+    session: { ...session, hrTarget: session.hrTarget ?? null },
     nameAuto: s.nameAuto,
+    targetAuto: s.targetAuto,
+    effortPreset: s.effortPreset,
     units: s.units,
     lang: s.lang,
     profile: s.profile,
@@ -137,7 +149,7 @@ export function toPersisted(s: AppState): PersistedState {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Share link: #v=1&r=<polyline>&p=<profile>&a=<activity>&t=<p330|s6.944|d3600>&s=<seed>
+// Share link: #v=1&r=<polyline>&p=<profile>&a=<activity>&t=<p330|s6.944|d3600>&s=<seed>[&h=<avg HR bpm>]
 
 export interface SharePayload {
   coords: LngLat[];
@@ -145,6 +157,8 @@ export interface SharePayload {
   activity?: ActivityType;
   target?: TargetSpec;
   seed?: number;
+  /** Average HR to match; absent when the link follows the athlete profile. */
+  hrTarget?: number;
 }
 
 export function encodeTarget(t: TargetSpec): string {
@@ -170,6 +184,8 @@ export function encodeShare(s: Pick<AppState, 'waypoints' | 'profile' | 'session
   params.set('a', s.session.type);
   params.set('t', encodeTarget(s.session.target));
   params.set('s', String(s.session.seed));
+  const hr = sanitizeHrTarget(s.session.hrTarget);
+  if (hr !== null) params.set('h', String(hr));
   return params.toString();
 }
 
@@ -191,6 +207,8 @@ export function decodeShare(hash: string): SharePayload | null {
   if (target) payload.target = target;
   const seed = Number(params.get('s'));
   if (params.has('s') && Number.isInteger(seed) && seed >= 0 && seed <= 0xffffffff) payload.seed = seed;
+  const hr = params.has('h') ? sanitizeHrTarget(Number(params.get('h'))) : null;
+  if (hr !== null) payload.hrTarget = hr;
   return payload;
 }
 
@@ -213,6 +231,21 @@ export interface InitialEnv {
   hash: string;
   language?: string;
   now: number;
+  /** Persisted routed legs by legKey; matching legs are restored so a reload does not route again. */
+  legs?: { get(key: string): LegGeometry | undefined };
+}
+
+function restoreLegs(waypoints: Waypoint[], profile: SnapProfile, cache: InitialEnv['legs']): Map<string, RouteLeg> {
+  const legs = new Map<string, RouteLeg>();
+  if (!cache) return legs;
+  for (let i = 1; i < waypoints.length; i++) {
+    const from = waypoints[i - 1];
+    const to = waypoints[i];
+    const key = legKey([from.lon, from.lat], [to.lon, to.lat], profile);
+    const geometry = cache.get(key);
+    if (geometry) legs.set(key, { ...geometry, fromId: from.id, toId: to.id });
+  }
+  return legs;
 }
 
 export function buildInitialState(env: InitialEnv): AppState {
@@ -226,8 +259,20 @@ export function buildInitialState(env: InitialEnv): AppState {
   if (share?.activity && share.activity !== session.type) {
     session = { ...session, ...pickTypeDefaults(share.activity, session) };
   }
-  if (share?.target) session = { ...session, target: share.target };
+  let targetAuto = stored.targetAuto !== false;
+  let effortPreset: EffortPreset | null =
+    targetAuto && typeof stored.effortPreset === 'string' && (EFFORT_PRESETS as readonly string[]).includes(stored.effortPreset)
+      ? (stored.effortPreset as EffortPreset)
+      : null;
+  // The link rounds the target; when it names the stored target, the stored full-precision value wins (a reload
+  // must reproduce the same moving time).
+  if (share?.target && encodeTarget(share.target) !== encodeTarget(session.target)) {
+    session = { ...session, target: share.target };
+    targetAuto = false;
+    effortPreset = null;
+  }
   if (share?.seed !== undefined) session = { ...session, seed: share.seed };
+  if (share?.hrTarget !== undefined) session = { ...session, hrTarget: share.hrTarget };
   session.lapDistance = lapDistanceFor(units);
 
   const nameAuto = stored.nameAuto !== false || !session.name.trim();
@@ -240,18 +285,21 @@ export function buildInitialState(env: InitialEnv): AppState {
   const storedCoords = sanitizeCoords(stored.waypoints);
   const coords = share && share.coords.length > 0 && !sameRoute(share.coords, storedCoords) ? share.coords : storedCoords;
   const profile = share?.profile ?? oneOf(stored.profile, SNAP_PROFILES, 'foot');
+  const waypoints = toWaypoints(coords);
 
   return {
-    waypoints: toWaypoints(coords),
+    waypoints,
     past: [],
     future: [],
     selectedId: null,
     profile,
-    legs: new Map(),
+    legs: restoreLegs(waypoints, profile, env.legs),
     athlete,
     maxHrAuto,
     session,
     nameAuto,
+    targetAuto,
+    effortPreset,
     units,
     lang,
     playhead: null,

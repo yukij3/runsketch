@@ -83,11 +83,59 @@ export function AthleteSection() {
             options={FITNESS.map((f) => ({ value: f, label: t(`fitness_${f}`) }))}
           />
         </FieldRow>
+        <HeartRateMode />
         <FieldRow label={t('hrSensor')} labelId="rs-sensor-label">
           <SensorControl labelledBy="rs-sensor-label" />
         </FieldRow>
       </div>
     </Section>
+  );
+}
+
+type HrMode = 'profile' | 'match';
+
+// Heart rate from the profile (fitness → VO2max), or matched to an average: the engine then solves the VO2max.
+function HeartRateMode() {
+  const t = useT();
+  const actions = useActions();
+  const hrTarget = useApp((s) => s.session.hrTarget ?? null);
+  const athlete = useApp((s) => s.athlete);
+  const lastAvgHr = useApp((s) => s.sim.result?.summary.avgHr ?? 0);
+  const mode: HrMode = hrTarget === null ? 'profile' : 'match';
+  const lo = 40;
+  const hi = 230;
+  const start = () => {
+    const guess = lastAvgHr > 0 ? lastAvgHr : athlete.restHr + 0.65 * (athlete.maxHr - athlete.restHr);
+    return Math.min(hi, Math.max(lo, Math.round(guess)));
+  };
+  return (
+    <>
+      <FieldRow label={t('hrMode')} labelId="rs-hr-mode-label" stacked>
+        <Segmented<HrMode>
+          fill
+          labelledBy="rs-hr-mode-label"
+          value={mode}
+          onChange={(next) => actions.setHrTarget(next === 'match' ? start() : null)}
+          options={[
+            { value: 'profile', label: t('hrMode_profile') },
+            { value: 'match', label: t('hrMode_match') },
+          ]}
+        />
+      </FieldRow>
+      {hrTarget !== null ? (
+        <FieldRow label={t('hrTarget')} htmlFor="rs-hr-target">
+          <NumberField
+            id="rs-hr-target"
+            value={hrTarget}
+            min={lo}
+            max={hi}
+            unit={t('unit_bpm')}
+            invalidText={t('invalidNumber', { min: lo, max: hi })}
+            onCommit={(bpm) => actions.setHrTarget(bpm)}
+          />
+        </FieldRow>
+      ) : null}
+    </>
   );
 }
 

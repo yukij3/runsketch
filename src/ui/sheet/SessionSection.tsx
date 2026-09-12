@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { routeCoords } from '../../app/pipeline';
 import { useActions, useApp, useT } from '../../app/runtime';
 import { ACTIVITIES } from '../../app/state';
-import { parseClock } from '../../lib/format';
+import { formatDecimal, parseClock } from '../../lib/format';
 import { polylineLength } from '../../lib/geo';
-import { defaultSession } from '../../lib/sim';
+import { EFFORT_PRESETS, PRESET_GOALS, defaultSession, type EffortPreset } from '../../lib/sim';
 import type { ActivityType, GpsNoiseLevel, PacingStrategy, StopsLevel, TargetSpec } from '../../lib/types';
 import { FieldRow, IconButton, NumberField, Section, Segmented, ValueField } from '../controls';
 import { KM_PER_MI, cToF, fToC, formatHms, formatMss, toDateTimeLocal, unitLabels } from '../units';
@@ -43,6 +43,7 @@ function TargetRow() {
   const actions = useActions();
   const session = useApp((s) => s.session);
   const units = useApp((s) => s.units);
+  const lang = useApp((s) => s.lang);
   const terrainDistance = useApp((s) => s.terrain.profile?.totalDistance);
   const waypoints = useApp((s) => s.waypoints);
   const legs = useApp((s) => s.legs);
@@ -87,7 +88,7 @@ function TargetRow() {
         id="rs-target-value"
         ariaLabel={t('target_speed')}
         value={target.mps}
-        format={(v) => (v * speedFactor).toFixed(1)}
+        format={(v) => formatDecimal(v * speedFactor, 1, lang)}
         parse={(text) => {
           const v = Number(text.trim().replace(',', '.'));
           return text.trim() !== '' && Number.isFinite(v) && v >= 1 && v <= 90 ? v / speedFactor : null;
@@ -136,6 +137,27 @@ function TargetRow() {
         </select>
         {field}
       </div>
+    </FieldRow>
+  );
+}
+
+// Effort presets solve the target for this route and athlete (the pipeline applies the solved value).
+function PresetRow() {
+  const t = useT();
+  const actions = useActions();
+  const preset = useApp((s) => s.effortPreset);
+  const type = useApp((s) => s.session.type);
+  const goals = PRESET_GOALS[type];
+  return (
+    <FieldRow label={t('effortPreset')} labelId="rs-preset-label" stacked>
+      <Segmented<EffortPreset>
+        fill
+        size="sm"
+        labelledBy="rs-preset-label"
+        value={preset ?? ('' as EffortPreset)}
+        onChange={(next) => actions.setEffortPreset(next)}
+        options={EFFORT_PRESETS.map((p) => ({ value: p, label: t(`preset_${p}`), title: t('presetTitle', { pct: Math.round(goals[p] * 100) }) }))}
+      />
     </FieldRow>
   );
 }
@@ -211,6 +233,7 @@ export function SessionSection() {
           />
         </FieldRow>
         <TargetRow />
+        <PresetRow />
         <FieldRow label={t('pacing')} labelId="rs-pacing-label" stacked>
           <Segmented
             fill

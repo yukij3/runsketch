@@ -8,7 +8,7 @@ export const HILLSHADE_LAYER_ID = 'rs-hillshade';
 const HIDDEN = /poi|housenumber|shield|airport/i;
 const LABEL_INK = '#5b6068';
 const WATER_LABEL_INK = '#5f6f8c';
-const PATH_INK = '#cdd1cc';
+const PATH_INK = '#cbd0d6';
 
 function mute(layer: LayerSpecification): LayerSpecification {
   if (layer.type === 'symbol' && layer.paint && 'text-color' in layer.paint) {

@@ -33,34 +33,26 @@
 
 .traces__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  column-gap: var(--space-3);
   min-block-size: 30px;
   padding-inline: var(--space-3);
   border-block-end: var(--hairline) solid var(--rule);
 }
 
+/* Cells wrap onto a second line instead of scrolling: every readout stays visible at every width. */
 .traces__readouts {
   display: flex;
   flex: 1 1 auto;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-3);
+  column-gap: var(--space-3);
+  row-gap: 0;
   min-inline-size: 0;
   margin: 0;
   padding-block: var(--space-1);
-  overflow-x: auto;
   white-space: nowrap;
-  scrollbar-width: thin;
-  scrollbar-color: var(--rule-strong) transparent;
-}
-
-.traces__readouts::-webkit-scrollbar {
-  block-size: 4px;
-}
-
-.traces__readouts::-webkit-scrollbar-thumb {
-  background: var(--rule-strong);
-  border-radius: var(--radius-1);
 }
 
 .traces__cell {
@@ -96,6 +88,8 @@
   flex: none;
   align-items: center;
   gap: var(--space-2);
+  margin-inline-start: auto;
+  padding-block: var(--space-1);
 }
 
 .traces__seg {
@@ -244,10 +238,23 @@
   flex: none;
 }
 
+/* One swatch column, so every legend entry's text starts at the same x. */
+.traces__legend .traces__key {
+  inline-size: 22px;
+}
+
 .traces__status {
-  flex: none;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
   color: var(--ink-2);
+  font-size: var(--text-2xs);
   white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.traces__status:empty {
+  display: none;
 }
 
 .traces__sr {
@@ -291,11 +298,9 @@
   font-weight: var(--weight-regular);
 }
 
-.traces__name--inset {
-  paint-order: stroke;
-  stroke: var(--sheet);
-  stroke-width: 3px;
-  stroke-linejoin: round;
+/* Compact strips: the name sits in its own band above the plot, so no halo is needed. */
+.traces__name--band {
+  dominant-baseline: alphabetic;
 }
 
 .traces__tick,
@@ -304,6 +309,21 @@
   font-family: var(--font-data);
   font-size: var(--text-2xs);
   font-variant-numeric: tabular-nums;
+}
+
+.traces__zone-label {
+  fill: var(--ink-2);
+}
+
+.traces__zone-name {
+  fill: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+}
+
+.traces__zone-key {
+  font-size: var(--text-2xs);
+  dominant-baseline: alphabetic;
 }
 
 .traces__zone { fill-opacity: 0.6; }
@@ -321,8 +341,30 @@
   stroke-linecap: round;
 }
 
+/* Terrain in graphite only: climbs a flat tint (carried faintly through the lower panels, onset dashed),
+   descents a stipple of dots. The hatch is reserved for the heart-rate lag, so each pattern has one meaning. */
 .traces__grade--up { fill: var(--ink-grade-up); }
-.traces__grade--down { fill: var(--ink-grade-down); }
+
+.traces__climb-column { fill: var(--ink-grade-up-column); }
+
+.traces__onset {
+  fill: none;
+  stroke: var(--ink-grade-onset);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  shape-rendering: crispEdges;
+}
+
+.traces__stipple { fill: var(--ink-grade-down); }
+
+.traces__key-climb { fill: var(--ink-grade-up); }
+
+.traces__key-lag {
+  fill: none;
+  stroke: var(--ink-hr);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
 
 .traces__ele-area { fill: var(--ink-elevation-fill); }
 
@@ -420,20 +462,64 @@
   stroke-dasharray: 4 3;
 }
 
-/* Narrow strips: the legend gets its own rows instead of being squeezed beside the tools. */
+/* Narrow strips: readouts become a ruled three-column grid (two full rows, then elevation beside the
+   axis toggle), and the legend stacks. */
 @container traces (max-width: 639px) {
+  .traces__bar {
+    position: relative;
+    display: block;
+    padding: 0;
+  }
+
   .traces__readouts {
-    padding-inline-end: var(--space-6);
-    mask-image: linear-gradient(to right, #000 calc(100% - var(--space-6)), transparent);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    padding: 0;
+    white-space: normal;
+  }
+
+  .traces__cell {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1px;
+    min-inline-size: 0;
+    padding: 5px var(--space-2) 6px;
+  }
+
+  .traces__cell:nth-child(3n + 1) {
+    padding-inline-start: var(--space-3);
+  }
+
+  .traces__cell:nth-child(-n + 6) {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+
+  .traces__cell:not(:nth-child(3n + 1)) {
+    border-inline-start: var(--hairline) solid var(--rule);
+  }
+
+  .traces__cell dt {
+    line-height: var(--leading-tight);
+  }
+
+  .traces__cell dd {
+    white-space: nowrap;
+  }
+
+  .traces__tools {
+    position: absolute;
+    inset-block-end: 5px;
+    inset-inline-end: var(--space-3);
+    max-inline-size: calc(66.666% - var(--space-4));
+    padding: 0;
   }
 
   .traces__foot {
-    flex-wrap: wrap;
-    row-gap: 2px;
+    padding-block: var(--space-1);
   }
 
   .traces__legend {
-    flex-basis: 100%;
     flex-direction: column;
   }
 
@@ -441,12 +527,8 @@
     white-space: nowrap;
   }
 
-  .traces__legend li:nth-child(3) {
-    display: none;
-  }
-
-  .traces__status {
-    margin-inline-end: auto;
+  .traces__legend-stops {
+    display: none !important;
   }
 }
 

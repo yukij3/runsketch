@@ -1,6 +1,7 @@
 import { ArrowLeftRight, ArrowUpDown, FileUp, IterationCcw, Redo2, Trash2, Undo2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent, type Ref } from 'react';
 import type { MessageKey } from '../../app/i18n';
+import { importErrorText } from '../../app/importErrors';
 import { useActions, useApp, useT } from '../../app/runtime';
 import { SNAP_PROFILES } from '../../app/state';
 import { parseRouteFile } from '../../lib/import';
@@ -66,7 +67,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
       const n = actions.importTrack(route.coords, route.name);
       actions.notify('info', t('imported', { file: file.name, count: n }));
     } catch (err) {
-      actions.notify('error', t('importFailed', { file: file.name, message: err instanceof Error ? err.message : String(err) }));
+      actions.notify('error', t('importFailed', { file: file.name, message: importErrorText(t, err) }));
     }
   };
 

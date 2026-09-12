@@ -1,5 +1,13 @@
 // Public API of the simulation engine.
-export { simulate, type SimulationOverrides } from './simulate';
+export { HR_MATCH_TOLERANCE, HR_MATCH_VO2MAX, measureEffort, simulate, type EffortMeasure, type SimulationOverrides } from './simulate';
+export {
+  EFFORT_PRESETS,
+  PRESET_GOALS,
+  presetGoal,
+  solveEffortPreset,
+  type EffortPreset,
+  type PresetSolution,
+} from './presets';
 export { defaultAthlete, defaultSession, estimateMaxHr, hrZones, resolveVo2max, type HrZone } from './athlete';
 export type { StopEvent } from './stops';
 export {

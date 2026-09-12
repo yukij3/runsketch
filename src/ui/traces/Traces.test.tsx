@@ -194,7 +194,7 @@ describe('Traces', () => {
     expect(onPlayhead.mock.calls.length).toBe(calls);
     expect($('.traces__pin')).not.toBeNull();
 
-    const clear = $$('button').find((b) => b.textContent === 'Clear playhead') as HTMLButtonElement;
+    const clear = $$('button').find((b) => b.textContent === 'Unpin') as HTMLButtonElement;
     act(() => clear.click());
     expect(onPlayhead).toHaveBeenLastCalledWith(null);
   });
@@ -216,6 +216,44 @@ describe('Traces', () => {
       callback([{ contentRect: { width: 400, height: 220 } } as ResizeObserverEntry], {} as ResizeObserver);
     });
     expect($('.traces__labels')).not.toBeNull();
-    expect($('.traces__ink')!.getAttribute('width')).toBe(String(400 - 40 - 22));
+    // 12 px screen margin + 40 px tick gutter on the left, 22 px zone column on the right.
+    expect($('.traces__ink')!.getAttribute('width')).toBe(String(400 - 52 - 22 - 12));
+    // Bands this short carry no Z number, so the key names none.
+    expect($('.traces__zone-key')).toBeNull();
+    act(() => {
+      callback([{ contentRect: { width: 400, height: 420 } } as ResizeObserverEntry], {} as ResizeObserver);
+    });
+    // The narrow zone column shows Z numbers; the heart-rate label band names what each zone is for.
+    expect($('.traces__zone-key')!.textContent).toContain('Z4Threshold');
+  });
+
+  it('rests the playhead at the rest point with point readouts, and returns there on Escape', () => {
+    const onPlayhead = vi.fn();
+    const rest = { index: 390, kind: 'crest' as const };
+    render({ onPlayhead, rest });
+    expect($('[data-playhead]')!.getAttribute('data-playhead')).toBe('390');
+    expect($('.traces__value[data-key="elapsed"]')!.textContent).toBe('6:30');
+    expect($('.traces__pin')).toBeNull();
+    expect($('.traces__cell dt')!.textContent).toBe('Elapsed');
+
+    press('ArrowRight');
+    expect(onPlayhead).toHaveBeenLastCalledWith(400);
+
+    render({ onPlayhead, rest, playhead: 400 });
+    press('Escape');
+    expect(onPlayhead).toHaveBeenLastCalledWith(null);
+    expect($('[aria-live="polite"]')!.textContent).toBe('Playhead back at the top of the largest climb');
+  });
+
+  it('labels terrain bands, carries climbs through the lower panels and marks zone edges in bpm', () => {
+    render();
+    expect($('.traces__legend')!.textContent).toContain('Shaded — climbing; dotted — descending.');
+    // The hatch means one thing only: the heart-rate lag. Descents are stippled.
+    expect($('.traces__legend')!.textContent).toContain('Hatched — its lag behind demand.');
+    expect($('.traces__lag')!.getAttribute('fill')).toMatch(/^url\(#.+-hatch\)$/);
+    expect($$('.traces__climb-column').length).toBe(3);
+    expect($('.traces__onset')!.getAttribute('d')).toMatch(/^M[\d.]+ /);
+    expect($('.traces__grade--down')!.getAttribute('fill')).toMatch(/^url\(#.+-descent\)$/);
+    expect($$('.traces__zone-name').map((t) => t.textContent)).toContain('Threshold');
   });
 });

@@ -3,6 +3,10 @@ import type { Lang } from './i18n';
 
 type Rule = [pattern: RegExp, render: (m: RegExpExecArray) => string];
 
+/** "5:30/km" → "5:30/км"; "3.2" → "3,2". */
+const ruPace = (text: string) => text.replace('/km', '/км');
+const ruDecimal = (text: string) => text.replace('.', ',');
+
 const REASONS: Record<string, string> = {
   'corner speed limits and the maximum plausible speed on this route cap how fast it can be covered':
     'ограничения скорости в поворотах и предельная правдоподобная скорость не позволяют пройти маршрут быстрее',
@@ -21,7 +25,7 @@ function localizeReason(reason: string): string {
 const RU_RULES: Rule[] = [
   [
     /^The target was missing or not positive, so a default average pace of (.+) was used\.$/,
-    (m) => `Цель не задана или не больше нуля, поэтому взят средний темп по умолчанию: ${m[1]}.`,
+    (m) => `Цель не задана или не больше нуля, поэтому взят средний темп по умолчанию: ${ruPace(m[1])}.`,
   ],
   [/^The route has fewer than two distinct points, so there is nothing to simulate\.$/, () => 'В маршруте меньше двух разных точек — моделировать нечего.'],
   [
@@ -44,7 +48,7 @@ const RU_RULES: Rule[] = [
   [
     /^The target needs about (\d+) W on flat road \(([\d.]+) W\/kg, (\d+) % of VO2 reserve\), more than this athlete can sustain; heart rate stays pinned near maximum\.$/,
     (m) =>
-      `Для этой цели нужно около ${m[1]} Вт на ровной дороге (${m[2]} Вт/кг, ${m[3]} % резерва VO2) — больше, чем спортсмен способен держать; пульс упирается в максимум.`,
+      `Для этой цели нужно около ${m[1]} Вт на ровной дороге (${ruDecimal(m[2])} Вт/кг, ${m[3]} % резерва VO2) — больше, чем спортсмен способен держать; пульс упирается в максимум.`,
   ],
   [
     /^Some climbs are too steep for the planned power, so the rider crawls at 3\.6 km\/h for about (.+)\.$/,
@@ -52,11 +56,11 @@ const RU_RULES: Rule[] = [
   ],
   [
     /^On flat ground this target means (.+), about (\d+) % of this athlete's VO2 reserve, which is not sustainable; heart rate stays pinned near maximum\.$/,
-    (m) => `На ровном месте эта цель означает ${m[1]}, около ${m[2]} % резерва VO2 спортсмена, — долго так не продержаться; пульс упирается в максимум.`,
+    (m) => `На ровном месте эта цель означает ${ruPace(m[1])}, около ${m[2]} % резерва VO2 спортсмена, — долго так не продержаться; пульс упирается в максимум.`,
   ],
   [
     /^A flat walking speed of (.+) is running speed; the walking model is stretched beyond its data\.$/,
-    (m) => `Скорость ходьбы ${m[1]} по ровному — это уже бег; модель ходьбы работает за пределами своих данных.`,
+    (m) => `Скорость ходьбы ${ruPace(m[1])} по ровному — это уже бег; модель ходьбы работает за пределами своих данных.`,
   ],
   [
     /^Running speed fell below 1\.9 m\/s on climbs of 6 % or steeper, so (\d+) m were power-hiked with a walking gait and cadence\.$/,
@@ -66,6 +70,18 @@ const RU_RULES: Rule[] = [
     /^Effort averages about (\d+) % of VO2 reserve for (.+), more than this athlete can sustain for that long, so heart rate sits near maximum\.$/,
     (m) =>
       `Нагрузка в среднем около ${m[1]} % резерва VO2 в течение ${m[2]} — дольше, чем спортсмен способен её держать, поэтому пульс держится у максимума.`,
+  ],
+  [
+    /^The target average heart rate of (\d+) bpm is outside this athlete's plausible range of (\d+)–(\d+) bpm\.$/,
+    (m) => `Целевой средний пульс ${m[1]} уд/мин вне правдоподобного для спортсмена диапазона ${m[2]}–${m[3]} уд/мин.`,
+  ],
+  [
+    /^The target average heart rate of (\d+) bpm could not be matched on this route, so the average over moving time is (\d+) bpm\.$/,
+    (m) => `На этом маршруте не удалось выйти на средний пульс ${m[1]} уд/мин: средний пульс в движении — ${m[2]} уд/мин.`,
+  ],
+  [
+    /^Matching an average heart rate of (\d+) bpm at this pace implies a VO2max of about (\d+) ml\/kg\/min, outside the usual range of (\d+)–(\d+)\.$/,
+    (m) => `Средний пульс ${m[1]} уд/мин при таком темпе означает VO2max около ${m[2]} мл/кг/мин — вне обычного диапазона ${m[3]}–${m[4]}.`,
   ],
   [
     /^The target average speed is slower than this route's descents allow at an easy effort, so the rider brakes to about (\d+) km\/h on descents\.$/,

@@ -1,6 +1,16 @@
 // Display formatting shared by the sheet, traces and map readouts.
 import type { Units } from './types';
 
+/** Language for number formatting: Russian writes a decimal comma. */
+export type NumberLang = 'en' | 'ru';
+
+/** Fixed decimals with the language's decimal separator (no grouping): 5.25 → "5.3" / "5,3". */
+export function formatDecimal(value: number, digits: number, lang: NumberLang = 'en'): string {
+  if (!Number.isFinite(value)) return '–';
+  const text = value.toFixed(digits);
+  return lang === 'ru' ? text.replace('.', ',') : text;
+}
+
 export const METERS_PER_MILE = 1609.344;
 export const FEET_PER_METER = 3.280839895;
 
@@ -31,10 +41,10 @@ export function paceUnit(units: Units): string {
   return units === 'metric' ? '/km' : '/mi';
 }
 
-export function formatSpeed(mps: number, units: Units, digits = 1): string {
+export function formatSpeed(mps: number, units: Units, digits = 1, lang: NumberLang = 'en'): string {
   if (!Number.isFinite(mps)) return '–';
   const v = units === 'metric' ? mps * 3.6 : (mps * 3600) / METERS_PER_MILE;
-  return v.toFixed(digits);
+  return formatDecimal(v, digits, lang);
 }
 
 export function speedUnit(units: Units): string {
@@ -42,10 +52,10 @@ export function speedUnit(units: Units): string {
 }
 
 /** Distance in metres → value string in km or mi. */
-export function formatDistance(m: number, units: Units, digits = 2): string {
+export function formatDistance(m: number, units: Units, digits = 2, lang: NumberLang = 'en'): string {
   if (!Number.isFinite(m)) return '–';
   const v = units === 'metric' ? m / 1000 : m / METERS_PER_MILE;
-  return v.toFixed(digits);
+  return formatDecimal(v, digits, lang);
 }
 
 export function distanceUnit(units: Units): string {
@@ -61,10 +71,10 @@ export function elevationUnit(units: Units): string {
   return units === 'metric' ? 'm' : 'ft';
 }
 
-/** Grade 0.052 → "5.2". */
-export function formatGrade(grade: number): string {
+/** Grade 0.052 → "5.2" ("5,2" in Russian). */
+export function formatGrade(grade: number, lang: NumberLang = 'en'): string {
   if (!Number.isFinite(grade)) return '–';
-  return (grade * 100).toFixed(1);
+  return formatDecimal(grade * 100, 1, lang);
 }
 
 /** Parse "m:ss" or "h:mm:ss" into seconds; null when invalid. */

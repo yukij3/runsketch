@@ -5,7 +5,7 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #eceeea;
+  background: #e8ebef;
 }
 
 /* Two classes: maplibre-gl.css loads later and sets .maplibregl-map { position: relative }. */

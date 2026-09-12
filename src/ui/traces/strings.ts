@@ -1,9 +1,12 @@
 // Copy for the traces strip, EN and RU. Plain, literal labels; units translated per language.
 import type { Lang } from './contract';
+import type { RestKind } from './rest';
 
 export type UnitKey = 'km' | 'mi' | '/km' | '/mi' | 'km/h' | 'mph' | 'm' | 'ft' | 'bpm' | 'spm' | 'rpm' | '%';
 
 export interface TraceStrings {
+  /** Number formatting language (decimal comma in Russian). */
+  lang: Lang;
   groupLabel: string;
   keyboardHint: string;
   empty: string;
@@ -11,17 +14,24 @@ export interface TraceStrings {
   recomputing: string;
   legendDemand: string;
   legendResponse: string;
+  /** The hatched fill between the demand and response lines. */
+  legendLag: string;
   legendStops: string;
+  legendTerrain: string;
   axisLabel: string;
   axisDistance: string;
   axisTime: string;
   clearPlayhead: string;
   cleared: string;
+  /** Live text when Escape returns the playhead to its rest point. */
+  rested: Record<RestKind, string>;
   stopped: string;
   avg: string;
   ascent: string;
   demand: string;
   panel: { elevation: string; pace: string; speed: string; hr: string; cadence: string };
+  /** Heart-rate zone functions, by zone id. */
+  zone: Record<1 | 2 | 3 | 4 | 5, string>;
   cell: {
     elapsed: string;
     distance: string;
@@ -42,25 +52,30 @@ export interface TraceStrings {
 }
 
 const en: TraceStrings = {
+  lang: 'en',
   groupLabel: 'Activity traces',
   keyboardHint:
-    'Arrow keys move the playhead by 10 seconds, Shift with an arrow by 60 seconds. Home and End jump to the start and finish. Escape clears it.',
+    'Arrow keys move the playhead by 10 seconds, Shift with an arrow by 60 seconds. Home and End jump to the start and finish. Escape returns it to the top of the largest climb, or to peak heart rate on a flat route.',
   empty: 'Traces appear once the route has two points',
   computing: 'Computing traces…',
   recomputing: 'Recomputing…',
   legendDemand: 'Dashed — what the effort demands.',
-  legendResponse: 'Solid — how the heart responds, with its lag.',
+  legendResponse: 'Solid — how the heart responds.',
+  legendLag: 'Hatched — its lag behind demand.',
   legendStops: 'Ticks under the axis — stops.',
+  legendTerrain: 'Shaded — climbing; dotted — descending.',
   axisLabel: 'Horizontal axis',
   axisDistance: 'Distance',
   axisTime: 'Time',
-  clearPlayhead: 'Clear playhead',
+  clearPlayhead: 'Unpin',
   cleared: 'Playhead cleared',
+  rested: { crest: 'Playhead back at the top of the largest climb', peak: 'Playhead back at peak heart rate' },
   stopped: 'Stopped',
   avg: 'avg',
-  ascent: 'ascent',
+  ascent: 'recorded ascent',
   demand: 'demand',
   panel: { elevation: 'Elevation', pace: 'Pace', speed: 'Speed', hr: 'Heart rate', cadence: 'Cadence' },
+  zone: { 1: 'Recovery', 2: 'Endurance', 3: 'Tempo', 4: 'Threshold', 5: 'VO₂max' },
   cell: {
     elapsed: 'Elapsed',
     distance: 'Distance',
@@ -74,8 +89,8 @@ const en: TraceStrings = {
     avgSpeed: 'Avg speed',
     avgHr: 'Avg HR / demand',
     avgCadence: 'Avg cadence',
-    ascent: 'Ascent',
-    elevationRange: 'Elevation',
+    ascent: 'Recorded ascent',
+    elevationRange: 'Recorded elevation',
   },
   units: {
     km: 'km',
@@ -94,25 +109,30 @@ const en: TraceStrings = {
 };
 
 const ru: TraceStrings = {
+  lang: 'ru',
   groupLabel: 'Графики тренировки',
   keyboardHint:
-    'Стрелки сдвигают указатель на 10 секунд, Shift со стрелкой — на 60 секунд. Home и End — к старту и финишу. Escape убирает указатель.',
+    'Стрелки сдвигают указатель на 10 секунд, Shift со стрелкой — на 60 секунд. Home и End — к старту и финишу. Escape возвращает его на вершину самого большого подъёма, а на плоском маршруте — к пиковому пульсу.',
   empty: 'Графики появятся, когда на маршруте будет две точки',
   computing: 'Расчёт графиков…',
   recomputing: 'Пересчёт…',
   legendDemand: 'Пунктир — чего требует нагрузка.',
-  legendResponse: 'Сплошная — как отвечает сердце, с запаздыванием.',
+  legendResponse: 'Сплошная — как отвечает сердце.',
+  legendLag: 'Штриховка — его отставание от нагрузки.',
   legendStops: 'Засечки под осью — остановки.',
+  legendTerrain: 'Тень — подъём; точки — спуск.',
   axisLabel: 'Горизонтальная ось',
   axisDistance: 'Дистанция',
   axisTime: 'Время',
-  clearPlayhead: 'Убрать указатель',
+  clearPlayhead: 'Открепить',
   cleared: 'Указатель убран',
+  rested: { crest: 'Указатель снова на вершине самого большого подъёма', peak: 'Указатель снова на пиковом пульсе' },
   stopped: 'Остановка',
   avg: 'сред.',
-  ascent: 'набор',
+  ascent: 'набор в записи',
   demand: 'требуемый',
   panel: { elevation: 'Высота', pace: 'Темп', speed: 'Скорость', hr: 'Пульс', cadence: 'Каденс' },
+  zone: { 1: 'Восстановл.', 2: 'Аэробная', 3: 'Темповая', 4: 'Пороговая', 5: 'МПК' },
   cell: {
     elapsed: 'Время',
     distance: 'Дистанция',
@@ -126,8 +146,8 @@ const ru: TraceStrings = {
     avgSpeed: 'Средняя скорость',
     avgHr: 'Средний пульс / требуемый',
     avgCadence: 'Средний каденс',
-    ascent: 'Набор',
-    elevationRange: 'Высота',
+    ascent: 'Набор в записи',
+    elevationRange: 'Высота в записи',
   },
   units: {
     km: 'км',

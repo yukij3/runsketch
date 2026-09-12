@@ -16,7 +16,7 @@ Tools like fakemy.run charge per file, and their heart rate is decoration: fakem
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/hr-hill-dark.svg">
-  <img src="docs/diagrams/hr-hill.svg" alt="Line chart of heart rate over a 27-minute run with one hill. fakemy.run's heart rate is a noisy grey band that peaks at half-time on flat ground and falls during the climb. Runsketch's dashed heart-rate demand rises on the climb and drops at the crest; its solid recorded heart rate lags behind and takes about 80 seconds after the crest to settle.">
+  <img src="docs/diagrams/hr-hill.svg" alt="Line chart of heart rate over a 28-minute run with one hill. fakemy.run's heart rate is a noisy grey band that peaks at half-time on flat ground and falls during the climb. Runsketch's dashed heart-rate demand rises on the climb and drops at the crest; its solid recorded heart rate lags: it catches up about a minute into the climb, stays 5 to 6 bpm above demand for the first minute past the crest, and settles within 2 bpm about 4 minutes later.">
 </picture>
 
 <sub>Runsketch lines are real engine output: 3 km flat, 800 m at +8 %, 800 m at −8 %, 400 m flat, 5:30/km, recreational runner, chest strap, seed 42. Grey: fakemy.run's formula at its defaults (avg 150, variability 10 %) over the same 1,651 seconds.</sub>
@@ -25,14 +25,14 @@ Runsketch derives every channel from **one effort model**:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/effort-model-dark.svg">
-  <img src="docs/diagrams/effort-model.svg" alt="Effort model: terrain grade feeds the speed plan, the speed plan sets heart-rate demand (metabolic %VO2R equals %HRR, plus slow component and drift), two-stage HR kinetics (rise tau 18 + 38 s, recovery 30 + 80 s) lag behind demand, and a sensor model gives recorded HR. Cadence, power, GPS error and altimeter come from the same run, and one seeded result feeds both the preview and the FIT, TCX and GPX files.">
+  <img src="docs/diagrams/effort-model.svg" alt="Effort model: terrain grade feeds the speed plan, the speed plan sets heart-rate demand (metabolic %VO2R equals %HRR, plus slow component and drift), HR kinetics lag behind demand through a fast vagal part (tau 10 s rising, 30 s recovering) and a slow sympathetic part (tau 50 s rising, 160 s recovering), and a sensor model gives recorded HR. Cadence, power, GPS error and altimeter come from the same run, and one seeded result feeds both the preview and the FIT, TCX and GPX files.">
 </picture>
 
 | | Runsketch | typical paid generator |
 |---|---|---|
 | Price | free, MIT | $0.40–0.80 per file or subscription |
 | Pace on hills | HR-calibrated grade factor (Strava-GAP-like), partial effort compliance, downhill braking, power-hiking | constant pace + white noise |
-| Heart rate | %HRR ≈ %VO₂R demand, asymmetric two-stage kinetics (rise τ≈18+38 s, recovery slower), slow component, temperature-dependent cardiac drift, strap/optical noise | sine hump + random jitter |
+| Heart rate | %HRR ≈ %VO₂R demand, asymmetric fast vagal + slow sympathetic kinetics (rise τ≈10 / 50 s, recovery 30 / 160 s), slow component, temperature-dependent cardiac drift, strap/optical noise | sine hump + random jitter |
 | Cadence / power | coupled to speed and grade; Martin 1998 cycling power model | missing or random |
 | GPS | correlated error (receiver lag, wandering bias, multipath) | none or white jitter |
 | Elevation | open DEM sampled per point, de-spiked, smoothed | map-render dependent |
@@ -53,7 +53,7 @@ Details and citations: [`docs/physiology.md`](docs/physiology.md). Short version
 
 - **Grade → speed.** Pace factor `F(g) = 0.0021g² + 0.034g + 1` (g in %), applied as `F^-0.8` so runners work a little harder uphill and ease off downhill; walking/hiking use Tobler's function; rides solve Martin et al. (1998) for speed from a power plan.
 - **Demand.** Net VO₂ from Minetti et al. (2002) energy cost, `%HRR = %VO₂R` (Swain & Leutholtz 1997), HRmax `208 − 0.7·age` (Tanaka 2001).
-- **Inertia.** Two first-order lags in cascade with faster on-kinetics than off-kinetics, scaled by fitness; slow component above threshold; cardiac drift after ~12 min, faster in heat (Wingo 2005, Coyle & González-Alonso 2001).
+- **Inertia.** Two parallel first-order parts, each slower to recover than to rise and scaled by fitness: a fast vagal part for the first 25 % of heart-rate reserve (τ 10 s up, 30 s down) and a slow sympathetic part above it (τ 50 s up, 160 s down); slow component above threshold; cardiac drift after ~12 min, faster in heat (Wingo 2005, Coyle & González-Alonso 2001).
 - **Noise.** Ornstein–Uhlenbeck processes on log-speed (long-range correlated, not white), on HR and on GPS error.
 
 ## Data sources

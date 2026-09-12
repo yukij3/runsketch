@@ -1,13 +1,13 @@
 import { bbox } from '../lib/geo';
 import { closeLoop, newWaypointId, outAndBack, reverseWaypoints } from '../lib/route';
-import { estimateMaxHr } from '../lib/sim';
+import { estimateMaxHr, type EffortPreset } from '../lib/sim';
 import type { Athlete, LngLat, SessionSettings, SnapProfile, Units, Waypoint } from '../lib/types';
 import { MAX_IMPORT_WAYPOINTS } from './config';
 import { decimateTrack } from './decimate';
 import { EXAMPLE_ROUTE } from './example';
 import * as history from './history';
 import { defaultActivityName, type Lang } from './i18n';
-import { pickTypeDefaults, toWaypoints, type SharePayload } from './persistence';
+import { encodeTarget, pickTypeDefaults, toWaypoints, type SharePayload } from './persistence';
 import { lapDistanceFor, localStartHour, type AppState, type MapView, type Notice } from './state';
 import type { Store } from './store';
 
@@ -91,13 +91,20 @@ export function createActions(store: Store<AppState>) {
     applyShare(payload: SharePayload) {
       const s = store.get();
       let session = s.session;
+      let targetFlags: Partial<AppState> = {};
       if (payload.activity && payload.activity !== session.type) session = { ...session, ...pickTypeDefaults(payload.activity, session) };
-      if (payload.target) session = { ...session, target: payload.target };
+      // A link names its target explicitly; the same target (at link precision) keeps the full-precision value.
+      if (payload.target && encodeTarget(payload.target) !== encodeTarget(session.target)) {
+        session = { ...session, target: payload.target };
+        targetFlags = { targetAuto: false, effortPreset: null };
+      }
       if (payload.seed !== undefined) session = { ...session, seed: payload.seed };
+      if (payload.hrTarget !== undefined) session = { ...session, hrTarget: payload.hrTarget };
       commitWaypoints(toWaypoints(payload.coords), {
         profile: payload.profile ?? s.profile,
         session: withAutoName(session, s.lang, s.nameAuto),
         selectedId: null,
+        ...targetFlags,
       });
       fitTo(payload.coords, true);
     },
@@ -126,8 +133,28 @@ export function createActions(store: Store<AppState>) {
     updateSession(patch: Partial<SessionSettings>) {
       const s = store.get();
       let session = { ...s.session, ...patch };
-      if (patch.type && patch.type !== s.session.type) session = { ...session, ...pickTypeDefaults(patch.type, s.session) };
-      store.set({ session: withAutoName(session, s.lang, s.nameAuto) });
+      let targetAuto = s.targetAuto;
+      let effortPreset = s.effortPreset;
+      // Typing a target (or changing its kind) is a manual edit: it detaches the target from any preset.
+      if (patch.target !== undefined) {
+        targetAuto = false;
+        effortPreset = null;
+      }
+      if (patch.type && patch.type !== s.session.type) {
+        session = { ...session, ...pickTypeDefaults(patch.type, s.session) };
+        // An untouched target follows the effort instead of a fixed default (25 km/h is 150 % VO2R on some hills).
+        if (targetAuto) effortPreset = effortPreset ?? 'steady';
+      }
+      store.set({ session: withAutoName(session, s.lang, s.nameAuto), targetAuto, effortPreset });
+    },
+    /** Solve the target for an effort on this route; the pipeline applies it once the terrain is known. */
+    setEffortPreset(effortPreset: EffortPreset) {
+      store.set({ effortPreset, targetAuto: true });
+    },
+    /** Average HR to match (bpm), or null for heart rate from the athlete profile. */
+    setHrTarget(hrTarget: number | null) {
+      const s = store.get();
+      store.set({ session: { ...s.session, hrTarget } });
     },
     setName(name: string) {
       const s = store.get();
