@@ -1,5 +1,7 @@
 # Runsketch
 
+[![Runsketch in the browser: a 7.7 km loop over Montjuïc, Barcelona drawn on an open map, with stacked traces of elevation, pace, heart rate and cadence below it. The playhead sits at the top of the main climb, where recorded heart rate is 179 bpm against a demand of 173. The side panel holds route, athlete and session settings, and FIT, TCX and GPX download buttons.](docs/screenshot.webp)](https://yukij3.github.io/runsketch/)
+
 **Draw a route on an open map, get an activity file whose heart rate climbs with the hills — and lags behind them like a real heart.**
 
 Free, open-source, fully client-side. No account, no API keys, no tokens, no server of ours.
@@ -56,6 +58,13 @@ Details and citations: [`docs/physiology.md`](docs/physiology.md). Short version
 - **Inertia.** Two parallel first-order parts, each slower to recover than to rise and scaled by fitness: a fast vagal part for the first 25 % of heart-rate reserve (τ 10 s up, 30 s down) and a slow sympathetic part above it (τ 50 s up, 160 s down); slow component above threshold; cardiac drift after ~12 min, faster in heat (Wingo 2005, Coyle & González-Alonso 2001).
 - **Noise.** Ornstein–Uhlenbeck processes on log-speed (long-range correlated, not white), on HR and on GPS error.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/model-curves-dark.svg">
+  <img src="docs/diagrams/model-curves.svg" alt="Two small line charts. Grade to speed: running speed relative to flat ground peaks at 1.13× on a −8 % grade and drops to 0.70× at +10 %; walking follows Tobler's curve, peaking at 1.19× at −5 %; running at constant energy cost would mean 2.0× flat speed at −20 %, far past the 1.2× speed cap, which is why energy cost alone does not set downhill pace. Heart-rate inertia: when demand steps from 120 to 150 bpm, heart rate covers 63 % of the step in 50 seconds; when demand drops back to 120 bpm, it takes 160 seconds.">
+</picture>
+
+<sub>Real engine output. Right: a recreational runner with resting heart rate 55 and maximum 185 bpm.</sub>
+
 ## Data sources
 
 All reached directly from your browser. Please respect their fair-use policies.
@@ -81,8 +90,6 @@ npm run build      # typecheck + production build
 ```
 
 Pushing to `main` runs tests and deploys `dist/` to GitHub Pages (`.github/workflows/deploy.yml`).
-
-Project docs: [`docs/PLAN.md`](docs/PLAN.md), [`docs/physiology.md`](docs/physiology.md).
 
 ---
 
