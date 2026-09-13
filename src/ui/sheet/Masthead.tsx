@@ -6,23 +6,12 @@ import { Segmented } from '../controls';
 export function Masthead() {
   const t = useT();
   const actions = useActions();
-  const lang = useApp((s) => s.lang);
   const units = useApp((s) => s.units);
   return (
     <header className="masthead">
       <div className="masthead__row">
         <h1 className="wordmark">Runsketch</h1>
         <div className="masthead__tools">
-          <Segmented
-            size="sm"
-            label={t('language')}
-            value={lang}
-            onChange={actions.setLang}
-            options={[
-              { value: 'en', label: 'EN', title: 'English' },
-              { value: 'ru', label: 'RU', title: 'Русский' },
-            ]}
-          />
           <Segmented
             size="sm"
             label={t('units')}

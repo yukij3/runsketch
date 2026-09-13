@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useApp, useRuntime, useT } from '../app/runtime';
+import { useRuntime } from '../app/runtime';
 
 const TEXT_ENTRY = 'input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="button"]):not([type="file"]), textarea, select, [contenteditable=""], [contenteditable="true"]';
 
@@ -32,13 +32,4 @@ export function useShortcuts(): void {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [store, actions]);
-}
-
-export function useDocumentMeta(): void {
-  const t = useT();
-  const lang = useApp((s) => s.lang);
-  useEffect(() => {
-    document.documentElement.lang = lang;
-    document.title = t('docTitle');
-  }, [lang, t]);
 }

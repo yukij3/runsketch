@@ -1,4 +1,4 @@
-// Route-file import failures in the interface language.
+// Route-file import failures as user-facing text.
 import { RouteImportError } from '../lib/import';
 import type { MessageKey, Translate } from './i18n';
 

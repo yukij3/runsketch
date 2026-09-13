@@ -10,6 +10,8 @@
     'map export';
   height: 100vh;
   height: 100svh;
+  /* Positioned so overflow clips absolutely positioned descendants too (see .sheet). */
+  position: relative;
   overflow: hidden;
 }
 
@@ -39,6 +41,12 @@
 
 .sheet {
   grid-area: sheet;
+  /*
+   * The containing block for absolutely positioned content inside the scroller (the visually hidden splits caption).
+   * Without it that content is placed against the viewport, escapes both overflow clips and makes the document
+   * scroll far past the app into blank space.
+   */
+  position: relative;
   min-height: 0;
   padding: 0 var(--sheet-pad) var(--space-8);
   overflow-y: auto;
@@ -94,6 +102,13 @@
     bottom: 0;
     z-index: 30;
     padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* The desktop shell never scrolls the document: no overscroll bounce on the root either. */
+@media (min-width: 1024px) {
+  html {
+    overscroll-behavior-y: none;
   }
 }
 

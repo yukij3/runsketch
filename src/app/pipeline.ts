@@ -270,7 +270,7 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
     if (isTimeZone(series.timezone)) {
       if (series.timezone !== s.routeZone) patch.routeZone = series.timezone;
       let session = rezoneStart(s.session, series.timezone, s.startAuto);
-      if (session !== s.session && s.nameAuto) session = { ...session, name: defaultActivityName(s.lang, session.type, localStartHour(session)) };
+      if (session !== s.session && s.nameAuto) session = { ...session, name: defaultActivityName(session.type, localStartHour(session)) };
       if (session !== s.session) patch.session = session;
     }
     store.set(patch);

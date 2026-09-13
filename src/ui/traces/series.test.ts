@@ -4,7 +4,7 @@ import { panelYMaps } from './ink';
 import { layoutStrip } from './layout';
 import { clampIndex, emptyCells, liveText, panelReadouts, readoutCells } from './readout';
 import { buildTraceModel, gradeBands, lagRuns, maskedMean, quantile, runsWhere, startTransientEnd } from './series';
-import { stringsFor } from './strings';
+import { STRINGS } from './strings';
 
 const fill = (count: number, v: number) => Array.from({ length: count }, () => v);
 
@@ -118,7 +118,7 @@ describe('buildTraceModel', () => {
 describe('readouts', () => {
   const result = syntheticResult();
   const model = buildTraceModel(result, 'run', 'metric');
-  const en = stringsFor('en');
+  const en = STRINGS;
 
   it('reads values at the playhead', () => {
     const cells = readoutCells(model, 100, en);
@@ -144,22 +144,10 @@ describe('readouts', () => {
     expect(clampIndex(model, null)).toBeNull();
   });
 
-  it('translates labels and units to Russian', () => {
-    const ru = stringsFor('ru');
-    const cells = readoutCells(model, 100, ru);
-    expect(cells.find((c) => c.key === 'distance')!.unit).toBe('км');
-    expect(cells.find((c) => c.key === 'speed')!.unit).toBe('/км');
-    expect(cells.find((c) => c.key === 'hr')!.label).toBe('Пульс / требуемый');
-    expect(emptyCells(ru, 'ride', 'imperial').find((c) => c.key === 'speed')!.unit).toBe('миль/ч');
-  });
-
-  it('writes decimal commas in Russian readouts', () => {
-    const ru = stringsFor('ru');
-    expect(readoutCells(model, 100, ru).find((c) => c.key === 'distance')!.value).toMatch(/^0,\d\d$/);
-    expect(readoutCells(model, 300, ru).find((c) => c.key === 'grade')!.value).toBe('8,0');
+  it('writes decimal points in readouts', () => {
     const ride = buildTraceModel(result, 'ride', 'metric');
-    expect(readoutCells(ride, null, ru).find((c) => c.key === 'speed')!.value).toMatch(/^\d+,\d$/);
     expect(readoutCells(ride, null, en).find((c) => c.key === 'speed')!.value).toMatch(/^\d+\.\d$/);
+    expect(emptyCells(en, 'ride', 'imperial').find((c) => c.key === 'speed')!.unit).toBe('mph');
   });
 
   it('writes one sentence for the live region', () => {

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One recorded run next to two simulated ones · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for recording-texture.svg (profile: runsketch, see .diagram-design). Dot plot, doc-wide.
+       Replaces the comparison table at the top of docs/recording.md.
+
+       Data: real engine output from src/lib/sim at 57c45fe (0.2.0), measured with the statistics below.
+       Runsketch columns: default athlete, chest strap, 'normal' GPS, manual 15 C, no stops, start 2026-06-01 06:30Z,
+       mean of seeds 1-8. Flat = flatProfile(10000) at 300 s/km. City blocks = the cityBlocks() route of
+       src/lib/sim/sensors.test.ts (200 m straights, alternating 90 degree turns, +-10 m every 2 km) at 290 s/km.
+       Reference: activity-small-fenix2-run.fit from the python-fitparse test fixtures (Garmin fenix 2, 1 s, chest
+       strap), decoded with fit-file-parser and run through THE SAME functions as the simulated streams.
+
+       Window for every statistic: the steady middle, second 600 to end - 300, seconds with speed > 2 m/s
+       (1848 s of the fenix 2 file). Moving averages are centred and of the stated width. Changes and the GPS step
+       use consecutive steady seconds only. Speed spread = SD(speed - MA61) / mean speed. Lag-1 correlation of
+       speed is taken on that detrended sequence. GPS step = planar distance between consecutive fixes. Cadence
+       compares whole strides per minute (fenix: FIT cadence; Runsketch: floor(steps / 2)). Altitude steps are
+       |delta| in 0.2 m buckets. Skipped seconds: fenix = gaps / intervals over the whole file (20 / 2808);
+       Runsketch = gaps / written intervals of recordPlan() in src/lib/export/recording.ts.
+
+       Measured values (fenix 2 / flat / city blocks):
+         speed 1 s change SD       0.048 / 0.047 / 0.054 m/s
+         speed spread around 61 s  4.42 / 4.09 / 4.17 %
+         speed lag-1 correlation   0.948 / 0.941 / 0.930
+         GPS step SD               0.922 / 0.828 / 0.882 m
+         GPS step lag-1 corr.      0.728 / 0.626 / 0.639
+         HR 1 s change SD          0.612 / 0.610 / 0.586 bpm
+         HR seconds unchanged      63.8 / 64.3 / 66.4 %
+         HR spread around 61 s     1.496 / 1.988 / 1.546 bpm
+         HR spread around 121 s    2.442 / 3.244 / 2.495 bpm
+         cadence strides unchanged 80.9 / 77.8 / 75.3 %
+         skipped seconds           0.712 / 0.621 / 0.586 % of intervals
+         altitude steps 0/0.2/0.4+ 48.0/45.0/7.0 . 52.6/44.4/3.0 . 46.8/47.3/5.9 %
+       (fenix at 31 and 181 s: 0.947 and 3.371 bpm; flat 0.997 and 3.920; stated in the doc prose, not drawn.)
+       The table this replaced printed the fenix speed change as 0.049, its lag-1 speed correlation as 0.94 and its
+       GPS step correlation as 0.72; recomputed with the same code as the engine columns they are 0.048, 0.948 and
+       0.728, which is what is drawn.
+
+       x = Runsketch value as a share of the fenix 2 value, 70-140 %. Accent marks the one statistic that is out
+       of family: heart-rate wander on the flat route, a third above the file at both 61 and 121 s. The city-block
+       route sits next to the file on those rows, which is why both routes are drawn rather than their mean.
+       The raw values are printed on the right so the dots never have to carry units. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Dot plot · Runsketch</p>
+    <h1>One recorded run next to two simulated ones</h1>
+
+    <svg viewBox="0 0 960 740" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="recording-texture-title recording-texture-desc">
+      <title id="recording-texture-title">One recorded run next to two simulated ones</title>
+      <desc id="recording-texture-desc">Eleven statistics of second-to-second texture, each drawn as the Runsketch value as a share of the same statistic on a real Garmin fēnix 2 run, for a flat 10 km at 5:00/km and 10 km of city blocks at 4:50/km. Speed: 1 s change SD 0.048 on the file against 0.047 flat and 0.054 on city blocks, spread around a 61 s average 4.42 against 4.09 and 4.17 per cent, correlation with the previous second 0.948 against 0.941 and 0.930. GPS: step SD 0.92 against 0.83 and 0.88 m, step correlation 0.728 against 0.626 and 0.639. Chest strap: 1 s change SD 0.61 against 0.61 and 0.59 bpm, seconds unchanged 63.8 against 64.3 and 66.4 per cent, spread around a 61 s average 1.50 against 1.99 and 1.55 bpm and around 121 s 2.44 against 3.24 and 2.49 bpm, the flat route a third above the file on both. Whole strides per minute unchanged 80.9 against 77.8 and 75.3 per cent; skipped seconds 0.71 against 0.62 and 0.59 per cent of intervals. Altitude steps unchanged, 0.2 m and 0.4 m or more: 48, 45 and 7 per cent on the file, 53, 44 and 3 flat, 47, 47 and 6 on city blocks.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+      <text x="344.0" y="52.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Runsketch as a share of the fēnix 2 value</text>
+      <text x="736.0" y="52.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">fēnix 2</text>
+      <text x="832.0" y="52.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">flat</text>
+      <text x="920.0" y="52.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">city blocks</text>
+      <line x1="40.0" y1="64.0" x2="920.0" y2="64.0" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <line x1="344.0" y1="76.0" x2="344.0" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="385.1" y1="76.0" x2="385.1" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="426.3" y1="76.0" x2="426.3" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="508.6" y1="76.0" x2="508.6" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="549.7" y1="76.0" x2="549.7" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="590.9" y1="76.0" x2="590.9" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="632.0" y1="76.0" x2="632.0" y2="484.0" stroke="rgba(27,29,34,0.06)" stroke-width="0.8"/>
+      <line x1="467.4" y1="76.0" x2="467.4" y2="484.0" stroke="rgba(27,29,34,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="344.0" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">70</text>
+      <text x="385.1" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">80</text>
+      <text x="426.3" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">90</text>
+      <text x="467.4" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">100</text>
+      <text x="508.6" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">110</text>
+      <text x="549.7" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">120</text>
+      <text x="590.9" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">130</text>
+      <text x="632.0" y="500.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">140 %</text>
+      <text x="40.0" y="92.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">SPEED</text>
+      <text x="328.0" y="116.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">1 s change, SD</text>
+      <line x1="344.0" y1="112.0" x2="632.0" y2="112.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="454.0" y1="112.0" x2="516.4" y2="112.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="516.4" cy="112.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="454.0" cy="112.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="116.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.048 m/s</text>
+      <text x="832.0" y="116.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.047 m/s</text>
+      <text x="920.0" y="116.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.054 m/s</text>
+      <text x="328.0" y="140.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">spread around a 61 s average</text>
+      <line x1="344.0" y1="136.0" x2="632.0" y2="136.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="436.8" y1="136.0" x2="443.5" y2="136.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="443.5" cy="136.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="436.8" cy="136.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="140.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">4.42 %</text>
+      <text x="832.0" y="140.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">4.09 %</text>
+      <text x="920.0" y="140.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">4.17 %</text>
+      <text x="328.0" y="164.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">correlation with the previous second</text>
+      <line x1="344.0" y1="160.0" x2="632.0" y2="160.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="459.4" y1="160.0" x2="464.6" y2="160.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="459.4" cy="160.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="464.6" cy="160.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="164.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.948</text>
+      <text x="832.0" y="164.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.941</text>
+      <text x="920.0" y="164.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.930</text>
+      <text x="40.0" y="192.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">GPS</text>
+      <text x="328.0" y="216.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">step between fixes, SD</text>
+      <line x1="344.0" y1="212.0" x2="632.0" y2="212.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="425.5" y1="212.0" x2="449.4" y2="212.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="449.4" cy="212.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="425.5" cy="212.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="216.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.92 m</text>
+      <text x="832.0" y="216.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.83 m</text>
+      <text x="920.0" y="216.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.88 m</text>
+      <text x="328.0" y="240.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">correlation with the previous step</text>
+      <line x1="344.0" y1="236.0" x2="632.0" y2="236.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="409.9" y1="236.0" x2="417.3" y2="236.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="417.3" cy="236.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="409.9" cy="236.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="240.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.728</text>
+      <text x="832.0" y="240.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.626</text>
+      <text x="920.0" y="240.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.639</text>
+      <text x="40.0" y="268.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">CHEST STRAP</text>
+      <text x="328.0" y="292.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">1 s change, SD</text>
+      <line x1="344.0" y1="288.0" x2="632.0" y2="288.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="450.1" y1="288.0" x2="465.8" y2="288.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="450.1" cy="288.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="465.8" cy="288.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="292.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.61 bpm</text>
+      <text x="832.0" y="292.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.61 bpm</text>
+      <text x="920.0" y="292.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.59 bpm</text>
+      <text x="328.0" y="316.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">seconds with no change</text>
+      <line x1="344.0" y1="312.0" x2="632.0" y2="312.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="470.4" y1="312.0" x2="484.0" y2="312.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="484.0" cy="312.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="470.4" cy="312.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="316.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">63.8 %</text>
+      <text x="832.0" y="316.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">64.3 %</text>
+      <text x="920.0" y="316.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">66.4 %</text>
+      <text x="328.0" y="340.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">spread around a 61 s average</text>
+      <line x1="344.0" y1="336.0" x2="632.0" y2="336.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="481.0" y1="336.0" x2="602.7" y2="336.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="481.0" cy="336.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="602.7" cy="336.0" r="4.5" fill="#c21f3a"/>
+      <text x="736.0" y="340.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">1.50 bpm</text>
+      <text x="832.0" y="340.0" fill="#c21f3a" font-size="11" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">1.99 bpm</text>
+      <text x="920.0" y="340.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">1.55 bpm</text>
+      <text x="328.0" y="364.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">spread around a 121 s average</text>
+      <line x1="344.0" y1="360.0" x2="632.0" y2="360.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="476.3" y1="360.0" x2="602.5" y2="360.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="476.3" cy="360.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="602.5" cy="360.0" r="4.5" fill="#c21f3a"/>
+      <text x="736.0" y="364.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">2.44 bpm</text>
+      <text x="832.0" y="364.0" fill="#c21f3a" font-size="11" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">3.24 bpm</text>
+      <text x="920.0" y="364.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">2.49 bpm</text>
+      <text x="40.0" y="392.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">CADENCE</text>
+      <text x="328.0" y="416.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">whole strides/min unchanged</text>
+      <line x1="344.0" y1="412.0" x2="632.0" y2="412.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="438.7" y1="412.0" x2="451.4" y2="412.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="438.7" cy="412.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="451.4" cy="412.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="416.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">80.9 %</text>
+      <text x="832.0" y="416.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">77.8 %</text>
+      <text x="920.0" y="416.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">75.3 %</text>
+      <text x="40.0" y="444.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">FILE</text>
+      <text x="328.0" y="468.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">skipped seconds, share of intervals</text>
+      <line x1="344.0" y1="464.0" x2="632.0" y2="464.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="394.3" y1="464.0" x2="414.6" y2="464.0" stroke="rgba(27,29,34,0.28)" stroke-width="2"/>
+      <circle cx="394.3" cy="464.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <circle cx="414.6" cy="464.0" r="4.5" fill="#474c55"/>
+      <text x="736.0" y="468.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.71 %</text>
+      <text x="832.0" y="468.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.62 %</text>
+      <text x="920.0" y="468.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">0.59 %</text>
+      <text x="40.0" y="536.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">ALTITUDE, 1 S STEPS</text>
+      <rect x="344.0" y="527.0" width="10.0" height="10.0" rx="2" fill="rgba(27,29,34,0.1)"/>
+      <text x="360.0" y="536.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">unchanged</text>
+      <rect x="435.8" y="527.0" width="10.0" height="10.0" rx="2" fill="rgba(27,29,34,0.28)"/>
+      <text x="451.8" y="536.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">±0.2 m</text>
+      <rect x="509.0" y="527.0" width="10.0" height="10.0" rx="2" fill="rgba(27,29,34,0.62)"/>
+      <text x="525.0" y="536.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">0.4 m or more</text>
+      <text x="328.0" y="560.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">fēnix 2</text>
+      <rect x="344.0" y="549.0" width="138.4" height="14.0" fill="rgba(27,29,34,0.1)"/>
+      <rect x="482.4" y="549.0" width="129.6" height="14.0" fill="rgba(27,29,34,0.28)"/>
+      <rect x="611.9" y="549.0" width="20.1" height="14.0" fill="rgba(27,29,34,0.62)"/>
+      <text x="920.0" y="560.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">48 / 45 / 7 %</text>
+      <text x="328.0" y="584.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">flat</text>
+      <rect x="344.0" y="573.0" width="151.4" height="14.0" fill="rgba(27,29,34,0.1)"/>
+      <rect x="495.4" y="573.0" width="128.0" height="14.0" fill="rgba(27,29,34,0.28)"/>
+      <rect x="623.3" y="573.0" width="8.7" height="14.0" fill="rgba(27,29,34,0.62)"/>
+      <text x="920.0" y="584.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">53 / 44 / 3 %</text>
+      <text x="328.0" y="608.0" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">city blocks</text>
+      <rect x="344.0" y="597.0" width="134.8" height="14.0" fill="rgba(27,29,34,0.1)"/>
+      <rect x="478.8" y="597.0" width="136.2" height="14.0" fill="rgba(27,29,34,0.28)"/>
+      <rect x="615.0" y="597.0" width="17.0" height="14.0" fill="rgba(27,29,34,0.62)"/>
+      <text x="920.0" y="608.0" fill="#1b1d22" font-size="11" font-family="'Red Hat Mono', monospace" text-anchor="end">47 / 47 / 6 %</text>
+      <line x1="40.0" y1="648.0" x2="920.0" y2="648.0" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40.0" y="680.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <circle cx="136.0" cy="676.0" r="4.5" fill="#474c55"/>
+      <text x="148.0" y="680.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">flat 10 km at 5:00/km</text>
+      <circle cx="336.0" cy="676.0" r="4.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <text x="348.0" y="680.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">10 km of city blocks at 4:50/km</text>
+      <circle cx="600.0" cy="676.0" r="4.5" fill="#c21f3a"/>
+      <text x="612.0" y="680.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">a third above the file</text>
+      <line x1="780.0" y1="676.0" x2="804.0" y2="676.0" stroke="rgba(27,29,34,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="812.0" y="680.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">fēnix 2 = 100 %</text>
+      <text x="40.0" y="704.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Every statistic over the steady middle: from 600 s to the end minus 300 s, speed above 2 m/s. Runsketch: mean of eight seeds,</text>
+      <text x="40.0" y="720.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">chest strap, normal GPS. Reference: one 47-minute, 9 km run on a Garmin fēnix 2, decoded and measured with the same code.</text>
+    </svg>
+  </div>
+</body>
+</html>

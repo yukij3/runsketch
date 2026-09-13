@@ -24,7 +24,7 @@ import type {
 } from '../lib/types';
 import { isTimeZone } from '../lib/weather/time';
 import { STORAGE_KEY } from './config';
-import { defaultActivityName, detectLang, type Lang } from './i18n';
+import { defaultActivityName } from './i18n';
 import { ACTIVITIES, SNAP_PROFILES, defaultWeatherSettings, lapDistanceFor, localStartHour, stopsLevels, type AppState, type MapView } from './state';
 
 type Json = Record<string, unknown>;
@@ -154,7 +154,6 @@ export interface PersistedState {
   targetAuto: boolean;
   effortPreset: EffortPreset | null;
   units: Units;
-  lang: Lang;
   profile: SnapProfile;
   waypoints: LngLat[];
   view: MapView | null;
@@ -174,7 +173,6 @@ export function toPersisted(s: AppState): PersistedState {
     targetAuto: s.targetAuto,
     effortPreset: s.effortPreset,
     units: s.units,
-    lang: s.lang,
     profile: s.profile,
     waypoints: s.waypoints.map((w) => [w.lon, w.lat]),
     view: s.view,
@@ -299,7 +297,6 @@ export function sameRoute(shared: LngLat[], stored: LngLat[]): boolean {
 export interface InitialEnv {
   stored: unknown;
   hash: string;
-  language?: string;
   now: number;
   /** Persisted routed legs by legKey; matching legs are restored so a reload does not route again. */
   legs?: { get(key: string): LegGeometry | undefined };
@@ -321,7 +318,7 @@ function restoreLegs(waypoints: Waypoint[], profile: SnapProfile, cache: Initial
 export function buildInitialState(env: InitialEnv): AppState {
   const stored = isObject(env.stored) && env.stored.v === 1 ? env.stored : {};
   const share = decodeShare(env.hash);
-  const lang = oneOf(stored.lang, ['en', 'ru'] as const, detectLang(env.language));
+  // Storage from older versions may still carry an interface language (lang: 'en' | 'ru'); it is ignored.
   const units = oneOf(stored.units, ['metric', 'imperial'] as const, 'metric');
 
   const base = defaultSession('run', Math.floor(env.now / 60_000) * 60_000);
@@ -357,7 +354,7 @@ export function buildInitialState(env: InitialEnv): AppState {
   session.lapDistance = lapDistanceFor(units);
 
   const nameAuto = stored.nameAuto !== false || !session.name.trim();
-  if (nameAuto) session.name = defaultActivityName(lang, session.type, localStartHour(session));
+  if (nameAuto) session.name = defaultActivityName(session.type, localStartHour(session));
 
   const athlete = sanitizeAthlete(stored.athlete);
   const maxHrAuto = stored.maxHrAuto !== false;
@@ -382,7 +379,6 @@ export function buildInitialState(env: InitialEnv): AppState {
     targetAuto,
     effortPreset,
     units,
-    lang,
     playhead: null,
     routing: { state: 'idle', done: 0, total: 0 },
     terrain: { state: 'idle', profile: null },

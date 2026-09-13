@@ -30,7 +30,6 @@ function render(overrides: Partial<TracesProps> = {}): TracesProps {
     result: RESULT,
     activity: 'run',
     units: 'metric',
-    lang: 'en',
     zones: TEST_ZONES,
     playhead: null,
     onPlayhead: vi.fn(),
@@ -124,9 +123,6 @@ describe('Traces', () => {
     expect($('.traces__ink')).toBeNull();
     expect($('.traces__caption')!.textContent).toBe('Traces appear once the route has two points');
     expect($('.traces__value[data-key="elapsed"]')!.textContent).toBe('–');
-
-    render({ result: null, lang: 'ru' });
-    expect($('.traces__caption')!.textContent).toBe('Графики появятся, когда на маршруте будет две точки');
 
     render({ result: null, busy: true });
     expect($('.traces__caption')!.textContent).toBe('Computing traces…');

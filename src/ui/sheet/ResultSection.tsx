@@ -1,6 +1,5 @@
 import { TriangleAlert } from 'lucide-react';
 import { useActions, useApp, useT } from '../../app/runtime';
-import { localizeWarning } from '../../app/warnings';
 import { precipitationText, temperatureIn } from '../../app/weatherText';
 import { formatDecimal, formatDistance, formatDuration, formatElevation, formatPace, formatSpeed } from '../../lib/format';
 import { DataRow, Section, cx } from '../controls';
@@ -14,7 +13,6 @@ function useBusy() {
 
 export function ResultSection() {
   const t = useT();
-  const lang = useApp((s) => s.lang);
   const units = useApp((s) => s.units);
   const sim = useApp((s) => s.sim);
   const count = useApp((s) => s.waypoints.length);
@@ -39,14 +37,14 @@ export function ResultSection() {
           <DataRow label={t('movingTime')} value={formatDuration(summary.moving)} />
           <DataRow label={t('elapsedTime')} value={formatDuration(summary.elapsed)} />
           {speed ? (
-            <DataRow label={t('avgSpeed')} value={formatSpeed(summary.avgSpeed, units, 1, lang)} unit={u.speed} />
+            <DataRow label={t('avgSpeed')} value={formatSpeed(summary.avgSpeed, units, 1)} unit={u.speed} />
           ) : (
             <DataRow label={t('avgPace')} value={formatPace(summary.avgSpeed, units)} unit={u.pace} />
           )}
           <DataRow label={t('avgHr')} value={whole(summary.avgHr)} unit={t('unit_bpm')} />
           <DataRow label={t('peakHr')} value={whole(summary.maxHr)} unit={t('unit_bpm')} />
           {sim.result?.impliedVo2max !== undefined ? (
-            <DataRow label={t('impliedVo2max')} value={formatDecimal(sim.result.impliedVo2max, 1, lang)} unit={t('unit_vo2')} />
+            <DataRow label={t('impliedVo2max')} value={formatDecimal(sim.result.impliedVo2max, 1)} unit={t('unit_vo2')} />
           ) : null}
           <DataRow label={t('avgCadence')} value={whole(summary.avgCadence)} unit={t(ride ? 'unit_rpm' : 'unit_spm')} />
           {ride ? <DataRow label={t('avgPower')} value={whole(summary.avgPower)} unit={t('unit_w')} /> : null}
@@ -66,7 +64,7 @@ export function ResultSection() {
             {warnings.map((w) => (
               <li key={w} className="notes__item">
                 <TriangleAlert size={14} strokeWidth={1.75} aria-hidden="true" />
-                <span>{localizeWarning(lang, w)}</span>
+                <span>{w}</span>
               </li>
             ))}
           </ul>
@@ -79,7 +77,6 @@ export function ResultSection() {
 /** What the weather gave the athlete: air temperature range, precipitation and the peak core temperature. */
 function WeatherResultRows() {
   const t = useT();
-  const lang = useApp((s) => s.lang);
   const units = useApp((s) => s.units);
   const weather = useApp((s) => s.sim.result?.weather);
   if (!weather) return null;
@@ -95,12 +92,12 @@ function WeatherResultRows() {
         <span className="unit">{u.temperature}</span>
       </DataRow>
       {wet ? (
-        <DataRow label={t('result_rain')} value={precipitationText(weather.rainMm, lang)} unit={t('unit_mm')} />
+        <DataRow label={t('result_rain')} value={precipitationText(weather.rainMm)} unit={t('unit_mm')} />
       ) : (
         <DataRow label={t('result_rain')} value={t('weatherDry')} text />
       )}
       {Number.isFinite(weather.coreTempMax) ? (
-        <DataRow label={t('result_coreTemp')} value={formatDecimal(temperatureIn(weather.coreTempMax, units), 1, lang)} unit={u.temperature} />
+        <DataRow label={t('result_coreTemp')} value={formatDecimal(temperatureIn(weather.coreTempMax, units), 1)} unit={u.temperature} />
       ) : null}
     </>
   );
@@ -110,7 +107,6 @@ export function SplitsSection() {
   const t = useT();
   const actions = useActions();
   const units = useApp((s) => s.units);
-  const lang = useApp((s) => s.lang);
   const result = useApp((s) => s.sim.result);
   const activity = useApp((s) => s.sim.activity);
   const lapDistance = useApp((s) => s.session.lapDistance);
@@ -147,9 +143,9 @@ export function SplitsSection() {
                 <tr key={lap.startIndex} onMouseEnter={() => actions.setPlayhead(lap.startIndex)}>
                   <th scope="row" className="num">
                     {i + 1}
-                    {partial ? <span className="splits__part"> · {formatDistance(lap.distance, units, 2, lang)}</span> : null}
+                    {partial ? <span className="splits__part"> · {formatDistance(lap.distance, units, 2)}</span> : null}
                   </th>
-                  <td className="num">{ride ? formatSpeed(lap.avgSpeed, units, 1, lang) : formatPace(lap.avgSpeed, units)}</td>
+                  <td className="num">{ride ? formatSpeed(lap.avgSpeed, units, 1) : formatPace(lap.avgSpeed, units)}</td>
                   <td className="num">{whole(lap.avgHr)}</td>
                   <td className="num">
                     +{formatElevation(lap.ascent, units)} −{formatElevation(lap.descent, units)}

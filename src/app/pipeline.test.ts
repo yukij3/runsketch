@@ -26,7 +26,7 @@ function fakeResult(input: SimulationInput): SimulationResult {
 }
 
 function setup(overrides: Partial<PipelineDeps> = {}) {
-  const store = createStore(buildInitialState({ stored: null, hash: '', language: 'en', now: Date.UTC(2026, 8, 12, 7) }));
+  const store = createStore(buildInitialState({ stored: null, hash: '', now: Date.UTC(2026, 8, 12, 7) }));
   const actions = createActions(store);
   const signals: AbortSignal[] = [];
   const routeLeg = vi.fn(async (a: LngLat, b: LngLat, profile: SnapProfile, signal: AbortSignal) => {
@@ -214,7 +214,7 @@ describe('sync', () => {
   afterEach(() => vi.useRealTimers());
 
   it('debounces storage writes and mirrors the route into the hash', async () => {
-    const store = createStore(buildInitialState({ stored: null, hash: '', language: 'en', now: 0 }));
+    const store = createStore(buildInitialState({ stored: null, hash: '', now: 0 }));
     const actions = createActions(store);
     const storage = { setItem: vi.fn() };
     const location = { hash: '', pathname: '/runsketch/', search: '' };

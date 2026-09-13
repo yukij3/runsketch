@@ -60,21 +60,21 @@ describe('mountaineering sessions', () => {
   });
 
   it('round-trips mountain settings through storage and opens mountaineering share links', () => {
-    const store = createStore(buildInitialState({ stored: null, hash: '', language: 'ru', now: NOW }));
+    const store = createStore(buildInitialState({ stored: null, hash: '', now: NOW }));
     const actions = createActions(store);
     actions.addWaypoint(42.46406, 43.29894);
     actions.addWaypoint(42.43784, 43.35241);
     actions.updateSession({ type: 'alpine' });
     actions.updateSession({ acclimatisation: 'full', packKg: 6, snow: 'soft', snowlineM: 3900, crampons: false, footwear: 'double-boots' });
     const s = store.get();
-    expect(s.session.name).toMatch(/восхождение$/);
+    expect(s.session.name).toMatch(/ ascent$/);
     const restored = buildInitialState({ stored: JSON.parse(JSON.stringify(toPersisted(s))), hash: `#${encodeShare(s)}`, now: NOW + 60_000 });
     expect(restored.session).toMatchObject({ type: 'alpine', acclimatisation: 'full', packKg: 6, snow: 'soft', snowlineM: 3900, crampons: false, footwear: 'double-boots' });
     expect(decodeShare(`#${encodeShare(s)}`)?.activity).toBe('alpine');
   });
 
   it('switching to mountaineering brings a finish-time target, mountain breaks and gear; switching away drops them', () => {
-    const store = createStore(buildInitialState({ stored: null, hash: '', language: 'en', now: NOW }));
+    const store = createStore(buildInitialState({ stored: null, hash: '', now: NOW }));
     const actions = createActions(store);
     actions.updateSession({ type: 'alpine' });
     expect(store.get()).toMatchObject({ effortPreset: 'steady', session: { type: 'alpine', stops: 'alpine', packKg: 8, crampons: true, target: { kind: 'duration' } } });

@@ -33,7 +33,7 @@ const storage = browserStorage();
 const legCache = LegCache.load(storage);
 const weatherCache = WeatherCache.load(storage);
 const store = createStore(
-  buildInitialState({ stored: loadStored(storage), hash: location.hash, language: navigator.language, now: Date.now(), legs: legCache }),
+  buildInitialState({ stored: loadStored(storage), hash: location.hash, now: Date.now(), legs: legCache }),
 );
 const runtime = createRuntime(store);
 

@@ -30,18 +30,14 @@ speed × = 1 − max × (1 − exp(−slope · x / max)),   x = softplus(load �
 | Initial slope | 0.45 %/km | 0.3 %/km | 0.2 %/km | 0.12 %/km |
 | Ceiling | 35 % | 30 % | 25 % | 20 % |
 
-At a steady 75 % of VO₂ reserve, which weights each kilometre at 1.2, that works out as speed lost by the end of:
+At a steady 75 % of VO₂ reserve, which weights each kilometre at 1.2, a 10 km costs a beginner 2.1 % of speed and a recreational runner 0.3 %. Over a half marathon a beginner loses 7.0 %, a recreational runner 3.0 % and a trained one 0.5 %, while an elite runner hasn't started to fade. By the end of a marathon a beginner has lost 14.8 %, a recreational runner 9.0 %, a trained one 4.7 % and an elite one 1.8 %, and by 100 km it is 26.8, 19.6, 13.4 and 8.1 %:
 
-| Distance | 10 km | 21 km | 42 km | 60 km | 100 km |
-|---|---|---|---|---|---|
-| Beginner | 2.1 % | 7.0 % | 14.8 % | 19.8 % | 26.8 % |
-| Recreational | 0.3 % | 3.0 % | 9.0 % | 13.2 % | 19.6 % |
-| Trained | — | 0.5 % | 4.7 % | 7.9 % | 13.4 % |
-| Elite | — | — | 1.8 % | 4.0 % | 8.1 % |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/fatigue-fade-dark.svg">
+  <img src="diagrams/fatigue-fade.svg" alt="Line chart of speed lost against distance at a steady 75 % of VO₂ reserve, one curve per level. Each curve stays flat until load passes that level's onset, which comes after 6.6 km for a beginner, 12.4 km recreational, 20.6 km trained and 28.9 km elite. Speed lost by 10 km: 2.1 % beginner, 0.3 % recreational. By 21 km: 7.0 %, 3.0 % and 0.5 % trained. By 42 km: 14.8, 9.0, 4.7 and 1.8 % elite. By 60 km: 19.8, 13.2, 7.9 and 4.0 %. By 100 km: 26.8, 19.6, 13.4 and 8.1 %. No curve flattens out; they bend towards ceilings of 35, 30, 25 and 20 %.">
+</picture>
 
 The shape comes from the durability literature. Critical power and the first ventilatory threshold don't move after 40 or 80 minutes of steady work, but they are 6–10 % lower after two hours, and fitter athletes lose less (Clark et al. 2019; Stevenson et al. 2022; Barrett & Maunder 2025). The onsets, slopes and ceilings themselves are ours, fitted so that second halves of recreational marathons come out 4–9 % slower, which is what large race datasets show (Deaner et al. 2015; Smyth & Muniz-Pumares 2020).
-
-<!-- chart: speed lost against load in flat-running kilometres, one line per level, with the onset and ceiling of each marked -->
 
 ### Not front-loading a long day
 
@@ -64,14 +60,12 @@ The heart rate is the part worth watching. At 5:41/km it climbs 6 bpm while the 
 
 ## Economy gets worse, and that is what holds heart rate up
 
-The same pace costs more oxygen late in a long run. It begins after about 4 km of load and saturates over the next 12, reaching a ceiling that depends on the level:
+The same pace costs more oxygen late in a long run. It begins after about 4 km of load and saturates over the next 12, reaching a ceiling that depends on the level. At 20 km of load a recreational runner already pays ×1.037 and a beginner ×1.066; by 80 km they sit on their ceilings, ×1.050 and ×1.090.
 
-| Load | 10 km | 20 km | 40 km | 80 km |
-|---|---|---|---|---|
-| Beginner, O₂ cost | ×1.036 | ×1.066 | ×1.086 | ×1.090 |
-| Recreational | ×1.020 | ×1.037 | ×1.048 | ×1.050 |
-| Trained | ×1.014 | ×1.026 | ×1.033 | ×1.035 |
-| Elite | ×1.010 | ×1.018 | ×1.024 | ×1.025 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/fatigue-economy-dark.svg">
+  <img src="diagrams/fatigue-economy.svg" alt="Line chart of the oxygen cost of an unchanged running speed as load builds up, one curve per level. Cost stays flat for the first 4 km of load, then rises and saturates, 63 % of the way to its ceiling 12 km later and most of the way by 30 km. At 10 km of load the multiplier is ×1.036 for a beginner, ×1.020 recreational, ×1.014 trained and ×1.010 elite; at 20 km ×1.066, ×1.037, ×1.026 and ×1.018; at 40 km ×1.086, ×1.048, ×1.033 and ×1.024; at 80 km ×1.090, ×1.050, ×1.035 and ×1.025, against ceilings of 9, 5, 3.5 and 2.5 %.">
+</picture>
 
 The ceilings are 2.5 % for elite, 3.5 % trained, 5 % recreational and 9 % beginner. The two anchors are Zanini et al. (2024), who measured +2.3 % energy cost after 90 minutes at the first lactate threshold in faster runners against +4.3 % in slower ones, and Unhjem (2024), who found relative intensity rising 2.6 % in trained runners against 8.3 % in active adults after an hour at 70 % of VO₂max.
 
@@ -193,15 +187,12 @@ Rides carry load too, at 0.6 of the cost per joule, because pedalling has no imp
 
 ## Race efforts and how far the Riegel exponent bends
 
-The Race preset holds its effort for 30 minutes and then eases off with duration, following Riegel's power law. The exponent now depends on the level:
+The Race preset holds its effort for 30 minutes and then eases off with duration, following Riegel's power law. The exponent now depends on the level: 1.09 for a beginner, 1.08 recreational, 1.07 trained and 1.06 elite. Every level starts from 0.880 of VO₂ reserve. At an hour the goal is 0.831 for a beginner against 0.846 for an elite athlete, at two hours 0.785 against 0.814, and at four hours 0.741 against 0.782.
 
-| | Beginner | Recreational | Trained | Elite |
-|---|---|---|---|---|
-| Riegel exponent | 1.09 | 1.08 | 1.07 | 1.06 |
-| Race effort at 30 min | 0.880 | 0.880 | 0.880 | 0.880 |
-| at 1 h | 0.831 | 0.836 | 0.841 | 0.846 |
-| at 2 h | 0.785 | 0.794 | 0.804 | 0.814 |
-| at 4 h | 0.741 | 0.754 | 0.768 | 0.782 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/fatigue-riegel-dark.svg">
+  <img src="diagrams/fatigue-riegel.svg" alt="Line chart of the share of VO₂ reserve the Race preset aims for against moving time, one curve per level. Every level holds 0.880 for the first 30 minutes, then eases off along Riegel's power law with an exponent of 1.09 for a beginner, 1.08 recreational, 1.07 trained and 1.06 elite. At 1 hour the goal is 0.831, 0.836, 0.841 and 0.846; at 2 hours 0.785, 0.794, 0.804 and 0.814; at 4 hours 0.741, 0.754, 0.768 and 0.782, so the slower the runner, the harder the fade.">
+</picture>
 
 Riegel's own 1.06 came from world records. Vickers & Vertosick (2016) found it well calibrated up to the half marathon but at least ten minutes too fast at the marathon for half of recreational runners, and used 1.07 themselves. The ladder above says slower runners fade harder, which is what every large marathon dataset shows.
 

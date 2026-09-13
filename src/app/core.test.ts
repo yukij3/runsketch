@@ -3,16 +3,15 @@ import type { LngLat, Waypoint } from '../lib/types';
 import { createActions } from './actions';
 import { decimateTrack } from './decimate';
 import * as history from './history';
-import { MESSAGES, defaultActivityName, detectLang, legsSummary, ruPlural, translate, type MessageKey } from './i18n';
-import { buildInitialState, decodeShare, encodeShare, sanitizeAthlete } from './persistence';
+import { MESSAGES, defaultActivityName, legsSummary, translate, type MessageKey } from './i18n';
+import { buildInitialState, decodeShare, encodeShare, sanitizeAthlete, toPersisted } from './persistence';
 import { createStore } from './store';
-import { localizeWarning } from './warnings';
 
 const NOW = Date.UTC(2026, 8, 12, 7, 30);
 const wp = (id: string, lon = 0, lat = 0): Waypoint => ({ id, lon, lat });
 
-function freshStore(language = 'en') {
-  return createStore(buildInitialState({ stored: null, hash: '', language, now: NOW }));
+function freshStore() {
+  return createStore(buildInitialState({ stored: null, hash: '', now: NOW }));
 }
 
 describe('history', () => {
@@ -74,60 +73,27 @@ describe('decimateTrack', () => {
 });
 
 describe('i18n', () => {
-  it('has the same non-empty keys and placeholders in both languages', () => {
-    const keys = Object.keys(MESSAGES.en) as MessageKey[];
-    expect(Object.keys(MESSAGES.ru).sort()).toEqual([...keys].sort());
-    const placeholders = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort();
-    for (const key of keys) {
-      expect(MESSAGES.en[key].trim(), key).not.toBe('');
-      expect(MESSAGES.ru[key].trim(), key).not.toBe('');
-      expect(placeholders(MESSAGES.ru[key]), key).toEqual(placeholders(MESSAGES.en[key]));
+  it('has non-empty English strings and no Russian left', () => {
+    for (const key of Object.keys(MESSAGES) as MessageKey[]) {
+      expect(MESSAGES[key].trim(), key).not.toBe('');
+      expect(/[А-Яа-яЁё]/.test(MESSAGES[key]), key).toBe(false);
     }
   });
 
   it('interpolates parameters', () => {
-    expect(translate('en', 'statusRouting', { done: 2, total: 5 })).toBe('Routing 2/5…');
-    expect(translate('ru', 'statusRouting', { done: 2, total: 5 })).toBe('Прокладываю участки: 2 из 5…');
+    expect(translate('statusRouting', { done: 2, total: 5 })).toBe('Routing 2/5…');
   });
 
-  it('detects Russian from the browser language', () => {
-    expect(detectLang('ru-RU')).toBe('ru');
-    expect(detectLang('en-GB')).toBe('en');
-    expect(detectLang(undefined)).toBe('en');
+  it('summarises legs', () => {
+    expect(legsSummary({ routed: 4, straight: 0, fallback: 1, pending: 0 })).toBe('4 legs follow paths · 1 straight');
+    expect(legsSummary({ routed: 1, straight: 0, fallback: 0, pending: 0 })).toBe('1 leg follows paths');
   });
 
-  it('declines Russian plurals and summarises legs', () => {
-    expect([1, 2, 5, 11, 21, 22, 25].map((n) => ruPlural(n, 'участок', 'участка', 'участков'))).toEqual([
-      'участок',
-      'участка',
-      'участков',
-      'участков',
-      'участок',
-      'участка',
-      'участков',
-    ]);
-    expect(legsSummary('en', { routed: 4, straight: 0, fallback: 1, pending: 0 })).toBe('4 legs follow paths · 1 straight');
-    expect(legsSummary('ru', { routed: 4, straight: 0, fallback: 1, pending: 0 })).toBe('4 участка по дорогам · 1 по прямой');
-    expect(legsSummary('en', { routed: 1, straight: 0, fallback: 0, pending: 0 })).toBe('1 leg follows paths');
-  });
-
-  it('names activities by local hour with grammatical agreement', () => {
-    expect(defaultActivityName('en', 'run', 7)).toBe('Morning run');
-    expect(defaultActivityName('ru', 'run', 7)).toBe('Утренняя пробежка');
-    expect(defaultActivityName('ru', 'ride', 19)).toBe('Вечерний заезд');
-    expect(defaultActivityName('ru', 'hike', 12)).toBe('Дневной поход');
-    // Восхождение is neuter.
-    expect(defaultActivityName('ru', 'alpine', 2)).toBe('Ночное восхождение');
-    expect(defaultActivityName('ru', 'alpine', 8)).toBe('Утреннее восхождение');
-    expect(defaultActivityName('en', 'alpine', 2)).toBe('Night ascent');
-  });
-});
-
-describe('warnings', () => {
-  it('renders known simulator warnings in Russian and passes unknown text through', () => {
-    expect(localizeWarning('ru', 'Grades steeper than 45 % were treated as 45 %.')).toBe('Уклоны круче 45 % учтены как 45 %.');
-    expect(localizeWarning('ru', 'Something new.')).toBe('Something new.');
-    expect(localizeWarning('en', 'Grades steeper than 45 % were treated as 45 %.')).toBe('Grades steeper than 45 % were treated as 45 %.');
+  it('names activities by local hour', () => {
+    expect(defaultActivityName('run', 7)).toBe('Morning run');
+    expect(defaultActivityName('ride', 19)).toBe('Evening ride');
+    expect(defaultActivityName('hike', 12)).toBe('Lunch hike');
+    expect(defaultActivityName('alpine', 2)).toBe('Night ascent');
   });
 });
 
@@ -158,12 +124,11 @@ describe('persistence', () => {
     expect(decodeShare('#v=2&r=abc')).toBeNull();
     expect(decodeShare('#v=1&r=%%%&t=x')).toBeNull();
     expect(decodeShare('#v=1&r=&t=x&s=-4')).toEqual({ coords: [] });
-    const state = buildInitialState({ stored: { v: 1, athlete: { age: 'old', restHr: 500 }, units: 'parsecs', waypoints: [[999, 1], 'x'] }, hash: '#junk', language: 'ru', now: NOW });
-    expect(state.lang).toBe('ru');
+    const state = buildInitialState({ stored: { v: 1, athlete: { age: 'old', restHr: 500 }, units: 'parsecs', waypoints: [[999, 1], 'x'] }, hash: '#junk', now: NOW });
     expect(state.units).toBe('metric');
     expect(state.waypoints).toEqual([]);
     expect(state.athlete.age).toBe(35);
-    expect(state.session.name).toMatch(/пробежка$/);
+    expect(state.session.name).toMatch(/ run$/);
   });
 
   it('restores stored preferences and lets a share link override the route', () => {
@@ -174,21 +139,48 @@ describe('persistence', () => {
       session: { type: 'walk', seed: 7, pacing: 'negative', name: 'Dog walk' },
       nameAuto: false,
       units: 'imperial',
-      lang: 'en',
       profile: 'hiking',
       waypoints: [
         [1, 1],
         [1.01, 1.01],
       ],
     };
-    const state = buildInitialState({ stored, hash: '', language: 'ru', now: NOW });
+    const state = buildInitialState({ stored, hash: '', now: NOW });
     expect(state.athlete).toMatchObject({ age: 50, sex: 'female', maxHr: 170, fitness: 'trained' });
     expect(state.session).toMatchObject({ type: 'walk', seed: 7, pacing: 'negative', name: 'Dog walk', lapDistance: 1609.344 });
     expect(state.waypoints).toHaveLength(2);
-    expect(state.lang).toBe('en');
 
-    const shared = buildInitialState({ stored, hash: '#v=1&r=_p~iF~ps|U_ulL_ulL&a=run&t=p300&s=9', language: 'en', now: NOW });
+    const shared = buildInitialState({ stored, hash: '#v=1&r=_p~iF~ps|U_ulL_ulL&a=run&t=p300&s=9', now: NOW });
     expect(shared.session).toMatchObject({ type: 'run', seed: 9, target: { kind: 'pace', secPerKm: 300 } });
+    expect(shared.waypoints.map((w) => [w.lon, w.lat])).toEqual([
+      [-120.2, 38.5],
+      [-118, 40.7],
+    ]);
+  });
+
+  it('opens storage and share links from the bilingual version in English', () => {
+    const stored = {
+      v: 1,
+      lang: 'ru',
+      units: 'metric',
+      nameAuto: true,
+      session: { type: 'ride', name: 'Вечерний заезд' },
+      waypoints: [
+        [1, 1],
+        [1.01, 1.01],
+      ],
+    };
+    const state = buildInitialState({ stored, hash: '', now: NOW });
+    expect(state.session.type).toBe('ride');
+    expect(state.session.name).toMatch(/^(Morning|Lunch|Afternoon|Evening|Night) ride$/);
+    expect(state.waypoints).toHaveLength(2);
+    expect('lang' in state).toBe(false);
+    expect('lang' in toPersisted(state)).toBe(false);
+
+    const hash = '#v=1&r=_p~iF~ps|U_ulL_ulL&a=hike&lang=ru';
+    expect(decodeShare(hash)).toMatchObject({ activity: 'hike', coords: [[-120.2, 38.5], [-118, 40.7]] });
+    const shared = buildInitialState({ stored, hash, now: NOW });
+    expect(shared.session.name).toMatch(/^(Morning|Lunch|Afternoon|Evening|Night) hike$/);
     expect(shared.waypoints.map((w) => [w.lon, w.lat])).toEqual([
       [-120.2, 38.5],
       [-118, 40.7],
@@ -213,16 +205,13 @@ describe('actions', () => {
     expect(store.get().athlete.maxHr).toBe(194);
   });
 
-  it('switches target defaults and auto name with the activity and language', () => {
+  it('switches target defaults and auto name with the activity', () => {
     const store = freshStore();
     const actions = createActions(store);
     actions.updateSession({ type: 'ride' });
     expect(store.get().session.target.kind).toBe('speed');
     expect(store.get().session.name).toMatch(/ride$/);
-    actions.setLang('ru');
-    expect(store.get().session.name).toMatch(/заезд$/);
     actions.setName('Commute');
-    actions.setLang('en');
     expect(store.get().session.name).toBe('Commute');
     actions.updateSession({ target: { kind: 'duration', seconds: 1800 } });
     actions.updateSession({ type: 'walk' });

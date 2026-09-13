@@ -15,7 +15,6 @@ import type {
 } from '../lib/types';
 import type { WeatherErrorKind } from '../lib/services/weather';
 import type { EffortPreset } from '../lib/sim';
-import type { Lang } from './i18n';
 
 export type StageState = 'idle' | 'busy' | 'done' | 'error';
 
@@ -78,7 +77,7 @@ export interface AppState {
   /** Max HR follows the age estimate until the user edits it. */
   maxHrAuto: boolean;
   session: SessionSettings;
-  /** Name follows activity, start hour and language until the user edits it. */
+  /** Name follows activity and start hour until the user edits it. */
   nameAuto: boolean;
   /**
    * True until the user edits the target by hand. While true, switching the activity applies an effort preset
@@ -88,7 +87,6 @@ export interface AppState {
   /** Effort the target is solved for on the current route and athlete; null when the target is a plain value. */
   effortPreset: EffortPreset | null;
   units: Units;
-  lang: Lang;
   playhead: number | null;
   routing: RoutingStatus;
   terrain: TerrainStatus;

@@ -3,7 +3,7 @@
 import { formatDecimal } from '../lib/format';
 import type { Units, WeatherSource, WeatherSummary } from '../lib/types';
 import { wallClock } from '../lib/weather/time';
-import { translate, type Lang, type MessageKey } from './i18n';
+import { translate } from './i18n';
 
 export const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 export type CompassPoint = (typeof COMPASS)[number];
@@ -32,8 +32,8 @@ export const temperatureIn = (celsius: number, units: Units): number => (units =
 const whole = (x: number): string => String(Math.round(x)).replace('-', '−');
 
 /** "3…11 °C · rain 08:00–09:15 · wind SW → NW 7–25 km/h" for what the athlete met. */
-export function weatherSummaryText(lang: Lang, units: Units, w: WeatherSummary, startTime: number, utcOffsetMin: number): string {
-  const t = (key: MessageKey, params?: Record<string, string | number>) => translate(lang, key, params);
+export function weatherSummaryText(units: Units, w: WeatherSummary, startTime: number, utcOffsetMin: number): string {
+  const t = translate;
   const unit = t(units === 'metric' ? 'unit_c' : 'unit_f');
   const lo = whole(temperatureIn(w.airTempMin, units));
   const hi = whole(temperatureIn(w.airTempMax, units));
@@ -64,9 +64,9 @@ export function weatherSummaryText(lang: Lang, units: Units, w: WeatherSummary, 
 }
 
 /** "Archived forecast", "Typical for this date (weather of 2019)". */
-export function weatherSourceText(lang: Lang, source: WeatherSource, analogYear?: number): string {
-  return translate(lang, `weatherSource_${source}`, { year: analogYear ?? '–' });
+export function weatherSourceText(source: WeatherSource, analogYear?: number): string {
+  return translate(`weatherSource_${source}`, { year: analogYear ?? '–' });
 }
 
 /** Precipitation total for the result table: one decimal in mm. */
-export const precipitationText = (mm: number, lang: Lang): string => formatDecimal(mm, 1, lang);
+export const precipitationText = (mm: number): string => formatDecimal(mm, 1);

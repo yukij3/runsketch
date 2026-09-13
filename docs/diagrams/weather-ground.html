@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The ground, place by place · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for weather-ground.svg (profile: runsketch, see .diagram-design). Small multiples, doc-wide.
+       Replaces the "ground, place by place" table in the worked example of docs/weather.md.
+
+       Data: real engine output from src/lib/sim at 57c45fe (0.2.0). The example is rebuilt from the doc's own
+       description, since no script for it is in the repo:
+         route    pathProfile() from [7.75, 46.02], smoothSigma 20: 2 km paved SW +140 m; 3.5 km 'ground' W +540 m
+                  (technicality 0.2); 2 km 'ground' W +283 m (0.3); 3 km 'rough' WSW +677 m (0.4); 150 m 'rough'
+                  traverse, heading north (the doc does not give it); 2.85 km 'rough' ENE -677 m (0.4).
+                  Gives 13.5 km, +1637 / -669 m, 1621 -> 3260 -> 2586 m, and weatherSamplePoints() picks exactly the
+                  doc's nine points.
+         weather  the doc's hourly columns at 1620 and 3260 m, every other point between them by height, hours before
+                  06:00 and after 12:00 holding the nearest column, timezone Europe/Zurich, 2026-08-13..17.
+                  Pressure below 3260 m is not in the doc; here it keeps a constant ratio to the 3260 m value,
+                  the reconstruction that fits the doc's barometer column best (it does not change the ground).
+         session  hike, 2026-08-15 06:00 CEST, default athlete, chest strap, no stops, default seed 833490389,
+                  target = the Steady preset as a pace (1537 s/km, 0.651 m/s).
+       The ground is read from the surface grid the run builds (precomputeSurface), at km 5, 9.5, 10.5 and 13 every
+       5 minutes. It matches the replaced table within 0.01 at every cell, e.g. forest 0.13 / 0.84 / 0.85 /
+       0.67 / 0.52 / 0.49 / 0.48, summit ice 0.35 at 08:30 (table 0.34), 1.00 at 09:00, 0.96 at 10:00, 0.02 at
+       11:00, summit wetness 0.77 at 13:00 (table 0.76).
+       "hiker" marks the minute the hiker reaches each place in that run (07:18, 09:26, 10:14, 11:33).
+       Ice is drawn as a strip whose opacity is the frozen share of the film, because the doc's point is that it
+       comes and goes gradually. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Small multiples · Runsketch</p>
+    <h1>The ground, place by place</h1>
+
+    <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="weather-ground-title weather-ground-desc">
+      <title id="weather-ground-title">The ground, place by place</title>
+      <desc id="weather-ground-desc">Surface wetness including mud, fresh snow depth and ice at four places on the example route from 06:00 to 13:00, with the rain hours shaded: 0.2 mm from 07:00, 4.5 to 5.2 mm from 08:00 to 09:00, 0.3 mm to 10:00. The forest path at km 5, 2220 m, goes from 0.13 at 08:00 to 0.84 at 08:30, then drops to 0.67 at 10:00 and holds near 0.48 at 13:00, which is mud rather than a water film. The ridge at km 9.5, 3030 m, is fully wet from 08:30 with 2.1 cm of fresh snow and ice over 54 % of the film at 09:00, keeping 1.2 cm at 13:00. The summit, 3260 m, has a third of its film frozen at 08:30, all of it at 09:00 under 3.9 cm of snow, and none by 12:00, with 3.4 cm left at 13:00. The lower descent at km 13, 2700 m, is soaked from 08:30 to 10:00 and dries to 0.41 at 12:00 and 0.34 at 13:00.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+      <rect x="284.6" y="76.0" width="100.6" height="404.0" fill="rgba(33,84,196,0.05)"/>
+      <text x="334.9" y="68.0" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0.2 mm</text>
+      <rect x="385.1" y="76.0" width="100.6" height="404.0" fill="rgba(33,84,196,0.13)"/>
+      <text x="435.4" y="68.0" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">4.5–5.2 mm</text>
+      <rect x="485.7" y="76.0" width="100.6" height="404.0" fill="rgba(33,84,196,0.05)"/>
+      <text x="536.0" y="68.0" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0.3 mm</text>
+      <text x="184.0" y="68.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">rain in the hour</text>
+      <text x="40.0" y="108.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Forest path</text>
+      <text x="40.0" y="126.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">km 5 · 2220 m</text>
+      <text x="40.0" y="142.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">earth</text>
+      <line x1="184.0" y1="168.0" x2="888.0" y2="168.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="184.0" y1="100.0" x2="888.0" y2="100.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8" stroke-dasharray="2,3"/>
+      <text x="176.0" y="103.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1</text>
+      <text x="176.0" y="171.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <polyline points="184.0,168.0 192.4,168.0 200.8,168.0 209.1,168.0 217.5,168.0 225.9,168.0 234.3,168.0 242.7,168.0 251.0,168.0 259.4,168.0 267.8,168.0 276.2,168.0 284.6,168.0 293.0,167.3 301.3,166.5 309.7,165.8 318.1,165.0 326.5,164.3 334.9,163.5 343.2,162.8 351.6,162.1 360.0,161.3 368.4,160.7 376.8,159.9 385.1,159.2 393.5,141.3 401.9,123.5 410.3,115.8 418.7,112.6 427.0,111.4 435.4,110.8 443.8,110.6 452.2,110.5 460.6,110.5 469.0,110.5 477.3,110.5 485.7,110.5 494.1,117.4 502.5,120.2 510.9,121.3 519.2,121.8 527.6,122.0 536.0,122.1 544.4,122.1 552.8,122.2 561.1,122.2 569.5,122.2 577.9,122.2 586.3,122.3 594.7,123.0 603.0,123.7 611.4,124.5 619.8,125.4 628.2,126.2 636.6,127.1 645.0,128.1 653.3,129.0 661.7,130.0 670.1,130.9 678.5,132.0 686.9,132.9 695.2,133.9 703.6,134.4 712.0,134.5 720.4,134.5 728.8,134.5 737.1,134.6 745.5,134.6 753.9,134.7 762.3,134.7 770.7,134.7 779.0,134.8 787.4,134.8 795.8,134.9 804.2,134.9 812.6,135.0 821.0,135.0 829.3,135.0 837.7,135.1 846.1,135.1 854.5,135.2 862.9,135.2 871.2,135.2 879.6,135.3 888.0,135.3" fill="none" stroke="#2154c4" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="314.7" y1="92.0" x2="314.7" y2="168.0" stroke="#1b1d22" stroke-width="1" stroke-dasharray="1,2"/>
+      <text x="318.7" y="104.0" fill="#1b1d22" font-size="10" font-family="'Red Hat Mono', monospace">hiker</text>
+      <text x="896.0" y="138.8" fill="#2154c4" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace">0.48</text>
+      <text x="40.0" y="212.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Ridge</text>
+      <text x="40.0" y="230.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">km 9.5 · 3030 m</text>
+      <text x="40.0" y="246.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">rock</text>
+      <line x1="184.0" y1="272.0" x2="888.0" y2="272.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="184.0" y1="204.0" x2="888.0" y2="204.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8" stroke-dasharray="2,3"/>
+      <text x="176.0" y="207.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1</text>
+      <text x="176.0" y="275.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <polygon points="184.0,272.0 184.0,272.0 192.4,272.0 200.8,272.0 209.1,272.0 217.5,272.0 225.9,272.0 234.3,272.0 242.7,272.0 251.0,272.0 259.4,272.0 267.8,272.0 276.2,272.0 284.6,272.0 293.0,272.0 301.3,272.0 309.7,272.0 318.1,272.0 326.5,272.0 334.9,272.0 343.2,272.0 351.6,272.0 360.0,272.0 368.4,272.0 376.8,272.0 385.1,272.0 393.5,271.9 401.9,271.6 410.3,270.9 418.7,270.0 427.0,268.5 435.4,266.3 443.8,263.7 452.2,260.6 460.6,256.9 469.0,252.8 477.3,248.3 485.7,243.4 494.1,243.2 502.5,242.9 510.9,242.6 519.2,242.4 527.6,242.1 536.0,241.8 544.4,241.5 552.8,241.3 561.1,241.0 569.5,240.7 577.9,240.6 586.3,240.3 594.7,240.3 603.0,240.3 611.4,240.4 619.8,240.4 628.2,240.6 636.6,240.9 645.0,241.0 653.3,241.1 661.7,241.4 670.1,241.7 678.5,241.9 686.9,242.4 695.2,242.8 703.6,243.0 712.0,243.4 720.4,244.0 728.8,244.4 737.1,244.8 745.5,245.3 753.9,245.9 762.3,246.4 770.7,247.0 779.0,247.5 787.4,248.2 795.8,248.9 804.2,249.4 812.6,250.1 821.0,250.6 829.3,251.3 837.7,252.0 846.1,252.6 854.5,253.2 862.9,253.8 871.2,254.5 879.6,255.0 888.0,255.7 888.0,272.0" fill="rgba(27,29,34,0.13)"/>
+      <rect x="443.3" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.014"/>
+      <rect x="451.7" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.064"/>
+      <rect x="460.1" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.153"/>
+      <rect x="468.5" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.269"/>
+      <rect x="476.8" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.402"/>
+      <rect x="485.2" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.543"/>
+      <rect x="493.6" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.603"/>
+      <rect x="502.0" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.582"/>
+      <rect x="510.4" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.562"/>
+      <rect x="518.7" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.541"/>
+      <rect x="527.1" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.521"/>
+      <rect x="535.5" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.5"/>
+      <rect x="543.9" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.48"/>
+      <rect x="552.3" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.459"/>
+      <rect x="560.6" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.438"/>
+      <rect x="569.0" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.418"/>
+      <rect x="577.4" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.398"/>
+      <rect x="585.8" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.378"/>
+      <rect x="594.2" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.318"/>
+      <rect x="602.5" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.226"/>
+      <rect x="610.9" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.145"/>
+      <rect x="619.3" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.079"/>
+      <rect x="627.7" y="188.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.033"/>
+      <polyline points="184.0,272.0 192.4,272.0 200.8,272.0 209.1,272.0 217.5,272.0 225.9,272.0 234.3,272.0 242.7,272.0 251.0,272.0 259.4,272.0 267.8,272.0 276.2,272.0 284.6,272.0 293.0,270.4 301.3,268.8 309.7,267.2 318.1,265.6 326.5,264.0 334.9,262.5 343.2,261.0 351.6,259.5 360.0,258.0 368.4,256.5 376.8,255.1 385.1,253.6 393.5,212.8 401.9,204.0 410.3,204.0 418.7,204.0 427.0,204.0 435.4,204.0 443.8,204.0 452.2,204.0 460.6,204.0 469.0,204.0 477.3,204.0 485.7,204.0 494.1,204.0 502.5,204.0 510.9,204.0 519.2,204.0 527.6,204.0 536.0,204.0 544.4,204.0 552.8,204.0 561.1,204.0 569.5,204.0 577.9,204.0 586.3,204.0 594.7,204.0 603.0,204.0 611.4,204.0 619.8,204.0 628.2,204.0 636.6,204.0 645.0,204.0 653.3,204.0 661.7,204.0 670.1,204.0 678.5,204.5 686.9,205.0 695.2,205.4 703.6,205.8 712.0,206.0 720.4,206.2 728.8,206.4 737.1,206.5 745.5,206.5 753.9,206.4 762.3,206.3 770.7,206.0 779.0,205.8 787.4,205.4 795.8,205.0 804.2,204.7 812.6,204.3 821.0,204.0 829.3,204.0 837.7,204.0 846.1,204.0 854.5,204.0 862.9,204.0 871.2,204.0 879.6,204.0 888.0,204.0" fill="none" stroke="#2154c4" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="529.3" y1="196.0" x2="529.3" y2="272.0" stroke="#1b1d22" stroke-width="1" stroke-dasharray="1,2"/>
+      <text x="533.3" y="266.0" fill="#1b1d22" font-size="10" font-family="'Red Hat Mono', monospace">hiker</text>
+      <text x="896.0" y="207.5" fill="#2154c4" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace">1.00</text>
+      <text x="896.0" y="269.7" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">1.2 cm</text>
+      <text x="40.0" y="316.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Summit</text>
+      <text x="40.0" y="334.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">km 10.5 · 3260 m</text>
+      <text x="40.0" y="350.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">rock</text>
+      <line x1="184.0" y1="376.0" x2="888.0" y2="376.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="184.0" y1="308.0" x2="888.0" y2="308.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8" stroke-dasharray="2,3"/>
+      <text x="176.0" y="311.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1</text>
+      <text x="176.0" y="379.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <polygon points="184.0,376.0 184.0,376.0 192.4,376.0 200.8,376.0 209.1,376.0 217.5,376.0 225.9,376.0 234.3,376.0 242.7,376.0 251.0,376.0 259.4,376.0 267.8,376.0 276.2,376.0 284.6,376.0 293.0,375.9 301.3,375.9 309.7,375.7 318.1,375.7 326.5,375.7 334.9,375.7 343.2,375.7 351.6,375.7 360.0,375.9 368.4,375.9 376.8,376.0 385.1,376.0 393.5,374.2 401.9,371.8 410.3,368.7 418.7,365.1 427.0,361.2 435.4,356.7 443.8,351.8 452.2,346.5 460.6,340.9 469.0,335.1 477.3,328.9 485.7,322.7 494.1,322.3 502.5,322.0 510.9,321.6 519.2,321.3 527.6,321.1 536.0,320.6 544.4,320.4 552.8,320.0 561.1,319.7 569.5,319.4 577.9,319.0 586.3,318.7 594.7,318.7 603.0,318.9 611.4,318.9 619.8,318.9 628.2,319.0 636.6,319.0 645.0,319.0 653.3,319.0 661.7,319.2 670.1,319.3 678.5,319.4 686.9,319.6 695.2,319.7 703.6,320.0 712.0,320.2 720.4,320.4 728.8,320.8 737.1,321.1 745.5,321.5 753.9,321.7 762.3,322.1 770.7,322.6 779.0,323.1 787.4,323.5 795.8,324.0 804.2,324.5 812.6,325.0 821.0,325.4 829.3,326.0 837.7,326.4 846.1,326.9 854.5,327.4 862.9,327.9 871.2,328.4 879.6,328.8 888.0,329.4 888.0,376.0" fill="rgba(27,29,34,0.13)"/>
+      <rect x="409.8" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.028"/>
+      <rect x="418.2" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.102"/>
+      <rect x="426.5" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.212"/>
+      <rect x="434.9" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.346"/>
+      <rect x="443.3" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.493"/>
+      <rect x="451.7" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.64"/>
+      <rect x="460.1" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.776"/>
+      <rect x="468.5" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.889"/>
+      <rect x="476.8" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.967"/>
+      <rect x="485.2" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.999"/>
+      <rect x="493.6" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="1"/>
+      <rect x="502.0" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="1"/>
+      <rect x="510.4" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="1"/>
+      <rect x="518.7" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.999"/>
+      <rect x="527.1" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.997"/>
+      <rect x="535.5" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.995"/>
+      <rect x="543.9" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.992"/>
+      <rect x="552.3" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.988"/>
+      <rect x="560.6" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.982"/>
+      <rect x="569.0" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.976"/>
+      <rect x="577.4" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.969"/>
+      <rect x="585.8" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.961"/>
+      <rect x="594.2" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.931"/>
+      <rect x="602.5" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.867"/>
+      <rect x="610.9" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.787"/>
+      <rect x="619.3" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.695"/>
+      <rect x="627.7" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.595"/>
+      <rect x="636.1" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.491"/>
+      <rect x="644.5" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.388"/>
+      <rect x="652.8" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.29"/>
+      <rect x="661.2" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.199"/>
+      <rect x="669.6" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.121"/>
+      <rect x="678.0" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.06"/>
+      <rect x="686.4" y="292.0" width="9.4" height="6.0" fill="#c21f3a" fill-opacity="0.019"/>
+      <polyline points="184.0,376.0 192.4,376.0 200.8,376.0 209.1,376.0 217.5,376.0 225.9,376.0 234.3,376.0 242.7,376.0 251.0,376.0 259.4,376.0 267.8,376.0 276.2,376.0 284.6,376.0 293.0,375.1 301.3,374.2 309.7,373.0 318.1,371.8 326.5,370.4 334.9,368.8 343.2,367.1 351.6,365.3 360.0,363.2 368.4,361.2 376.8,359.3 385.1,357.4 393.5,331.1 401.9,310.2 410.3,308.0 418.7,308.0 427.0,308.0 435.4,308.0 443.8,308.0 452.2,308.0 460.6,308.0 469.0,308.0 477.3,308.0 485.7,308.0 494.1,308.0 502.5,308.0 510.9,308.0 519.2,308.0 527.6,308.0 536.0,308.0 544.4,308.0 552.8,308.0 561.1,308.0 569.5,308.0 577.9,308.0 586.3,308.0 594.7,308.0 603.0,308.0 611.4,308.0 619.8,308.0 628.2,308.0 636.6,308.0 645.0,308.5 653.3,311.5 661.7,314.3 670.1,316.8 678.5,318.9 686.9,320.9 695.2,322.6 703.6,324.0 712.0,325.3 720.4,326.4 728.8,327.3 737.1,328.0 745.5,328.5 753.9,328.9 762.3,328.9 770.7,328.9 779.0,328.7 787.4,328.2 795.8,327.7 804.2,327.3 812.6,326.8 821.0,326.5 829.3,326.1 837.7,325.7 846.1,325.3 854.5,325.1 862.9,324.7 871.2,324.5 879.6,324.3 888.0,324.0" fill="none" stroke="#2154c4" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="609.8" y1="300.0" x2="609.8" y2="376.0" stroke="#1b1d22" stroke-width="1" stroke-dasharray="1,2"/>
+      <text x="613.8" y="370.0" fill="#1b1d22" font-size="10" font-family="'Red Hat Mono', monospace">hiker</text>
+      <text x="896.0" y="327.5" fill="#2154c4" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace">0.77</text>
+      <text x="896.0" y="343.4" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">3.4 cm</text>
+      <text x="40.0" y="420.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Lower descent</text>
+      <text x="40.0" y="438.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">km 13 · 2700 m</text>
+      <text x="40.0" y="454.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">rock</text>
+      <line x1="184.0" y1="480.0" x2="888.0" y2="480.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="184.0" y1="412.0" x2="888.0" y2="412.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8" stroke-dasharray="2,3"/>
+      <text x="176.0" y="415.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1</text>
+      <text x="176.0" y="483.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <polygon points="184.0,480.0 184.0,480.0 192.4,480.0 200.8,480.0 209.1,480.0 217.5,480.0 225.9,480.0 234.3,480.0 242.7,480.0 251.0,480.0 259.4,480.0 267.8,480.0 276.2,480.0 284.6,480.0 293.0,480.0 301.3,480.0 309.7,480.0 318.1,480.0 326.5,480.0 334.9,480.0 343.2,480.0 351.6,480.0 360.0,480.0 368.4,480.0 376.8,480.0 385.1,480.0 393.5,480.0 401.9,480.0 410.3,480.0 418.7,480.0 427.0,480.0 435.4,480.0 443.8,480.0 452.2,480.0 460.6,479.9 469.0,479.6 477.3,479.0 485.7,478.2 494.1,478.4 502.5,478.5 510.9,478.6 519.2,478.8 527.6,479.0 536.0,479.2 544.4,479.3 552.8,479.6 561.1,479.7 569.5,480.0 577.9,480.0 586.3,480.0 594.7,480.0 603.0,480.0 611.4,480.0 619.8,480.0 628.2,480.0 636.6,480.0 645.0,480.0 653.3,480.0 661.7,480.0 670.1,480.0 678.5,480.0 686.9,480.0 695.2,480.0 703.6,480.0 712.0,480.0 720.4,480.0 728.8,480.0 737.1,480.0 745.5,480.0 753.9,480.0 762.3,480.0 770.7,480.0 779.0,480.0 787.4,480.0 795.8,480.0 804.2,480.0 812.6,480.0 821.0,480.0 829.3,480.0 837.7,480.0 846.1,480.0 854.5,480.0 862.9,480.0 871.2,480.0 879.6,480.0 888.0,480.0 888.0,480.0" fill="rgba(27,29,34,0.13)"/>
+      <polyline points="184.0,480.0 192.4,480.0 200.8,480.0 209.1,480.0 217.5,480.0 225.9,480.0 234.3,480.0 242.7,480.0 251.0,480.0 259.4,480.0 267.8,480.0 276.2,480.0 284.6,480.0 293.0,478.4 301.3,476.8 309.7,475.2 318.1,473.6 326.5,472.0 334.9,470.5 343.2,469.0 351.6,467.5 360.0,466.0 368.4,464.6 376.8,463.1 385.1,461.6 393.5,421.7 401.9,412.0 410.3,412.0 418.7,412.0 427.0,412.0 435.4,412.0 443.8,412.0 452.2,412.0 460.6,412.0 469.0,412.0 477.3,412.0 485.7,412.0 494.1,412.0 502.5,412.0 510.9,412.0 519.2,412.0 527.6,412.0 536.0,412.0 544.4,412.0 552.8,412.0 561.1,412.0 569.5,412.0 577.9,412.0 586.3,412.0 594.7,412.0 603.0,412.0 611.4,412.0 619.8,412.0 628.2,412.0 636.6,412.0 645.0,412.0 653.3,412.0 661.7,412.0 670.1,412.0 678.5,414.2 686.9,417.7 695.2,421.2 703.6,424.6 712.0,427.9 720.4,431.1 728.8,434.2 737.1,437.2 745.5,440.0 753.9,442.7 762.3,445.1 770.7,447.5 779.0,449.7 787.4,451.8 795.8,453.8 804.2,454.6 812.6,454.8 821.0,455.1 829.3,455.3 837.7,455.5 846.1,455.7 854.5,455.9 862.9,456.2 871.2,456.4 879.6,456.6 888.0,456.8" fill="none" stroke="#2154c4" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="742.2" y1="404.0" x2="742.2" y2="480.0" stroke="#1b1d22" stroke-width="1" stroke-dasharray="1,2"/>
+      <text x="746.2" y="474.0" fill="#1b1d22" font-size="10" font-family="'Red Hat Mono', monospace">hiker</text>
+      <text x="896.0" y="460.3" fill="#2154c4" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace">0.34</text>
+      <line x1="184.0" y1="480.0" x2="184.0" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="184.0" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">06:00</text>
+      <line x1="284.6" y1="480.0" x2="284.6" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="284.6" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">07:00</text>
+      <line x1="385.1" y1="480.0" x2="385.1" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="385.1" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">08:00</text>
+      <line x1="485.7" y1="480.0" x2="485.7" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="485.7" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">09:00</text>
+      <line x1="586.3" y1="480.0" x2="586.3" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="586.3" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">10:00</text>
+      <line x1="686.9" y1="480.0" x2="686.9" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="686.9" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">11:00</text>
+      <line x1="787.4" y1="480.0" x2="787.4" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="787.4" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">12:00</text>
+      <line x1="888.0" y1="480.0" x2="888.0" y2="484.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="888.0" y="496.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">13:00</text>
+      <text x="779.4" y="110.0" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">mud, not a film</text>
+      <text x="402.6" y="297.0" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">ice comes and goes gradually</text>
+      <line x1="40.0" y1="524.0" x2="920.0" y2="524.0" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40.0" y="556.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128.0" y1="552.0" x2="152.0" y2="552.0" stroke="#2154c4" stroke-width="1.8"/>
+      <text x="160.0" y="556.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">wetness, with mud (0–1)</text>
+      <rect x="340.0" y="545.0" width="24.0" height="14.0" fill="rgba(27,29,34,0.13)"/>
+      <text x="372.0" y="556.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">fresh snow, 0–5 cm</text>
+      <rect x="536.0" y="549.0" width="24.0" height="6.0" fill="#c21f3a" fill-opacity="0.8"/>
+      <text x="568.0" y="556.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">ice, shade = share frozen</text>
+      <line x1="752.0" y1="544.0" x2="752.0" y2="560.0" stroke="#1b1d22" stroke-width="1" stroke-dasharray="1,2"/>
+      <text x="760.0" y="556.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">the hiker passes</text>
+      <text x="40.0" y="580.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">State of the ground at four stations, every 5 minutes, whether anyone is on it or not. Engine output for the example below.</text>
+    </svg>
+  </div>
+</body>
+</html>

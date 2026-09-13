@@ -42,7 +42,7 @@ up to 2800 m:  f = 1 − 0.063 per 1000 m above 300 m   (onset rounded over a fe
 above:         f = 1 − 1.287·x^1.719,  x = 1 − PIO₂/PIO₂(sea level)
 ```
 
-The curve meets the straight line at 2800 m and passes through 0.283 at 43 Torr. That's what athletes kept after 40 days of acclimatisation in Operation Everest II: 49 ml/kg/min at sea level and 15 on the simulated summit (Cymerman et al. 1989).
+The curve meets the straight line at 2800 m and passes through 0.283 at 43 Torr. That's the share Operation Everest II's volunteers kept after 40 days of acclimatisation: the five measured at every pressure went from 4.13 l/min at sea level to 1.17 on the simulated summit (Cymerman et al. 1989). We fit the curve to those litres per minute. Per kilogram the same volunteers went from 49.1 to 15.3 ml/kg/min, a ratio of 0.31.
 
 Acclimatisation barely brings VO₂max back. Calbet et al. (2003) measured 54 % of sea-level VO₂max on arrival at 5260 m and 58.5 % after nine to ten weeks there. So instead of a separate curve, people who have just arrived lose up to 12 % more of the deficit. That extra loss ramps in between 2800 and 4500 m. The setting has three steps:
 
@@ -85,19 +85,12 @@ Both levels change every second with the elevation under the athlete, and every 
 
 This all applies to every sport, not only mountaineering. A run at 4000 m records a lower peak heart rate and a higher floor than the same run at sea level.
 
-| Altitude | | VO₂max, just arrived / three weeks | Max HR | Resting HR |
-|---|---|---|---|---|
-| 2000 m | | 89 % / 89 % | 98 % / 97 % | +2 % / +1 % |
-| 3000 m | | 82 % / 83 % | 97 % / 95 % | +7 % / +6 % |
-| 4000 m | | 71 % / 74 % | 95 % / 91 % | +16 % / +13 % |
-| 4808 m | Mont Blanc | 62 % / 66 % | 93 % / 89 % | +26 % / +20 % |
-| 5642 m | Elbrus | 53 % / 58 % | 91 % / 86 % | +38 % / +29 % |
-| 5895 m | Kilimanjaro | 50 % / 55 % | 90 % / 85 % | +42 % / +32 % |
-| 6961 m | Aconcagua | 39 % / 45 % | 88 % / 82 % | +50 % / +47 % |
-| 8000 m | | 28 % / 36 % | 86 % / 78 % | +50 % / +50 % |
-| 8849 m | Everest | 20 % / 28 % | 84 % / 76 % | +50 % / +50 % |
+Just arrived against three weeks or more, VO₂max keeps 89 % of its sea-level value at 2000 m either way, 71 % and 74 % at 4000 m, 62 % and 66 % on Mont Blanc (4808 m), 53 % and 58 % on Elbrus (5642 m), 39 % and 45 % on Aconcagua (6961 m) and 20 % and 28 % on Everest. Maximum heart rate keeps 98 % and 97 % at 2000 m, 95 % and 91 % at 4000 m, 91 % and 86 % on Elbrus and 84 % and 76 % on Everest. Resting heart rate is 16 % and 13 % higher at 4000 m and 38 % and 29 % higher on Elbrus. It reaches its +50 % cap from about 6400 m for the just-arrived and 7200 m for the acclimatised.
 
-<!-- chart: VO2max, max HR and resting HR as a share of sea level from 0 to 8849 m, just arrived vs three weeks, with the study points (Wehrlin & Hallén, Calbet, Operation Everest II, Lundby & van Hall, Karliner) -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/mountaineering-altitude-dark.svg">
+  <img src="diagrams/mountaineering-altitude.svg" alt="VO₂max, maximum heart rate and resting heart rate as a share of their sea-level values from 0 to 8849 m, for someone who has just arrived and for someone acclimatised three weeks or more. VO₂max falls in a straight line to 84 % at 2800 m and then faster with the thinner air: 89 % at 2000 m for both, then just arrived against three weeks 82 % and 83 % at 3000 m, 71 % and 74 % at 4000 m, 62 % and 66 % on Mont Blanc (4808 m), 53 % and 58 % on Elbrus (5642 m), 50 % and 55 % on Kilimanjaro (5895 m), 39 % and 45 % on Aconcagua (6961 m), 28 % and 36 % at 8000 m and 20 % and 28 % on Everest. Maximum heart rate stays put to about 620 m and falls further with acclimatisation: 98 % and 97 % at 2000 m, 95 % and 91 % at 4000 m, 91 % and 86 % on Elbrus and 84 % and 76 % on Everest. Resting heart rate rises from 1500 m: +2 % and +1 % at 2000 m, +16 % and +13 % at 4000 m, +38 % and +29 % on Elbrus, and it stops at +50 % from about 6400 m just arrived and 7200 m acclimatised. Open circles mark the measurements: Calbet's 54 % and 58.5 % at 5260 m, Operation Everest II's 28.3 % at 43 Torr, Lundby and van Hall's 155 of 186 bpm after weeks at 5400 m and 142–144 at 8750 m, and Karliner's resting 70 and 80 bpm against 57 at 5400 and 6300 m.">
+</picture>
 
 For the default athlete (35 years, resting 55, maximum 184) on Elbrus after a week at altitude, that means:
 
@@ -133,17 +126,14 @@ Runsketch warns when:
 
 ### The shape of a mountain path
 
-Mountaineering uses the Swiss hiking-time formula, the one behind the times on Swiss trail signposts. It was fitted to Gerhard Weber's timings on more than 150 routes. Minutes per kilometre are a 15th-degree polynomial in the slope, 14.3 min/km (4.2 km/h) on the flat, held constant beyond ±40 %. Relative to the flat, with the vertical rate at the formula's own 4.2 km/h:
+Mountaineering uses the Swiss hiking-time formula, the one behind the times on Swiss trail signposts. It was fitted to Gerhard Weber's timings on more than 150 routes. Minutes per kilometre are a 15th-degree polynomial in the slope, 14.3 min/km (4.2 km/h) on the flat, held constant beyond ±40 %. Relative to the flat it gives 1.08 at −5 %, 0.71 at +10 %, 0.44 at +20 % and 0.21 at +40 %. Tobler, which hikes use, gives 1.19, 0.70, 0.50 and 0.25 at the same grades.
 
-| Grade | −40 % | −30 % | −20 % | −10 % | −5 % | 0 | +5 % | +10 % | +15 % | +20 % | +30 % | +40 % |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Swiss formula | 0.39 | 0.52 | 0.72 | 1.00 | 1.08 | 1 | 0.86 | 0.71 | 0.57 | 0.44 | 0.29 | 0.21 |
-| Tobler (hikes) | 0.35 | 0.50 | 0.70 | 1.00 | 1.19 | 1 | 0.84 | 0.70 | 0.59 | 0.50 | 0.35 | 0.25 |
-| Vertical rate, m/h | 656 | 653 | 604 | 422 | 226 | 0 | 180 | 300 | 357 | 371 | 369 | 358 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/mountaineering-grade-dark.svg">
+  <img src="diagrams/mountaineering-grade.svg" alt="Two line charts from the engine. Left: walking speed relative to flat on the Swiss hiking-time formula used for mountaineering and on Tobler's function used for hikes, from −40 % to +40 %. Swiss: 0.39 at −40 %, 0.52 at −30 %, 0.72 at −20 %, 1.00 at −10 %, 1.08 at −5 %, 0.86 at +5 %, 0.71 at +10 %, 0.57 at +15 %, 0.44 at +20 %, 0.29 at +30 % and 0.21 at +40 %. Tobler: 0.35, 0.50, 0.70, 1.00, 1.19, 0.84, 0.70, 0.59, 0.50, 0.35 and 0.25 at the same grades. Right: the Swiss curve's vertical rate at its 4.2 km/h on the flat: 180 m/h at +5 %, 300 at +10 %, then level near 370 m/h from +15 to +40 % (357, 371, 369 and 358 at +15, +20, +30 and +40 %), between the DIN 33466 planning rate of 300 m/h and the Swiss Alpine Club's 400 m/h. Downhill it is 226 m/h at −5 %, 422 at −10 %, 604 at −20 % and about 655 m/h at −30 to −40 %.">
+</picture>
 
-<!-- chart: speed vs grade on the Swiss hiking curve and Tobler, with the mountaineering speed per SAC grade T1–T6 going up and down, and the vertical rate on a second axis -->
-
-The two curves agree within 0.07 up to +20 %. We picked the Swiss one for its steep end. Its climbing rate levels off near 370 m/h between +15 and +40 %, which is what the German DIN 33466 (300 m/h) and Swiss Alpine Club (400 m/h) planning rules assume. Tobler keeps getting slower vertically on steep ground. Descents are fastest near 655 m/h vertical on −30 to −40 %.
+On climbs up to +20 % the two curves stay within 0.06 of each other. The largest gap is on gentle descents, 0.11 at −5 %, where Tobler peaks at 1.19 and the Swiss curve gives 1.08. We picked the Swiss one for its steep end. Its climbing rate levels off near 370 m/h between +15 and +40 %, which is what the German DIN 33466 (300 m/h) and Swiss Alpine Club (400 m/h) planning rules assume. Tobler, at the same 4.2 km/h on the flat, climbs a little slower than the Swiss curve up to about +12 % and faster from there. Its vertical rate keeps rising to about 441 m/h near +30 % and only then falls, to 414 m/h at +40 %, so from +20 to +40 % it sits above both planning rules and above the Swiss curve. Descents are fastest near 655 m/h vertical on −30 to −40 %.
 
 ### Difficulty grades
 
@@ -172,17 +162,14 @@ f is the VO₂max factor at that point. The cost is the loaded walking cost desc
 
 The share is 0.5 when the planned flat walking speed is the Swiss standard 4.2 km/h. It grows and shrinks in proportion to the planned speed, between 0.1 and 1. That way a faster target climbs harder, and moving time still changes smoothly with effort, which the calibration needs. The engine still solves one effort scale so that moving time matches the target exactly. The cap decides where the time goes: slow high up, quicker low down.
 
-For the default athlete (VO₂max 45, 70 kg) with an 8 kg pack, mountain boots and crampons on firm snow, at a share of 0.5, the cap on a 30 % slope is:
-
-| Altitude | 1000 m | 3000 m | 4000 m | 5000 m | 5642 m | 6961 m | 8000 m |
-|---|---|---|---|---|---|---|---|
-| Just arrived | 471 m/h | 361 | 278 | 201 | 159 | 86 | 41 |
-| A week | 473 | 368 | 294 | 223 | 183 | 110 | 63 |
-| Three weeks | 475 | 375 | 310 | 246 | 208 | 136 | 87 |
+For the default athlete (VO₂max 45, 70 kg) with an 8 kg pack, mountain boots and crampons on firm snow, at a share of 0.5, the cap on a 30 % slope is 471 m/h at 1000 m for someone who has just arrived, 361 at 3000 m, 278 at 4000 m, 201 at 5000 m, 159 on Elbrus (5642 m), 86 on Aconcagua (6961 m) and 41 at 8000 m. After a week it is 473, 368, 294, 223, 183, 110 and 63 m/h at the same heights, and after three weeks 475, 375, 310, 246, 208, 136 and 87.
 
 Guides quote 155–300 m/h at 4000–5000 m, 140–260 at 5000–5900 m and 100–170 between 6000 and 7000 m, breaks included, so the cap sits where it should. Nobody on a mountain day moves slower than 0.08 m/s, which is 86 m/h on a 30 % slope. Above about 7500 m that floor, not the budget, sets the pace on steep ground, so the model says little about the last thousand metres of an 8000 m peak.
 
-<!-- chart: oxygen-capped climbing rate vs altitude for the three acclimatisation settings, with the guide rate bands per altitude and the 0.08 m/s floor -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/mountaineering-climb-cap-dark.svg">
+  <img src="diagrams/mountaineering-climb-cap.svg" alt="Climbing rate on a 30 % slope capped by the oxygen budget, against altitude, for the default athlete (VO₂max 45, 70 kg) with an 8 kg pack, mountain boots and crampons on firm snow, at a share of 0.5. Just arrived, after a week and after three weeks: 471, 473 and 475 m/h at 1000 m; 361, 368 and 375 at 3000 m; 278, 294 and 310 at 4000 m; 201, 223 and 246 at 5000 m; 159, 183 and 208 on Elbrus at 5642 m; 86, 110 and 136 on Aconcagua at 6961 m; 41, 63 and 87 at 8000 m. Guide rates, breaks included, are drawn as boxes: 155–300 m/h at 4000–5000 m, 140–260 at 5000–5900 m and 100–170 between 6000 and 7000 m. Nobody moves slower than 0.08 m/s, 86 m/h on this slope, and the budget drops under that floor from about 7000 m just arrived, 7500 m after a week and 8050 m after three weeks.">
+</picture>
 
 ### Descents
 

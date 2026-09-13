@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Running cadence on grades · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for terrain-cadence.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Data: real engine output from src/lib/sim/models.ts, 0.5 % grade steps.
+       Solid: runCadence(3.03 * runGradeMultiplier(g, 0.35), g, 1.75), the recreational runner at the speed each grade
+       gives (3.03 m/s on the flat, descent skill 0.35). Dashed: runCadence(3.03, g, 1.75), the same speed everywhere.
+       Height 1.75 m, so the stature term is zero. Below -15 % the steep-descent floor switches on, which is the small
+       step in the solid line at -15 %. The uphill term eases from 0.25 % to 0.1 % per % at +12 %.
+       Checked against the table this chart replaces in docs/terrain.md:
+         own speed  -25 176.2, -10 173.5, 0 171.5, +10 169.3, +20 166.3   (table 176, 174, 172, 169, 166)
+         3.03 m/s   -25 185.1, -10 169.8, 0 171.5, +10 175.8, +20 178.1   (table 185, 170, 172, 176, 178)
+       171.5 is labelled 172 as in the table (rounded half up). -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Running cadence on grades</h1>
+
+    <svg viewBox="0 0 960 324" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="terrain-cadence-title terrain-cadence-desc">
+      <title id="terrain-cadence-title">Running cadence on grades</title>
+      <desc id="terrain-cadence-desc">Running cadence against grade from −30 % to +30 % for a recreational runner 1.75 m tall who runs 3.03 m/s on the flat. Running at the speed each grade gives, cadence changes little: 176 steps per minute at −25 %, 174 at −10 %, 172 on the flat, 169 at +10 % and 166 at +20 %. Held at the same 3.03 m/s everywhere, the grade term shows: 185 at −25 %, 170 at −10 %, 172 on the flat, 176 at +10 % and 178 at +20 %. Steeper than −15 % runners take short quick steps, so cadence never drops below the flat cadence of the same effort.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+      <text x="24.0" y="24.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Running cadence on grades</text>
+      <text x="24.0" y="40.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">recreational runner, 1.75 m, 3.03 m/s on the flat</text>
+
+      <!-- steep descents: short quick steps -->
+      <rect x="80.0" y="64.0" width="208.0" height="216.0" fill="rgba(86,97,59,0.06)"/>
+
+      <!-- gridlines -->
+      <line x1="80.0" y1="280.0" x2="912.0" y2="280.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80.0" y1="249.1" x2="912.0" y2="249.1" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="252.6" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">165</text>
+      <line x1="80.0" y1="218.3" x2="912.0" y2="218.3" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="221.8" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">170</text>
+      <line x1="80.0" y1="187.4" x2="912.0" y2="187.4" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="190.9" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">175</text>
+      <line x1="80.0" y1="156.6" x2="912.0" y2="156.6" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="160.1" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">180</text>
+      <line x1="80.0" y1="125.7" x2="912.0" y2="125.7" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="129.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">185</text>
+      <line x1="80.0" y1="94.9" x2="912.0" y2="94.9" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="98.4" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">190 spm</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="280.0" x2="80.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="80.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−30 %</text>
+      <line x1="218.7" y1="280.0" x2="218.7" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="218.7" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−20</text>
+      <line x1="357.3" y1="280.0" x2="357.3" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="357.3" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−10</text>
+      <line x1="496.0" y1="280.0" x2="496.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="496.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="634.7" y1="280.0" x2="634.7" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="634.7" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+10</text>
+      <line x1="773.3" y1="280.0" x2="773.3" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="773.3" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+20</text>
+      <line x1="912.0" y1="280.0" x2="912.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="912.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+30 %</text>
+      <text x="496.0" y="314.0" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">← descent · grade · climb →</text>
+
+      <!-- series: runCadence(v, g, 1.75) -->
+      <polyline points="80.0,75.6 86.9,80.5 93.9,85.5 100.8,90.4 107.7,95.4 114.7,100.3 121.6,105.3 128.5,110.2 135.5,115.2 142.4,120.2 149.3,125.1 156.3,130.0 163.2,135.0 170.1,140.0 177.1,145.0 184.0,150.0 190.9,155.0 197.9,159.9 204.8,164.7 211.7,169.4 218.7,174.0 225.6,178.5 232.5,182.9 239.5,187.1 246.4,191.2 253.3,195.1 260.3,199.0 267.2,202.8 274.1,206.4 281.1,209.9 288.0,224.7 294.9,224.1 301.9,223.6 308.8,223.1 315.7,222.5 322.7,222.1 329.6,221.5 336.5,221.0 343.5,220.4 350.4,219.9 357.3,219.4 364.3,218.8 371.2,218.3 378.1,217.8 385.1,217.3 392.0,216.7 398.9,216.2 405.9,215.7 412.8,215.1 419.7,214.6 426.7,214.1 433.6,213.5 440.5,213.0 447.5,212.5 454.4,212.0 461.3,211.4 468.3,210.9 475.2,210.4 482.1,209.8 489.1,209.3 496.0,208.8 502.9,207.5 509.9,206.1 516.8,204.8 523.7,203.5 530.7,202.2 537.6,200.9 544.5,199.5 551.5,198.2 558.4,196.9 565.3,195.6 572.3,194.2 579.2,192.9 586.1,191.6 593.1,190.3 600.0,189.0 606.9,187.6 613.9,186.3 620.8,185.0 627.7,183.7 634.7,182.3 641.6,181.0 648.5,179.7 655.5,178.4 662.4,177.1 669.3,176.5 676.3,176.0 683.2,175.5 690.1,174.9 697.1,174.4 704.0,173.9 710.9,173.4 717.9,172.8 724.8,172.2 731.7,171.8 738.7,171.2 745.6,170.7 752.5,170.1 759.5,169.7 766.4,169.1 773.3,168.5 780.3,168.1 787.2,167.5 794.1,167.0 801.1,166.4 808.0,166.0 814.9,165.4 821.9,164.8 828.8,164.3 835.7,163.8 842.7,163.3 849.6,162.7 856.5,162.2 863.5,161.7 870.4,161.1 877.3,160.6 884.3,160.1 891.2,159.6 898.1,159.0 905.1,158.5 912.0,158.0" fill="none" stroke="#56613b" stroke-width="1.6" stroke-dasharray="5,3" stroke-linejoin="round"/>
+      <polyline points="80.0,171.0 86.9,171.8 93.9,172.6 100.8,173.5 107.7,174.3 114.7,175.3 121.6,176.1 128.5,177.1 135.5,178.0 142.4,179.0 149.3,180.0 156.3,180.9 163.2,182.0 170.1,183.0 177.1,184.2 184.0,185.3 190.9,186.5 197.9,187.7 204.8,188.9 211.7,190.1 218.7,191.4 225.6,192.6 232.5,193.8 239.5,195.1 246.4,196.4 253.3,197.7 260.3,199.0 267.2,200.3 274.1,201.6 281.1,202.9 288.0,215.5 294.9,212.9 301.9,210.3 308.8,207.9 315.7,205.6 322.7,203.4 329.6,201.4 336.5,200.0 343.5,198.7 350.4,197.5 357.3,196.5 364.3,195.7 371.2,195.1 378.1,194.6 385.1,194.3 392.0,194.2 398.9,194.2 405.9,194.3 412.8,194.7 419.7,195.2 426.7,195.9 433.6,196.6 440.5,197.5 447.5,198.7 454.4,199.8 461.3,201.1 468.3,202.5 475.2,203.9 482.1,205.5 489.1,207.1 496.0,208.8 502.9,209.3 509.9,209.8 516.8,210.3 523.7,210.9 530.7,211.6 537.6,212.3 544.5,213.0 551.5,213.7 558.4,214.5 565.3,215.2 572.3,215.9 579.2,216.7 586.1,217.4 593.1,218.2 600.0,218.9 606.9,219.6 613.9,220.3 620.8,221.0 627.7,221.7 634.7,222.4 641.6,223.0 648.5,223.6 655.5,224.1 662.4,224.7 669.3,226.0 676.3,227.2 683.2,228.5 690.1,229.6 697.1,230.8 704.0,231.9 710.9,233.0 717.9,234.1 724.8,235.1 731.7,236.1 738.7,237.0 745.6,237.9 752.5,238.7 759.5,239.5 766.4,240.2 773.3,240.9 780.3,241.5 787.2,242.1 794.1,242.7 801.1,243.2 808.0,243.7 814.9,244.2 821.9,244.6 828.8,245.1 835.7,245.4 842.7,245.8 849.6,246.2 856.5,246.5 863.5,246.8 870.4,247.0 877.3,247.4 884.3,247.6 891.2,247.8 898.1,248.0 905.1,248.2 912.0,248.3" fill="none" stroke="#56613b" stroke-width="2" stroke-linejoin="round"/>
+      <text x="908.0" y="144.0" fill="#56613b" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">at a fixed 3.03 m/s</text>
+      <text x="908.0" y="272.0" fill="#56613b" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">at the speed each grade gives</text>
+      <text x="86.9" y="243.0" fill="#56613b" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif">steeper than −15 %: short quick steps,</text>
+      <text x="86.9" y="259.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">never under the flat cadence of the same effort</text>
+
+      <!-- values at the grades of the old table -->
+      <circle cx="149.3" cy="180.0" r="2.5" fill="#56613b"/>
+      <text x="149.3" y="196.0" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">176</text>
+      <circle cx="357.3" cy="196.5" r="2.5" fill="#56613b"/>
+      <text x="357.3" y="188.5" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">174</text>
+      <circle cx="634.7" cy="222.4" r="2.5" fill="#56613b"/>
+      <text x="634.7" y="238.4" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">169</text>
+      <circle cx="773.3" cy="240.9" r="2.5" fill="#56613b"/>
+      <text x="773.3" y="256.9" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">166</text>
+      <circle cx="149.3" cy="125.1" r="2.5" fill="#f5f6f4" stroke="#56613b" stroke-width="1.2"/>
+      <text x="157.3" y="123.1" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace">185</text>
+      <circle cx="357.3" cy="219.4" r="2.5" fill="#f5f6f4" stroke="#56613b" stroke-width="1.2"/>
+      <text x="357.3" y="235.4" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">170</text>
+      <circle cx="634.7" cy="182.3" r="2.5" fill="#f5f6f4" stroke="#56613b" stroke-width="1.2"/>
+      <text x="634.7" y="174.3" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">176</text>
+      <circle cx="773.3" cy="168.5" r="2.5" fill="#f5f6f4" stroke="#56613b" stroke-width="1.2"/>
+      <text x="773.3" y="160.5" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">178</text>
+      <circle cx="496.0" cy="208.8" r="2.5" fill="#56613b"/>
+      <text x="496.0" y="200.8" fill="#56613b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">172</text>
+    </svg>
+  </div>
+</body>
+</html>

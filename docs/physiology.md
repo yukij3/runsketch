@@ -65,11 +65,12 @@ If you don't enter your own values, the defaults are:
 | Heart-rate response times | ×1.4 | ×1.0 | ×0.75 | ×0.6 |
 | Warm-up, first 5 minutes slower by | 6 % | 5 % | 4 % | 3 % |
 
-VO₂max is adjusted for age from that 35-year-old baseline. People who keep training hold their capacity fairly well into their fifties and lose it faster afterwards (Tanaka & Seals 2008), while population averages fall about a tenth per decade (Kaminsky et al. 2015), which overstates the loss at a fixed fitness level. Our curve sits between them:
+VO₂max is adjusted for age from that 35-year-old baseline. People who keep training hold their capacity fairly well into their fifties and lose it faster afterwards (Tanaka & Seals 2008), while population averages fall about a tenth per decade (Kaminsky et al. 2015), which overstates the loss at a fixed fitness level. Our curve sits between them. Against the value at 35 it gives 1.02 at 25, 0.945 at 45, 0.88 at 55, 0.80 at 65 and 0.72 at 75: gentle into the fifties, faster after.
 
-| Age | 25 | 35 | 45 | 55 | 65 | 75 |
-|---|---|---|---|---|---|---|
-| VO₂max against age 35 | 1.02 | 1.00 | 0.945 | 0.88 | 0.80 | 0.72 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/physiology-age-dark.svg">
+  <img src="diagrams/physiology-age.svg" alt="Line chart of the default VO₂max against age, as a multiple of the value at 35. It holds at 1.02 up to 25, is 1.00 at 35, 0.945 at 45, 0.88 at 55, 0.805 at 65 and 0.72 at 75, and is down to about 0.67 at 80: a gentle loss into the fifties that speeds up after. A dashed straight line for population averages, falling about a tenth per decade, reaches 0.60 at 75 and sits below the Runsketch curve at every age past 35. The same curve scales each level's VO₂max at 35: 35, 45, 55 and 66 ml/kg/min, 6 lower for women.">
+</picture>
 
 Maximum heart rate defaults to 208 − 0.7 × age (Tanaka et al. 2001, a meta-analysis of 351 studies with 18,712 people). Resting heart rate is taken as entered, and never closer than 40 bpm to the maximum.
 
@@ -198,11 +199,12 @@ Some targets are beyond the athlete or the route, and the engine would rather sa
 
 When a target is missed, the warning names whichever of these held the motion down for the most seconds, along with the moving time actually reached. A separate warning fires when flat ground alone would need more than the whole VO₂ reserve.
 
-The engine also checks the effort it produced against how long that effort can be held. The limit is a margin over the athlete's threshold share, narrowing with duration:
+The engine also checks the effort it produced against how long that effort can be held. The limit is a margin over the athlete's threshold share, narrowing with duration: +0.25 over a 6-minute window, +0.18 over 15 minutes, +0.13 over half an hour, +0.09 over an hour and +0.05 over three hours. No limit goes above 1.05 of the reserve, which trims the two fittest levels at the shortest windows.
 
-| Window | 6 min | 15 min | 30 min | 1 h | 3 h |
-|---|---|---|---|---|---|
-| Margin over threshold | +0.25 | +0.18 | +0.13 | +0.09 | +0.05 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/physiology-endurance-dark.svg">
+  <img src="diagrams/physiology-endurance.svg" alt="Line chart of the highest mean share of VO₂ reserve the engine accepts over windows of 6, 15 and 30 minutes, 1 hour and 3 hours, one line per level. Each limit is the athlete's threshold share plus a margin that narrows from +0.25 at 6 minutes through +0.18, +0.13 and +0.09 to +0.05 at 3 hours, and no limit goes above 1.05. A recreational athlete, threshold 0.75, is allowed 1.00 for 6 minutes, 0.93 for 15, 0.88 for half an hour, 0.84 for an hour and 0.80 for three hours. At 3 hours a beginner, threshold 0.70, is allowed 0.75, a trained athlete, 0.83, is allowed 0.88 and an elite one, 0.88, is allowed 0.93; at 6 minutes trained and elite are both held to 1.05.">
+</picture>
 
 For a recreational athlete that is about 100 % of VO₂ reserve for 6 minutes, 88 % for half an hour and 80 % for three hours. The worst window that exceeds its limit produces the warning. Those margins are rough.
 

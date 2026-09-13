@@ -74,16 +74,12 @@ The top speed on a descent is capped at 1.15 + 0.1 × skill times flat speed. Un
 
 Skill matters most where the ground is steep and rough. The spread in descending ability in fell races is largest there (Kay 2014), and the better finishers in trail ultramarathons are relatively faster on descents (Genitrini et al. 2022). Technical ground (see Surfaces below) therefore lowers the effective skill by up to 70 % and the cap by up to 15 %.
 
-The speed multiplier this gives, before any walking, vertical-speed limit or surface is applied:
+The speed multiplier this gives, before any walking, vertical-speed limit or surface is applied, is the same for every level uphill: 0.87× at +5 %, 0.74× at +10 %, 0.53× at +20 % and 0.42× at +30 %. Downhill it spreads with skill. At −10 % a beginner goes 1.12× flat speed, a recreational runner 1.16× and an elite runner 1.22×. At −20 % it's 0.75×, 0.90× and 1.02×, and at −30 % 0.41×, 0.60× and 0.71×.
 
-| Grade | −30 % | −20 % | −15 % | −10 % | −5 % | 0 | +5 % | +10 % | +20 % | +30 % |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Beginner | 0.41 | 0.75 | 0.97 | 1.12 | 1.11 | 1 | 0.87 | 0.74 | 0.53 | 0.42 |
-| Recreational | 0.60 | 0.90 | 1.06 | 1.16 | 1.12 | 1 | 0.87 | 0.74 | 0.53 | 0.42 |
-| Elite | 0.71 | 1.02 | 1.16 | 1.22 | 1.15 | 1 | 0.87 | 0.74 | 0.53 | 0.42 |
-
-<!-- chart: running speed multiplier against grade from −40 to +40 %, one line per level, with the typical curve and Kay's record curve dashed -->
-
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/terrain-descent-dark.svg">
+  <img src="diagrams/terrain-descent.svg" alt="Running speed as a multiple of flat speed from a 40 % descent to a 40 % climb, before walking, the vertical-speed ceiling or surface. Uphill every level shares one curve: 0.87× at +5 %, 0.74× at +10 %, 0.53× at +20 % and 0.42× at +30 %. Downhill the curves split by descent skill. A beginner (skill 0) peaks at 1.13× near −8 % and holds back on steep ground: 1.11× at −5 %, 1.12× at −10 %, 0.97× at −15 %, 0.75× at −20 % and 0.41× at −30 %. A recreational runner (0.35) goes 1.12×, 1.16×, 1.06×, 0.90× and 0.60× at the same grades, a trained runner (0.65) 1.14×, 1.19×, 1.12×, 0.97× and 0.68×, and an elite runner (0.9) 1.15×, 1.22×, 1.16×, 1.02× and 0.71×, within 0.015 of Kay's 2012 curve fitted to hill-race records, which peaks at 1.23× at −10 %.">
+</picture>
 
 In a full simulation we put a 400 m descent between two 8 km flats. A recreational runner at 5:45/km covered it at 1.12× the flat speed at −10 %, 0.87× at −20 % and 0.58× at −30 %. An elite runner at 4:00/km managed 1.20×, 1.01× and 0.71×. A beginner at 7:00/km went at 1.10× and 0.72× at −10 % and −20 %, and walked most of the −30 % stretch.
 
@@ -109,16 +105,14 @@ For 1 km climbs between two 8 km flats, at the same four paces, the engine gives
 
 Nobody hits flat pace the moment a climb ends. In Townshend's study, speed on the level stayed changed for 78 s after a climb and 24 s after a descent: slower after climbs, faster after descents. So on runs the planned speed multiplier doesn't jump when the grade changes. After a climb it rises towards the new value with a time constant of 30 s, and after a descent it falls with a time constant of 10 s. Going into a climb or a descent stays immediate.
 
-A recreational runner at an average of 5:30/km, 2 km flat, then 1 km at +8 %, then 3 km flat, eight seeds:
+We ran a recreational runner at an average of 5:30/km over 2 km flat, then 1 km at +8 %, then 3 km flat, with variability at zero and eight seeds. Ten seconds after the crest they were at 85 % of the flat speed that followed, 92 % after 30 s, 97 % after a minute, 99 % after 90 s and 100 % after two minutes.
 
-| Seconds after the crest | 10 | 30 | 60 | 90 | 120 |
-|---|---|---|---|---|---|
-| Speed vs the later flat | 85 % | 92 % | 97 % | 99 % | 100 % |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/terrain-crest-dark.svg">
+  <img src="diagrams/terrain-crest.svg" alt="Speed as a share of the flat speed that follows, averaged over eight seeds with variability at zero for a recreational runner at an average of 5:30/km, from 60 seconds before to 180 seconds after the top of a 1 km climb at +8 % and the bottom of a 1 km descent at −8 %. On the climb the runner holds about 79 % of the later flat speed. After the crest speed comes back gradually rather than at once: 85 % at 10 s, 92 % at 30 s, 97 % at 60 s, 99 % at 90 s and 100 % at 120 s, staying within 2 % from 73 s. On the descent the runner goes about 115 % of the later flat speed, still 113.5 % at the bottom, and is within 2 % of it from 26 s.">
+</picture>
 
-<!-- chart: speed around a crest — eight-seed average from 60 s before to 180 s after the top of a +8 % climb and the bottom of a −8 % descent, as a share of the later flat speed -->
-
-
-Speed is within 2 % of the flat speed after 72 s. After a 1 km descent at −8 % it starts 7 % above flat speed and settles after 24 s.
+Speed stays within 2 % of the flat speed from 73 s on. The same run over a 1 km descent at −8 % reaches the flat still going 113.5 % of the speed that follows, and is within 2 % of it from 26 s.
 
 This only applies to runs, and only when a climb or descent levels out. A crest that drops straight into a descent picks up downhill speed at once.
 
@@ -274,18 +268,14 @@ What it costs in practice: a recreational runner descending 2 km at −20 % on a
 
 ### What it does to a run
 
-To see these factors at work we ran a flat 6 km route at an average of 5:30/km. Only the middle 2 km changed. Moving time is fixed by the target, so the road on either side gets faster to make up for a slow middle. Averages over four seeds:
+To see these factors at work we ran a flat 6 km route at an average of 5:30/km. Only the middle 2 km changed. Moving time is fixed by the target, so the road on either side gets faster to make up for a slow middle. Averages over four seeds.
 
-| Middle 2 km | Pace on the road | Pace in the middle | HR demand on the road | HR demand in the middle |
-|---|---|---|---|---|
-| asphalt | 5:28 | 5:30 | 159 | 157 |
-| dirt path | 5:23 | 5:39 | 161 | 158 |
-| gravel | 5:21 | 5:44 | 161 | 158 |
-| dirt path, T2 | 5:13 | 6:01 | 165 | 160 |
-| rough path, T3 | 4:38 | 7:09 | 177 | 163 |
-| sand | 4:55 | 6:36 | 174 | 175 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/terrain-surfaces-dark.svg">
+  <img src="diagrams/terrain-surfaces.svg" alt="Dot plot of a flat 6 km run at an average of 5:30/km in which only the middle 2 km change, four seeds, recreational runner. For each surface, pace and heart-rate demand in the middle 2 km against the road on either side: asphalt 5:29 in the middle and 5:30 on the road, heart-rate demand 157 and 156 bpm; dirt path 5:38 in the middle and 5:26 on the road, heart-rate demand 158 and 158 bpm; gravel 5:42 in the middle and 5:24 on the road, heart-rate demand 158 and 158 bpm; dirt path, T2 5:59 in the middle and 5:15 on the road, heart-rate demand 160 and 161 bpm; rough path, T3 7:08 in the middle and 4:41 on the road, heart-rate demand 164 and 173 bpm; sand 6:34 in the middle and 4:58 on the road, heart-rate demand 174 and 169 bpm. Moving time is fixed, so the slower the middle, the faster the road around it: sand and a T3 path make the road 4:58 and 4:41/km. Sand asks 18 bpm more than asphalt in the middle, a T3 path 7 bpm more, and on the T3 run the fast road asks more than the path itself.">
+</picture>
 
-Compared with asphalt, sand at 6:36/km asks 18 bpm more and a T3 path at 7:09/km asks 6 bpm more. Heart rate goes up while pace drops.
+With asphalt in the middle the whole run stays at 5:29–5:30/km and asks 156–157 bpm. A dirt path in the middle takes 5:38/km, gravel 5:42, a dirt path at T2 5:59, sand 6:34 and a rough T3 path 7:08, and the road around them speeds up to 5:26, 5:24, 5:15, 4:58 and 4:41/km. Compared with asphalt, sand asks 18 bpm more and a T3 path 7 bpm more. Heart rate goes up while pace drops. On the T3 run the fast road even asks more than the path itself, 173 bpm against 164.
 
 ## Cadence on grades
 
@@ -297,15 +287,12 @@ Runsketch keeps the speed term from the physiology doc and adds a grade term tha
 spm = (147.6 + 7.9·v) × (1 + 0.25 % per % uphill up to 12 %, then 0.1 % per % − 0.1 % per % downhill) − 120·(height − 1.75 m)
 ```
 
-On descents steeper than −15 % runners take short quick steps, so cadence doesn't drop below the flat cadence of the same effort. For a recreational runner who does 3.03 m/s on the flat:
+On descents steeper than −15 % runners take short quick steps, so cadence doesn't drop below the flat cadence of the same effort. A recreational runner who does 3.03 m/s on the flat and runs each grade at the speed it gives takes 176 steps per minute at −25 %, 174 at −10 %, 172 on the flat, 169 at +10 % and 166 at +20 %. Held at 3.03 m/s everywhere, the same runner would take 185, 170, 172, 176 and 178.
 
-| Grade | −25 % | −10 % | 0 | +10 % | +20 % |
-|---|---|---|---|---|---|
-| Cadence, running at the grade's own speed | 176 | 174 | 172 | 169 | 166 |
-| Cadence, same 3.03 m/s everywhere | 185 | 170 | 172 | 176 | 178 |
-
-<!-- chart: cadence against grade for a recreational runner — at the grade's own speed and at a fixed 3.03 m/s -->
-
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/terrain-cadence-dark.svg">
+  <img src="diagrams/terrain-cadence.svg" alt="Running cadence against grade from −30 % to +30 % for a recreational runner 1.75 m tall who runs 3.03 m/s on the flat. Running at the speed each grade gives, cadence changes little: 176 steps per minute at −25 %, 174 at −10 %, 172 on the flat, 169 at +10 % and 166 at +20 %. Held at the same 3.03 m/s everywhere, the grade term shows: 185 at −25 %, 170 at −10 %, 172 on the flat, 176 at +10 % and 178 at +20 %. Steeper than −15 % runners take short quick steps, so cadence never drops below the flat cadence of the same effort.">
+</picture>
 
 Walking cadence drops 0.4 % per percent of climb: 108 steps per minute at 1.2 m/s on the flat, 102 at +15 % and 95 at +30 %. A runner's walking bouts on a steep climb show this walking cadence. At 1 m/s on +20 % that's 93 steps per minute, where running at the same speed would be 161.
 

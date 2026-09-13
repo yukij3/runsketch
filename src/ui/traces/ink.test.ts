@@ -102,15 +102,6 @@ describe('buildAxes', () => {
     expect(axes.y.pace.every((t) => /^\d+:\d\d$/.test(t.label))).toBe(true);
   });
 
-  it('writes distance ticks with a decimal comma in Russian', () => {
-    const scale = makeXScale(result.streams.dist, 'distance', layout.plotW);
-    const ru = buildAxes(model, scale, layout, panelYMaps(model, layout), TEST_ZONES, 'ru');
-    const en = buildAxes(model, scale, layout, panelYMaps(model, layout), TEST_ZONES);
-    expect(ru.x.map((t) => t.label)).toEqual(en.x.map((t) => t.label.replace('.', ',').replace('0 km', '0 км')));
-    expect(ru.x[0].label).toBe('0 км');
-    expect(ru.x.some((t) => t.label.includes(','))).toBe(true);
-  });
-
   it('formats the time axis as a clock', () => {
     const scale = makeXScale(result.streams.t, 'time', layout.plotW, 10);
     const axes = buildAxes(model, scale, layout, panelYMaps(model, layout), TEST_ZONES);

@@ -6,7 +6,7 @@ import { MAX_IMPORT_WAYPOINTS } from './config';
 import { decimateTrack } from './decimate';
 import { EXAMPLES, exampleStart, exampleTarget } from './example';
 import * as history from './history';
-import { defaultActivityName, type Lang } from './i18n';
+import { defaultActivityName } from './i18n';
 import { encodeTarget, pickTypeDefaults, toWaypoints, type SharePayload } from './persistence';
 import { defaultWeatherSettings, lapDistanceFor, localStartHour, type AppState, type MapView, type Notice } from './state';
 import type { Store } from './store';
@@ -21,8 +21,8 @@ export function createActions(store: Store<AppState>) {
     store.set({ ...history.commit(s, next), ...extra });
   };
 
-  const withAutoName = (session: SessionSettings, lang: Lang, nameAuto: boolean): SessionSettings =>
-    nameAuto ? { ...session, name: defaultActivityName(lang, session.type, localStartHour(session)) } : session;
+  const withAutoName = (session: SessionSettings, nameAuto: boolean): SessionSettings =>
+    nameAuto ? { ...session, name: defaultActivityName(session.type, localStartHour(session)) } : session;
 
   const weatherOf = (session: SessionSettings): WeatherSettings => session.weather ?? defaultWeatherSettings();
   const setWeather = (patch: Partial<WeatherSettings>) => {
@@ -102,7 +102,7 @@ export function createActions(store: Store<AppState>) {
       }
       commitWaypoints(toWaypoints(example.coords), {
         profile: example.profile,
-        session: withAutoName(session, s.lang, s.nameAuto),
+        session: withAutoName(session, s.nameAuto),
         selectedId: null,
         notice: null,
         ...targetFlags,
@@ -138,7 +138,7 @@ export function createActions(store: Store<AppState>) {
       }
       commitWaypoints(toWaypoints(payload.coords), {
         profile: payload.profile ?? s.profile,
-        session: withAutoName(session, s.lang, s.nameAuto),
+        session: withAutoName(session, s.nameAuto),
         selectedId: null,
         ...targetFlags,
       });
@@ -182,13 +182,13 @@ export function createActions(store: Store<AppState>) {
         if (targetAuto) effortPreset = effortPreset ?? 'steady';
       }
       const startFlags: Partial<AppState> = patch.startTime !== undefined ? { startAuto: false } : {};
-      store.set({ session: withAutoName(session, s.lang, s.nameAuto), targetAuto, effortPreset, ...startFlags });
+      store.set({ session: withAutoName(session, s.nameAuto), targetAuto, effortPreset, ...startFlags });
     },
     /** The start the user set, with the offset of the zone it was typed in; it no longer follows "now". */
     setStart(startTime: number, utcOffsetMin: number) {
       if (!Number.isFinite(startTime) || !Number.isFinite(utcOffsetMin)) return;
       const s = store.get();
-      store.set({ startAuto: false, session: withAutoName({ ...s.session, startTime, utcOffsetMin }, s.lang, s.nameAuto) });
+      store.set({ startAuto: false, session: withAutoName({ ...s.session, startTime, utcOffsetMin }, s.nameAuto) });
     },
     setWeatherMode(mode: WeatherSettings['mode']) {
       if (weatherOf(store.get().session).mode !== mode) setWeather({ mode });
@@ -221,7 +221,7 @@ export function createActions(store: Store<AppState>) {
     setName(name: string) {
       const s = store.get();
       const nameAuto = name.trim() === '';
-      store.set({ nameAuto, session: withAutoName({ ...s.session, name }, s.lang, nameAuto) });
+      store.set({ nameAuto, session: withAutoName({ ...s.session, name }, nameAuto) });
     },
     rerollSeed() {
       const s = store.get();
@@ -231,10 +231,6 @@ export function createActions(store: Store<AppState>) {
     setUnits(units: Units) {
       const s = store.get();
       store.set({ units, session: { ...s.session, lapDistance: lapDistanceFor(units) } });
-    },
-    setLang(lang: Lang) {
-      const s = store.get();
-      store.set({ lang, session: withAutoName(s.session, lang, s.nameAuto) });
     },
 
     setPlayhead(index: number | null) {

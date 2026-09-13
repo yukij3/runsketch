@@ -1,13 +1,8 @@
-// UI strings (English, Russian). Every user-facing string goes through translate().
+// UI strings. Every user-facing string goes through translate().
 import type { ActivityType } from '../lib/types';
-import type { Lang } from '../ui/traces/contract';
-
-export type { Lang };
 
 const en = {
-  docTitle: 'Runsketch — realistic activity files from a drawn route',
   appTagline: 'Draw a route, get a FIT, TCX or GPX file whose heart rate answers the hills.',
-  language: 'Language',
   units: 'Units',
   sourceCode: 'GitHub',
 
@@ -317,342 +312,17 @@ const en = {
 
 export type MessageKey = keyof typeof en;
 
-const ru: Record<MessageKey, string> = {
-  docTitle: 'Runsketch — правдоподобные файлы тренировок по нарисованному маршруту',
-  appTagline: 'Нарисуйте маршрут и получите файл FIT, TCX или GPX, где пульс отзывается на подъёмы.',
-  language: 'Язык',
-  units: 'Единицы',
-  sourceCode: 'GitHub',
-
-  mapLabel: 'Карта маршрута. Щелчок добавляет точку.',
-  toolbarLabel: 'Инструменты маршрута',
-  searchLabel: 'Поиск места',
-  searchPlaceholder: 'Найти место',
-  searching: 'Ищу…',
-  searchEmpty: 'Ничего не найдено',
-  searchFailed: 'Поиск сейчас недоступен',
-  profileLabel: 'Профиль прокладки',
-  profile_foot: 'Дороги и дорожки',
-  profile_hiking: 'Тропы',
-  profile_alpine: 'Высокогорье',
-  profile_bike: 'Велосипед',
-  'profile_road-bike': 'Шоссейный велосипед',
-  profile_mtb: 'Горный велосипед',
-  profile_none: 'По прямой',
-  undo: 'Отменить',
-  redo: 'Повторить',
-  closeLoop: 'Замкнуть круг',
-  outAndBack: 'Туда и обратно',
-  reverse: 'Развернуть маршрут',
-  importRoute: 'Импорт GPX/TCX',
-  examples: 'Примеры маршрутов',
-  clearRoute: 'Очистить маршрут',
-  clearConfirm: 'Удалить все точки?',
-  clearYes: 'Удалить',
-  cancel: 'Отмена',
-  dismiss: 'Закрыть',
-  importFailed: 'Не удалось импортировать {file}. {message}',
-  importError_unavailable: 'Для импорта маршрута нужен браузер с разбором XML.',
-  importError_empty: 'Файл пустой.',
-  importError_invalidXml: 'Файл не является корректным XML{detail}.',
-  importError_fit: 'FIT нельзя импортировать как маршрут. Экспортируйте тренировку в GPX или TCX и импортируйте этот файл.',
-  importError_unsupported: 'Неподдерживаемый файл: ожидался GPX или TCX, а корневой элемент — <{root}>.',
-  importError_noPoints: 'В файле нет точек трека.',
-  importError_onePoint: 'В файле только одна точка, а маршруту нужно хотя бы две.',
-  imported: 'Файл {file} превращён в точки маршрута ({count}), соединённые прямыми, чтобы форма трека не изменилась.',
-
-  emptyTitle: 'Нарисуйте маршрут',
-  emptyBody:
-    'Щёлкните по карте, чтобы поставить старт, и добавляйте точки следующими щелчками. Участки между точками идут по дорогам выбранного на панели профиля; любую точку можно перетащить.',
-  loadExample: 'Загрузить пример',
-  exampleHint: 'Холмистый круг 7,7 км по Монжуику в Барселоне. Видно, как пульс отстаёт от подъёма.',
-  webglTitle: 'Карта не запустилась',
-  webglBody:
-    'Карте нужен WebGL 2, а в этом браузере он выключен или не поддерживается. Маршрут всё равно можно импортировать из GPX или TCX через панель инструментов — или откройте Runsketch в другом браузере.',
-  styleFailed: 'Не удалось загрузить карту. Проверьте подключение: прокладка и экспорт по-прежнему работают.',
-  wpStart: 'Старт',
-  wpFinish: 'Финиш',
-  wpN: 'Точка {n}',
-  fixMap: 'Исправить карту',
-  mapCanvas: 'Карта',
-  toggleAttribution: 'Показать или скрыть источники',
-
-  statusRouting: 'Прокладываю участки: {done} из {total}…',
-  statusElevation: 'Считываю высоты…',
-  statusSimulating: 'Моделирую…',
-  statusElevationFailed: 'Не удалось получить высоты.',
-  statusSimFailed: 'Моделирование не удалось: {message}',
-  retry: 'Повторить',
-  playhead: 'Курсор',
-  hrDemand: 'потребность',
-
-  sectionRoute: 'Маршрут',
-  distance: 'Дистанция',
-  ascentDescent: 'Подъём / спуск по рельефу',
-  elevationRange: 'Рельеф мин. / макс.',
-  legs: 'Участки',
-  legsNone: 'Участков пока нет',
-  elevationSource: 'Источник высот',
-  src_mapterhorn: 'Mapterhorn (ЦМР)',
-  'src_aws-terrarium': 'AWS Terrain Tiles',
-  'src_open-meteo': 'Open-Meteo',
-  src_none: 'Нет данных, профиль плоский',
-  waypoints: 'Точки',
-  noWaypoints: 'Пока нет. Щёлкните по карте, чтобы поставить старт.',
-  removeWaypoint: 'Удалить: {name}',
-  copyLink: 'Скопировать ссылку',
-  linkCopied: 'Ссылка скопирована',
-  linkCopyFailed: 'Не удалось скопировать. Ссылка есть в адресной строке.',
-  retryRouting: 'Проложить заново',
-  straightFallbackHint: 'Путь не найден, поэтому эти участки проведены по прямой.',
-
-  sectionAthlete: 'Спортсмен',
-  age: 'Возраст',
-  sex: 'Пол',
-  sex_male: 'Мужской',
-  sex_female: 'Женский',
-  weight: 'Вес',
-  height: 'Рост',
-  restHr: 'Пульс покоя',
-  maxHr: 'Макс. пульс',
-  maxHrAuto: 'по возрасту',
-  maxHrUseAuto: 'Рассчитать по возрасту',
-  fitness: 'Подготовка',
-  fitness_beginner: 'Новичок',
-  fitness_recreational: 'Любитель',
-  fitness_trained: 'Тренированный',
-  fitness_elite: 'Элита',
-  hrSensor: 'Датчик пульса',
-  sensor_strap: 'Нагрудный',
-  sensor_optical: 'На запястье',
-  hrMode: 'Пульс',
-  hrMode_profile: 'По профилю',
-  hrMode_match: 'По среднему',
-  hrTarget: 'Целевой средний',
-
-  sectionSession: 'Тренировка',
-  activity: 'Вид',
-  activity_run: 'Бег',
-  activity_ride: 'Велосипед',
-  activity_walk: 'Ходьба',
-  activity_hike: 'Поход',
-  activity_alpine: 'Альпинизм',
-  name: 'Название',
-  start: 'Начало',
-  target: 'Цель',
-  targetKind: 'Тип цели',
-  target_pace: 'Темп',
-  target_speed: 'Средняя скорость',
-  target_duration: 'Время на дистанцию',
-  effortPreset: 'Подобрать',
-  preset_easy: 'Легко',
-  preset_steady: 'Ровно',
-  preset_tempo: 'Темпово',
-  preset_race: 'Гонка',
-  presetTitle: 'Около {pct} % резерва VO₂ на этом маршруте',
-  invalidPace: 'Формат м:сс, например 5:30',
-  invalidDuration: 'Формат ч:мм:сс, например 1:05:00',
-  invalidSpeed: 'Введите скорость, например 25',
-  invalidNumber: 'Введите число от {min} до {max}',
-  invalidDate: 'Укажите дату и время',
-  pacing: 'Раскладка',
-  pacing_even: 'Ровная',
-  pacing_negative: 'Негативная',
-  pacing_positive: 'Позитивная',
-  variability: 'Вариативность',
-  variability_steady: 'ровно',
-  variability_natural: 'естественно',
-  variability_uneven: 'рвано',
-  stops: 'Остановки',
-  stops_none: 'Нет',
-  stops_few: 'Редкие',
-  stops_urban: 'Городские',
-  stops_alpine: 'Привалы',
-  mountain: 'Горы',
-  acclimatisation: 'Акклиматизация',
-  acclimatisation_none: 'Нет',
-  acclimatisation_partial: 'Неделя',
-  acclimatisation_full: 'Полная',
-  acclimatisationTitle_none: 'На высоте не больше двух дней',
-  acclimatisationTitle_partial: 'Около недели на высоте',
-  acclimatisationTitle_full: 'Три недели и больше на высоте',
-  pack: 'Рюкзак',
-  footwear: 'Обувь',
-  'footwear_trail-shoes': 'Кроссовки',
-  'footwear_mountain-boots': 'Горные ботинки',
-  'footwear_double-boots': 'Двойные ботинки',
-  crampons: 'Кошки',
-  crampons_on: 'На снегу и льду',
-  crampons_off: 'Без кошек',
-  snow: 'Снег',
-  snow_firm: 'Плотный',
-  snow_soft: 'Мягкий',
-  snow_deep: 'Глубокий',
-  snowline: 'Граница снега',
-  snowlineAuto: 'по широте',
-  snowlineUseAuto: 'Оценить по широте',
-  gpsNoise: 'Шум GPS',
-  gps_off: 'Нет',
-  gps_low: 'Слабый',
-  gps_normal: 'Обычный',
-  gps_high: 'Сильный',
-  temperature: 'Температура',
-  startZone: 'местное время, {zone}',
-  weather: 'Погода',
-  weather_auto: 'Авто',
-  weather_manual: 'Вручную',
-  weatherIdle: 'Загрузится для маршрута и времени старта, когда у маршрута будут высоты.',
-  weatherLoading: 'Загружаем погоду…',
-  weatherOffline: 'Нет сети: используются значения, заданные вручную.',
-  weatherFailed: 'Погода недоступна, поэтому используются значения, заданные вручную.',
-  weatherRateLimited: 'Превышен лимит запросов к сервису погоды. Попробуйте через минуту.',
-  weatherUpdate: 'Обновить прогноз',
-  weatherFetched: 'загружен в {time}',
-  weatherSource_forecast: 'Прогноз',
-  'weatherSource_historical-forecast': 'Архив прогнозов',
-  weatherSource_archive: 'Реанализ (ERA5)',
-  weatherSource_climatology: 'Типичная для этой даты (погода {year} года)',
-  weatherRain: 'дождь {from}–{to}',
-  weatherSnow: 'снег {from}–{to}',
-  weatherDry: 'без осадков',
-  weatherCalm: 'штиль',
-  weatherWind: 'ветер {dir} {speed} {unit}',
-  weatherPins: 'Задать вручную',
-  weatherPinTitle: 'Использовать значение, заданное вручную, на всю тренировку',
-  pin_temperature: 'Температура',
-  pin_wind: 'Ветер',
-  pin_precipitation: 'Осадки',
-  humidity: 'Влажность',
-  wind: 'Ветер',
-  windFrom: 'Откуда дует',
-  rain: 'Дождь',
-  rain_none: 'Нет',
-  rain_light: 'Слабый',
-  rain_moderate: 'Умеренный',
-  rain_heavy: 'Сильный',
-  dir_N: 'С',
-  dir_NE: 'СВ',
-  dir_E: 'В',
-  dir_SE: 'ЮВ',
-  dir_S: 'Ю',
-  dir_SW: 'ЮЗ',
-  dir_W: 'З',
-  dir_NW: 'СЗ',
-  seed: 'Сид',
-  newSeed: 'Новый сид',
-  laps: 'Круги',
-  lapsAuto: 'Авто, каждый 1 {unit}',
-  description: 'Описание',
-  optional: 'Необязательно',
-
-  sectionResult: 'Результат',
-  movingTime: 'Время в движении',
-  elapsedTime: 'Общее время',
-  avgPace: 'Средний темп',
-  avgSpeed: 'Средняя скорость',
-  avgHr: 'Средний пульс',
-  peakHr: 'Макс. пульс',
-  avgCadence: 'Средний каденс',
-  avgPower: 'Средняя мощность',
-  calories: 'Калории',
-  recordedAscent: 'Набор в записи',
-  maxAltitude: 'Макс. высота',
-  climbRate: 'Скорость набора',
-  impliedVo2max: 'Расчётный VO₂max',
-  result_airTemp: 'Температура воздуха',
-  result_rain: 'Осадки',
-  result_coreTemp: 'Макс. температура тела',
-  resultEmpty: 'Добавьте хотя бы две точки, чтобы смоделировать тренировку.',
-  resultPending: 'Считаю…',
-  modelNotes: 'Замечания модели',
-
-  sectionSplits: 'Отрезки',
-  splitsCaption: 'Отрезки по 1 {unit}',
-  col_lap: '№',
-  col_pace: 'Темп',
-  col_speed: 'Скорость',
-  col_hr: 'Пульс',
-  col_elev: 'Высота ±',
-  splitsEmpty: 'Отрезки появятся после моделирования.',
-
-  sectionAbout: 'О проекте и данных',
-  aboutModelTitle: 'Модель',
-  aboutModel:
-    'Нагрузку задаёт рельеф: маршрут через каждые 5 м сверяется с открытой цифровой моделью высот, сглаживается и превращается в уклон. Скорость зависит от уклона через коэффициент равного усилия, а энергозатраты бега в гору и под гору взяты из работы Minetti и соавторов (2002); для велосипеда решается баланс мощности. Энергозатраты превращаются в потребность в кислороде, а она — в целевой пульс: доля резерва пульса следует за долей резерва VO₂ (Swain и Leutholtz, 1997). Записанный пульс догоняет эту цель через два инерционных звена первого порядка — разгоняется быстрее, чем восстанавливается, — с медленной компонентой выше порога и кардиодрейфом, который растёт со временем и в жару. Темп, пульс, каденс, мощность и GPS получаются из одного прогона с фиксированным сидом, поэтому предпросмотр и есть файл. С автоматической погодой модель каждую секунду берёт погоду там и тогда, где находится спортсмен: ветер и мокрая или заснеженная земля меняют темп, жара и влажность поднимают пульс, а изменение давления сдвигает записанную высоту.',
-  aboutDataTitle: 'Данные и программы',
-  credit_osm: 'Картографические данные',
-  credit_tiles: 'Тайлы карты',
-  credit_dem: 'Высоты и отмывка рельефа',
-  credit_demFallback: 'Резервные высоты',
-  credit_routing: 'Прокладка маршрута',
-  credit_weather: 'Погода, интерполированная по маршруту и пересчитанная на его высоту',
-  credit_search: 'Поиск мест',
-  credit_renderer: 'Отрисовка карты',
-  credit_fit: 'Запись FIT',
-  aboutPrivacy:
-    'Всё считается в вашем браузере. Координаты точек уходят только в перечисленные выше открытые сервисы прокладки, поиска, высот и погоды. Ни аккаунтов, ни трекеров, ни собственного сервера.',
-  aboutLicense: 'Runsketch (автор Dmitrij Tretakov) можно бесплатно использовать и менять в некоммерческих целях по лицензии PolyForm Noncommercial 1.0.0.',
-  aboutSource: 'Исходный код',
-
-  exportLabel: 'Экспорт',
-  exportAs: 'Скачать файл {format}',
-  exportUnavailable: 'Экспорт станет доступен после моделирования.',
-  exportBusy: 'Обновляю модель…',
-  exportFailed: 'Экспорт не удался: {message}',
-  exportSaved: 'Сохранено: {file}',
-
-  unit_km: 'км',
-  unit_mi: 'ми',
-  unit_m: 'м',
-  unit_ft: 'фт',
-  unit_kmh: 'км/ч',
-  unit_mph: 'ми/ч',
-  unit_perKm: '/км',
-  unit_perMi: '/ми',
-  unit_bpm: 'уд/мин',
-  unit_spm: 'шаг/мин',
-  unit_rpm: 'об/мин',
-  unit_w: 'Вт',
-  unit_kcal: 'ккал',
-  unit_kg: 'кг',
-  unit_lb: 'фунт',
-  unit_cm: 'см',
-  unit_in: 'дюйм',
-  unit_c: '°C',
-  unit_f: '°F',
-  unit_pct: '%',
-  unit_mm: 'мм',
-  unit_mmh: 'мм/ч',
-  unit_vo2: 'мл/кг/мин',
-  unit_mh: 'м/ч',
-  unit_fth: 'фт/ч',
-};
-
-export const MESSAGES: Record<Lang, Record<MessageKey, string>> = { en, ru };
+export const MESSAGES: Readonly<Record<MessageKey, string>> = en;
 
 export type Params = Record<string, string | number>;
 
-export function translate(lang: Lang, key: MessageKey, params?: Params): string {
-  const template = MESSAGES[lang]?.[key] ?? en[key];
+export function translate(key: MessageKey, params?: Params): string {
+  const template = MESSAGES[key];
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match));
 }
 
 export type Translate = (key: MessageKey, params?: Params) => string;
-
-export function detectLang(language: string | undefined): Lang {
-  return language?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
-}
-
-/** Russian plural category: 1 участок, 2 участка, 5 участков. */
-export function ruPlural(n: number, one: string, few: string, many: string): string {
-  const abs = Math.abs(Math.trunc(n));
-  const mod10 = abs % 10;
-  const mod100 = abs % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
-  return many;
-}
 
 export interface LegCounts {
   routed: number;
@@ -661,20 +331,14 @@ export interface LegCounts {
   pending: number;
 }
 
-/** "4 legs follow paths · 1 straight" / "4 участка по дорогам · 1 по прямой". */
-export function legsSummary(lang: Lang, c: LegCounts): string {
+/** "4 legs follow paths · 1 straight". */
+export function legsSummary(c: LegCounts): string {
   const parts: string[] = [];
   const straight = c.straight + c.fallback;
-  if (lang === 'ru') {
-    if (c.routed) parts.push(`${c.routed} ${ruPlural(c.routed, 'участок', 'участка', 'участков')} по дорогам`);
-    if (straight) parts.push(`${straight} по прямой`);
-    if (c.pending) parts.push(`${c.pending} в работе`);
-  } else {
-    if (c.routed) parts.push(`${c.routed} ${c.routed === 1 ? 'leg follows' : 'legs follow'} paths`);
-    if (straight) parts.push(`${straight} straight`);
-    if (c.pending) parts.push(`${c.pending} routing`);
-  }
-  return parts.length ? parts.join(' · ') : translate(lang, 'legsNone');
+  if (c.routed) parts.push(`${c.routed} ${c.routed === 1 ? 'leg follows' : 'legs follow'} paths`);
+  if (straight) parts.push(`${straight} straight`);
+  if (c.pending) parts.push(`${c.pending} routing`);
+  return parts.length ? parts.join(' · ') : translate('legsNone');
 }
 
 type DayPart = 'morning' | 'lunch' | 'afternoon' | 'evening' | 'night';
@@ -688,39 +352,16 @@ function dayPart(hour: number): DayPart {
   return 'night';
 }
 
-const EN_PART: Record<DayPart, string> = {
+const PART: Record<DayPart, string> = {
   morning: 'Morning',
   lunch: 'Lunch',
   afternoon: 'Afternoon',
   evening: 'Evening',
   night: 'Night',
 };
-const EN_NOUN: Record<ActivityType, string> = { run: 'run', ride: 'ride', walk: 'walk', hike: 'hike', alpine: 'ascent' };
+const NOUN: Record<ActivityType, string> = { run: 'run', ride: 'ride', walk: 'walk', hike: 'hike', alpine: 'ascent' };
 
-type Gender = 'f' | 'm' | 'n';
-
-// Adjective agrees with the noun's gender: пробежка/прогулка (f), заезд/поход (m), восхождение (n).
-const RU_PART: Record<DayPart, Record<Gender, string>> = {
-  morning: { f: 'Утренняя', m: 'Утренний', n: 'Утреннее' },
-  lunch: { f: 'Дневная', m: 'Дневной', n: 'Дневное' },
-  afternoon: { f: 'Дневная', m: 'Дневной', n: 'Дневное' },
-  evening: { f: 'Вечерняя', m: 'Вечерний', n: 'Вечернее' },
-  night: { f: 'Ночная', m: 'Ночной', n: 'Ночное' },
-};
-const RU_NOUN: Record<ActivityType, [noun: string, gender: Gender]> = {
-  run: ['пробежка', 'f'],
-  ride: ['заезд', 'm'],
-  walk: ['прогулка', 'f'],
-  hike: ['поход', 'm'],
-  alpine: ['восхождение', 'n'],
-};
-
-/** "Morning run" / "Утренняя пробежка" from the local start hour. */
-export function defaultActivityName(lang: Lang, type: ActivityType, hour: number): string {
-  const part = dayPart(hour);
-  if (lang === 'ru') {
-    const [noun, gender] = RU_NOUN[type];
-    return `${RU_PART[part][gender]} ${noun}`;
-  }
-  return `${EN_PART[part]} ${EN_NOUN[type]}`;
+/** "Morning run" from the local start hour. */
+export function defaultActivityName(type: ActivityType, hour: number): string {
+  return `${PART[dayPart(hour)]} ${NOUN[type]}`;
 }

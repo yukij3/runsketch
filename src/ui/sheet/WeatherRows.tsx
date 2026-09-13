@@ -57,13 +57,12 @@ export function WeatherRows() {
   );
 }
 
-function fetchedClock(fetchedAt: number, lang: string): string {
+function fetchedClock(fetchedAt: number): string {
   const d = new Date(fetchedAt);
-  const locale = lang === 'ru' ? 'ru-RU' : 'en-GB';
   const today = new Date().toDateString() === d.toDateString();
   return today
-    ? d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-    : d.toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 function WeatherStatusLine() {
@@ -74,7 +73,6 @@ function WeatherStatusLine() {
   const stale = useApp((s) => s.sim.state === 'busy');
   const startTime = useApp((s) => s.session.startTime);
   const utcOffsetMin = useApp((s) => s.session.utcOffsetMin);
-  const lang = useApp((s) => s.lang);
   const units = useApp((s) => s.units);
 
   if (status.state === 'busy') {
@@ -102,14 +100,14 @@ function WeatherStatusLine() {
   return (
     <div className="weather-status" role="status">
       <p className={cx('weather-status__summary', stale && 'is-stale-text')}>
-        {summary?.source ? weatherSummaryText(lang, units, summary, startTime, utcOffsetMin) : t('resultPending')}
+        {summary?.source ? weatherSummaryText(units, summary, startTime, utcOffsetMin) : t('resultPending')}
       </p>
       <p className="weather-status__source">
-        {weatherSourceText(lang, series.source, series.analogYear)}
+        {weatherSourceText(series.source, series.analogYear)}
         {series.source === 'forecast' ? (
           <>
             {' · '}
-            {t('weatherFetched', { time: fetchedClock(series.fetchedAt, lang) })}{' '}
+            {t('weatherFetched', { time: fetchedClock(series.fetchedAt) })}{' '}
             <button type="button" className="link-btn" onClick={actions.refreshWeather}>
               {t('weatherUpdate')}
             </button>

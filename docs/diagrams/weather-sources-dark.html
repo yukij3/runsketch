@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where the weather for a date comes from · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for weather-sources-dark.svg (generated from weather-sources.html by token swap) (profile: runsketch, see .diagram-design). Timeline schematic, doc-wide.
+       Replaces the source-by-date table in docs/weather.md. Structure read from planWeather() and fetchWeather()
+       in src/lib/services/weather.ts at 57c45fe (0.2.0); no engine numbers.
+         HISTORICAL_FORECAST_FROM = 2022-01-01, FORECAST_DAYS_AHEAD = 15, FORECAST_DAYS_BACK = 60,
+         CLIMATOLOGY over the last ten complete years, analogYear() picks the year nearest the median.
+         Classification is by the activity's first day in UTC days from today: > today + 15 -> climatology;
+         >= yesterday -> forecast (+ climatology for days past the horizon); before 2022 -> archive with
+         models=best_match; otherwise historical-forecast.
+         NEXT_SOURCE: forecast -> historical-forecast -> archive when a host rejects a date.
+         blendIntoAnalog(): the three hours after the last forecast hour move 1/4, 1/2, 3/4 toward the analog year.
+       The axis is deliberately not to scale: the historical-forecast span is years and the forecast window is 16
+       days, and the diagram is about which source answers, not how long each span is. Break marks sit on the
+       three date boundaries. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #16181c; --color-ink: #f5f6f4; --color-muted: #b7bcb8; --color-accent: #ef6479; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Timeline · Runsketch</p>
+    <h1>Where the weather for a date comes from</h1>
+
+    <svg viewBox="0 0 960 532" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="weather-sources-dark-title weather-sources-dark-desc">
+      <title id="weather-sources-dark-title">Where the weather for a date comes from</title>
+      <desc id="weather-sources-dark-desc">Which Open-Meteo source serves an activity date, counted in UTC days from today. Before 2022 the historical weather API answers with its best match: ERA5 and ERA5-Land reanalysis and the ECMWF IFS analysis from 2017. From 1 January 2022 to the day before yesterday the historical forecast API answers with the same forecast models stitched from the first hours of each run. From yesterday to 15 days ahead the forecast API answers, asked for past hours back to 60 days. Further ahead there is no forecast, so one real year out of the last ten, the one closest to the ten-year median, is moved onto the dates. When a host says a date is out of range the request falls back from forecast to historical forecast to archive; hours an archived forecast lacks are filled from the archive once, and gaps of up to three hours take the nearest valid hour. An activity that runs past the forecast horizon takes the past year for the remaining hours, blending over the first three hours a quarter, a half and three quarters of the way.</desc>
+      <rect width="100%" height="100%" fill="#16181c"/>
+      <text x="40.0" y="56.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">activity date, in UTC days from today · not to scale</text>
+      <line x1="40.0" y1="132.0" x2="256.0" y2="132.0" stroke="rgba(245,246,244,0.45)" stroke-width="1.2"/>
+      <text x="148.0" y="116.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">before 2022</text>
+      <line x1="272.0" y1="132.0" x2="520.0" y2="132.0" stroke="rgba(245,246,244,0.45)" stroke-width="1.2"/>
+      <text x="396.0" y="116.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">2022 to the day before yesterday</text>
+      <line x1="536.0" y1="132.0" x2="744.0" y2="132.0" stroke="#ef6479" stroke-width="2"/>
+      <text x="640.0" y="116.0" fill="#ef6479" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="middle">yesterday to 15 days ahead</text>
+      <line x1="760.0" y1="132.0" x2="920.0" y2="132.0" stroke="rgba(245,246,244,0.45)" stroke-width="1.2"/>
+      <text x="840.0" y="116.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">further ahead</text>
+      <line x1="260.0" y1="138.0" x2="268.0" y2="126.0" stroke="rgba(245,246,244,0.45)" stroke-width="1"/>
+      <text x="264.0" y="154.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">2022-01-01</text>
+      <line x1="524.0" y1="138.0" x2="532.0" y2="126.0" stroke="rgba(245,246,244,0.45)" stroke-width="1"/>
+      <text x="528.0" y="154.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">yesterday</text>
+      <line x1="748.0" y1="138.0" x2="756.0" y2="126.0" stroke="rgba(245,246,244,0.45)" stroke-width="1"/>
+      <text x="752.0" y="154.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+15 days</text>
+      <circle cx="584.0" cy="132.0" r="4" fill="#ef6479"/>
+      <text x="584.0" y="154.0" fill="#ef6479" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="middle">today</text>
+      <line x1="148.0" y1="162.0" x2="148.0" y2="176.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <rect x="40.0" y="176.0" width="216.0" height="136.0" rx="6" fill="#16181c"/>
+      <rect x="40.0" y="176.0" width="216.0" height="136.0" rx="6" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="56.0" y="204.0" fill="#f5f6f4" font-size="15" font-weight="600" font-family="'Public Sans', sans-serif">Archive</text>
+      <text x="56.0" y="224.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">historical weather API</text>
+      <text x="56.0" y="248.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">best match: ERA5,</text>
+      <text x="56.0" y="264.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">ERA5-Land, and the</text>
+      <text x="56.0" y="280.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">ECMWF IFS analysis</text>
+      <text x="56.0" y="296.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">from 2017</text>
+      <line x1="396.0" y1="162.0" x2="396.0" y2="176.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <rect x="272.0" y="176.0" width="248.0" height="136.0" rx="6" fill="#16181c"/>
+      <rect x="272.0" y="176.0" width="248.0" height="136.0" rx="6" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="288.0" y="204.0" fill="#f5f6f4" font-size="15" font-weight="600" font-family="'Public Sans', sans-serif">Historical forecast</text>
+      <text x="288.0" y="224.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">historical forecast API</text>
+      <text x="288.0" y="248.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">the same forecast models,</text>
+      <text x="288.0" y="264.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">stitched from the first</text>
+      <text x="288.0" y="280.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">hours of each run</text>
+      <line x1="640.0" y1="162.0" x2="640.0" y2="176.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <rect x="536.0" y="176.0" width="208.0" height="136.0" rx="6" fill="#16181c"/>
+      <rect x="536.0" y="176.0" width="208.0" height="136.0" rx="6" fill="rgba(239,100,121,0.12)" stroke="#ef6479" stroke-width="1.2"/>
+      <text x="552.0" y="204.0" fill="#f5f6f4" font-size="15" font-weight="600" font-family="'Public Sans', sans-serif">Forecast</text>
+      <text x="552.0" y="224.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">forecast API</text>
+      <text x="552.0" y="248.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">the forecast itself, plus</text>
+      <text x="552.0" y="264.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">past hours back to 60 days</text>
+      <line x1="840.0" y1="162.0" x2="840.0" y2="176.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <rect x="760.0" y="176.0" width="160.0" height="136.0" rx="6" fill="#16181c"/>
+      <rect x="760.0" y="176.0" width="160.0" height="136.0" rx="6" fill="rgba(245,246,244,0.02)" stroke="rgba(245,246,244,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="776.0" y="204.0" fill="#f5f6f4" font-size="15" font-weight="600" font-family="'Public Sans', sans-serif">A real past year</text>
+      <text x="776.0" y="224.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">archive, ten years</text>
+      <text x="776.0" y="248.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">the year closest to the</text>
+      <text x="776.0" y="264.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">ten-year median, moved</text>
+      <text x="776.0" y="280.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">onto the dates</text>
+      <text x="40.0" y="352.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">WHEN A HOST SAYS A DATE IS OUT OF RANGE</text>
+      <rect x="40.0" y="360.0" width="128.0" height="28.0" rx="4" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="104.0" y="379.0" fill="#f5f6f4" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">forecast</text>
+      <rect x="200.0" y="360.0" width="168.0" height="28.0" rx="4" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="284.0" y="379.0" fill="#f5f6f4" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">historical forecast</text>
+      <rect x="400.0" y="360.0" width="104.0" height="28.0" rx="4" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="452.0" y="379.0" fill="#f5f6f4" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">archive</text>
+      <defs><marker id="weather-sources-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b7bcb8"/></marker></defs>
+      <line x1="172" y1="374" x2="196" y2="374" stroke="#b7bcb8" stroke-width="1.2" marker-end="url(#weather-sources-arrow)"/>
+      <line x1="372" y1="374" x2="396" y2="374" stroke="#b7bcb8" stroke-width="1.2" marker-end="url(#weather-sources-arrow)"/>
+      <text x="40.0" y="412.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">Hours an archived forecast lacks are filled from the archive once;</text>
+      <text x="40.0" y="428.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">after that, gaps of up to three hours take the nearest valid hour.</text>
+      <text x="560.0" y="352.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">AN ACTIVITY THAT OUTLASTS THE FORECAST</text>
+      <rect x="560.0" y="360.0" width="104.0" height="28.0" fill="rgba(239,100,121,0.12)" stroke="rgba(239,100,121,0.825)" stroke-width="1"/>
+      <text x="612.0" y="379.0" fill="#f5f6f4" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">last forecast hour</text>
+      <rect x="664.0" y="360.0" width="40.0" height="28.0" fill="rgba(239,100,121,0.09)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="684.0" y="379.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="middle">¼</text>
+      <rect x="704.0" y="360.0" width="40.0" height="28.0" fill="rgba(239,100,121,0.06)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="724.0" y="379.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="middle">½</text>
+      <rect x="744.0" y="360.0" width="40.0" height="28.0" fill="rgba(239,100,121,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="764.0" y="379.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="middle">¾</text>
+      <rect x="784.0" y="360.0" width="136.0" height="28.0" fill="rgba(245,246,244,0.02)" stroke="rgba(245,246,244,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="852.0" y="379.0" fill="#f5f6f4" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">past year</text>
+      <text x="560.0" y="412.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">The three hours after the horizon move a quarter, a half and</text>
+      <text x="560.0" y="428.0" fill="#b7bcb8" font-size="11" font-family="'Public Sans', sans-serif">three quarters of the way from the forecast to the past year.</text>
+      <line x1="40.0" y1="456.0" x2="920.0" y2="456.0" stroke="rgba(245,246,244,0.12)" stroke-width="0.8"/>
+      <text x="40.0" y="488.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <rect x="128.0" y="476.0" width="24.0" height="14.0" rx="3" fill="rgba(239,100,121,0.12)" stroke="#ef6479" stroke-width="1.2"/>
+      <text x="160.0" y="488.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">forecast window, around today</text>
+      <rect x="392.0" y="476.0" width="24.0" height="14.0" rx="3" fill="rgba(245,246,244,0.03)" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="424.0" y="488.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">served as measured or archived</text>
+      <rect x="656.0" y="476.0" width="24.0" height="14.0" rx="3" fill="rgba(245,246,244,0.02)" stroke="rgba(245,246,244,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="688.0" y="488.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">a stand-in for the date</text>
+      <text x="40.0" y="512.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">One request per source with every route point in it. The window runs from two days before the start day to one full day after the expected finish.</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -10,24 +10,16 @@ Every second the engine knows exactly where the athlete is, how fast they move, 
 
 We decoded a handful of public Garmin FIT files: the sample activities that ship with the python-fitparse test suite. The most useful one is a 47-minute, 9 km run from 2015 on a fēnix 2, recorded every second with a chest strap. The others are shorter fēnix 5 runs, walks and rides, a fēnix 5 and an Edge 820 recording the same ride, and a cycling computer file with auto-pauses. We measured the steady middle of the runs, from 10 minutes in to 5 minutes before the end, only where speed was above 2 m/s, which is 1848 seconds of the fēnix 2 file. Then we ran Runsketch through the same measurements: eight seeds per column, the default athlete, a chest strap and "normal" GPS.
 
-| | Garmin fēnix 2, 1 s, chest strap | Runsketch, flat 10 km at 5:00/km | Runsketch, 10 km of city blocks at 4:50/km |
-|---|---|---|---|
-| Speed: SD of the change from one second to the next | 0.049 m/s | 0.047 m/s | 0.054 m/s |
-| Speed: spread around a 61 s moving average | 4.4 % | 4.1 % | 4.2 % |
-| …correlation with the previous second | 0.94 | 0.94 | 0.93 |
-| GPS: SD of the distance between consecutive points | 0.92 m | 0.83 m | 0.88 m |
-| …correlation with the previous step | 0.72 | 0.63 | 0.64 |
-| Chest strap HR: SD of the 1 s change | 0.61 bpm | 0.61 bpm | 0.59 bpm |
-| …seconds with no change | 64 % | 64 % | 66 % |
-| …spread around a 61 s moving average | 1.50 bpm | 1.99 bpm | 1.55 bpm |
-| …spread around a 121 s moving average | 2.44 bpm | 3.24 bpm | 2.49 bpm |
-| Cadence: seconds where whole strides per minute don't change | 81 % | 78 % | 75 % |
-| Altitude 1 s steps: none / 0.2 m / 0.4 m or more | 48 / 45 / 7 % | 53 / 44 / 3 % | 47 / 47 / 6 % |
-| Skipped seconds | 0.7 % of intervals | 0.6 % | 0.6 % |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/recording-texture-dark.svg">
+  <img src="diagrams/recording-texture.svg" alt="Eleven statistics of second-to-second texture, each drawn as the Runsketch value as a share of the same statistic on a real Garmin fēnix 2 run, for a flat 10 km at 5:00/km and 10 km of city blocks at 4:50/km. Speed: 1 s change SD 0.048 on the file against 0.047 flat and 0.054 on city blocks, spread around a 61 s average 4.42 against 4.09 and 4.17 %, correlation with the previous second 0.948 against 0.941 and 0.930. GPS: step SD 0.92 against 0.83 and 0.88 m, step correlation 0.728 against 0.626 and 0.639. Chest strap: 1 s change SD 0.61 against 0.61 and 0.59 bpm, seconds unchanged 63.8 against 64.3 and 66.4 %, spread around a 61 s average 1.50 against 1.99 and 1.55 bpm and around 121 s 2.44 against 3.24 and 2.49 bpm, the flat route a third above the file on both. Whole strides per minute unchanged 80.9 against 77.8 and 75.3 %; skipped seconds 0.71 against 0.62 and 0.59 % of intervals. Altitude steps unchanged, 0.2 m and 0.4 m or more: 48, 45 and 7 % on the file, 53, 44 and 3 flat, 47, 47 and 6 on city blocks.">
+</picture>
 
-The rows that measure a spread around a moving average need both the width of that average and the span they were measured over quoted with them, or they mean nothing. The width matters because the spread grows steeply with it: on the same file, heart rate spreads 0.95 bpm around a 31 s average, 1.50 around 61 s, 2.44 around 121 s and 3.37 around 181 s, more than tripling across that range. The span matters just as much. Taken over the whole file instead of the steady middle, that 61 s figure becomes 2.62 bpm, because the opening ramp dominates the residuals. Everything in the table uses a centred average of the stated width over the steady middle only.
+The statistics that measure a spread around a moving average need both the width of that average and the span they were measured over quoted with them, or they mean nothing. The width matters because the spread grows steeply with it: on the same file, heart rate spreads 0.95 bpm around a 31 s average, 1.50 around 61 s, 2.44 around 121 s and 3.37 around 181 s, more than tripling across that range. The span matters just as much. Taken over the whole file instead of the steady middle, that 61 s figure becomes 2.62 bpm, because the opening ramp dominates the residuals. Everything in the chart uses a centred average of the stated width over the steady middle only.
 
 Measured that way, heart rate is where we are the noisier one: 1.99 bpm against the file's 1.50 at 61 s, and 3.24 against 2.44 at 121 s, about a third more at both widths. Speed sits slightly under the file at both.
+
+The rest sits close to the file. The 1 s change in speed is 0.047 m/s on the flat road and 0.054 on city blocks, against 0.048. The step between GPS fixes spreads 0.83 and 0.88 m against 0.92, and it is less correlated from one step to the next: 0.63 and 0.64 against 0.73. The strap's 1 s change is 0.61 and 0.59 bpm against 0.61, with 64 and 66 % of seconds unchanged against 64 %. Whole strides per minute stay the same in 78 and 75 % of seconds against 81 %, and 0.62 and 0.59 % of intervals are skipped against 0.71 %. Altitude steps split 53, 44 and 3 % (unchanged, 0.2 m, 0.4 m or more) on the flat road and 47, 47 and 6 % on city blocks, against 48, 45 and 7 %.
 
 The city-block route turns 90° every 200 m and rolls ±10 m every 2 km, so it has corners and small hills like a real street run. One old watch on one run is a sanity check, not a fit. Modern multi-band watches draw tighter tracks, and we'd like more files like this.
 
@@ -88,7 +80,7 @@ Altitude is modelled on a barometric watch, which is what most running watches u
 - **Weather.** A change in air pressure reads as a change in height, about 8.3 m per hPa near sea level. When the activity has weather data, we use the real pressure trend at the athlete since the start, converted with the atmosphere's scale height. Without it, the drift rate wanders slowly (about 1.5 m per hour, changing over 3 hours). That's mostly inside the Met Office "falling slowly" band of up to 1.5 hPa in 3 hours. Over two hours on flat ground the altitude drifts 3 m on average and 6 m at most.
 - **Fast pressure noise** from gusts, arm swing and the sensor: about 9 cm with a 3 s time constant, 1.6 times more while moving.
 
-Altitude is written in 0.2 m steps, like barometric watches. On a route with corners and small hills the mix of unchanged, 0.2 m and larger steps comes out close to the real file; on a flat road there are fewer of the larger steps, since the terrain isn't contributing any (see the table at the top).
+Altitude is written in 0.2 m steps, like barometric watches. On a route with corners and small hills the mix of unchanged, 0.2 m and larger steps comes out close to the real file; on a flat road there are fewer of the larger steps, since the terrain isn't contributing any (see the chart at the top).
 
 Recorded altitude counted with a 3 m threshold gives 2–5 % more climb than the terrain on a rolling 12 km route. On a flat 10 km it gives nothing, or a few metres. The ascent and descent totals in the file come from the smoothed terrain instead, the way platforms that correct elevation report them.
 
@@ -122,11 +114,14 @@ Without a heat balance to read — there always is one now — the wrist would f
 
 A ride models a computer on the handlebar instead: air temperature plus up to 1.5 °C from its own electronics and sun, blown away by airflow, with a 5-minute time constant.
 
-What that gives over the last 10 minutes:
+What that gives over the last 10 minutes of a flat run at 5:00/km, a walk at 12:00/km and a ride at 25 km/h, averaged over six seeds:
 
-| | Run at 5 °C | Run at 15 °C | Run at 25 °C | Run at 32 °C | Walk at 15 °C | Ride at 15 °C |
-|---|---|---|---|---|---|---|
-| Recorded temperature | 12 °C | 19–20 °C | 27 °C | 33 °C | 21–22 °C | 15–16 °C |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/recording-temperature-dark.svg">
+  <img src="diagrams/recording-temperature.svg" alt="Recorded device temperature over the last 10 minutes against air temperature from −5 to 35 °C, with the air itself as a dashed diagonal. A wrist unit on a run at 5:00/km reads 3.6 °C at −5, 11.3 at 5, 19.5 at 15, 27.6 at 25, 33.3 at 32 and 35.5 at 35 °C, so its lead over the air shrinks from about 9 °C in the cold to under 1 °C at 35. A walker's wrist reads 21.8 °C at 15 and 12.9 at −5, far above the air in the cold because a sleeve covers the watch at 10 °C and colder. A handlebar unit on a ride stays within about half a degree of the air, 15.3 °C at 15.">
+</picture>
+
+A run reads 11–12 °C at 5 °C, 19–20 °C at 15 °C, 27–28 °C at 25 °C and 33 °C at 32 °C, so its lead over the air shrinks as the air warms. A walker at 15 °C reads 21–22 °C, and from 10 °C down the walker's clothing covers the watch, so at −5 °C it still reads 13 °C. A handlebar unit stays within half a degree of the air: 15–16 °C at 15 °C.
 
 When weather data is available, air temperature changes second by second and the sensor follows it, wind and rain included. The heart never reads this stream: cardiac drift has one rate, and heat and cold reach the heart through the heat balance itself.
 
@@ -220,7 +215,7 @@ The tests check what a file looks like rather than the formulas behind it:
 - The skipped-second rate, taken from one watch.
 - The cadence blend at starts and stops.
 
-The best check would be a set of current multi-band watch recordings, 1-second, with a chest strap, on known routes. We'd run the same statistics as the table at the top on them, route for route.
+The best check would be a set of current multi-band watch recordings, 1-second, with a chest strap, on known routes. We'd run the same statistics as the chart at the top on them, route for route.
 
 ## References
 

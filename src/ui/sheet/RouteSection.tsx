@@ -18,7 +18,6 @@ export function RouteSection() {
   const legs = useApp((s) => s.legs);
   const profile = useApp((s) => s.profile);
   const units = useApp((s) => s.units);
-  const lang = useApp((s) => s.lang);
   const terrain = useApp((s) => s.terrain);
   const routingBusy = useApp((s) => s.routing.state === 'busy');
   const selectedId = useApp((s) => s.selectedId);
@@ -55,7 +54,7 @@ export function RouteSection() {
   return (
     <Section id="route" title={t('sectionRoute')} busy={stale}>
       <dl className={cx('table', stale && 'is-stale')}>
-        <DataRow label={t('distance')} value={distance !== null ? formatDistance(distance, units, 2, lang) : undefined} unit={u.distance} />
+        <DataRow label={t('distance')} value={distance !== null ? formatDistance(distance, units, 2) : undefined} unit={u.distance} />
         <DataRow label={t('ascentDescent')}>
           <span className="num">{p ? `+${elev(p.ascent)} / −${elev(p.descent)}` : '–'}</span>
           {p ? <span className="unit">{u.elevation}</span> : null}
@@ -65,7 +64,7 @@ export function RouteSection() {
           {p && p.points.length ? <span className="unit">{u.elevation}</span> : null}
         </DataRow>
         <DataRow label={t('legs')}>
-          <span className={cx('legs-status', counts.fallback > 0 && 'is-warn')}>{legsSummary(lang, counts)}</span>
+          <span className={cx('legs-status', counts.fallback > 0 && 'is-warn')}>{legsSummary(counts)}</span>
           {counts.fallback > 0 ? (
             <>
               <span className="row__note">{t('straightFallbackHint')}</span>
@@ -102,9 +101,7 @@ export function RouteSection() {
                   {label}
                 </button>
                 <span className="wp-list__coord num">
-                  {lang === 'ru'
-                    ? `${formatDecimal(w.lat, 5, lang)}; ${formatDecimal(w.lon, 5, lang)}`
-                    : `${formatDecimal(w.lat, 5)}, ${formatDecimal(w.lon, 5)}`}
+                  {`${formatDecimal(w.lat, 5)}, ${formatDecimal(w.lon, 5)}`}
                 </span>
                 <IconButton icon={X} label={t('removeWaypoint', { name: label })} onClick={() => actions.removeWaypoint(w.id)} className="icon-btn--sm" tipSide="left" />
               </li>

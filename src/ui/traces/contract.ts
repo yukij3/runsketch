@@ -3,14 +3,11 @@ import type { HrZone } from '../../lib/sim';
 import type { SimulationResult, Units, ActivityType } from '../../lib/types';
 import type { RestPoint } from './rest';
 
-export type Lang = 'en' | 'ru';
-
 export interface TracesProps {
   /** null while there is no route or the simulation is pending. */
   result: SimulationResult | null;
   activity: ActivityType;
   units: Units;
-  lang: Lang;
   zones: HrZone[];
   /** Index into result.streams (seconds from start), or null when not scrubbing. */
   playhead: number | null;

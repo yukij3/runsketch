@@ -9,7 +9,6 @@ export function TracesStrip() {
   const result = useApp((s) => s.sim.result);
   const activity = useApp((s) => s.sim.activity);
   const units = useApp((s) => s.units);
-  const lang = useApp((s) => s.lang);
   const playhead = useApp((s) => s.playhead);
   const athlete = useApp((s) => s.athlete);
   const busy = useApp((s) => s.routing.state === 'busy' || s.terrain.state === 'busy' || s.sim.state === 'busy');
@@ -17,7 +16,7 @@ export function TracesStrip() {
   const rest = useMemo(() => restPoint(result), [result]);
   return (
     <div className="traces-slot">
-      <Traces result={result} activity={activity} units={units} lang={lang} zones={zones} playhead={playhead} rest={rest} onPlayhead={actions.setPlayhead} busy={busy} />
+      <Traces result={result} activity={activity} units={units} zones={zones} playhead={playhead} rest={rest} onPlayhead={actions.setPlayhead} busy={busy} />
     </div>
   );
 }

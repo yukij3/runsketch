@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What the watch thermometer reads · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for recording-temperature.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Replaces the one-row temperature table in the Temperature section of docs/recording.md.
+
+       Data: real engine output from src/lib/sim at 57c45fe (0.2.0). simulate() with the default athlete, optical
+       sensor, manual weather (60 % humidity, calm, dry) at each air temperature, start 2026-06-01 06:30Z, seeds 1-6.
+       Value = mean of the recorded temperature stream over the last 600 s, then the mean over seeds.
+         run  flatProfile(10000), 300 s/km (the scenario of the wrist test in sensors.test.ts)
+         walk flatProfile(6000), 720 s/km (72 minutes, so the 10-minute sensor has settled)
+         ride flatProfile(25000), 25 km/h, unit on the handlebar
+       Means by air temperature -5 0 5 10 15 20 25 30 32 35 C:
+         run  3.6 7.2 11.3 15.4 19.5 23.7 27.6 31.5 33.3 35.5   (seed range at 5 C 10.9-12.0, at 25 C 27.0-28.0)
+         walk 12.9 16.5 18.9 20.8 21.8 25.4 28.8 31.9 33.2 35.0 (at 15 C 21.1-22.0)
+         ride -4.7 0.3 5.3 10.3 15.3 20.3 25.3 30.3 32.3 35.3  (at 15 C 15.0-15.7)
+       The sleeve callout is checked, not assumed: the clothing the heat balance chooses for this walk is 2.5 clo
+       at -5 and 0 C, 2 at 5, 1.1 at 10, 0.8 at 15 and 0.5 from 20 C; a sleeve covers the watch from 0.9 clo
+       (SLEEVE_CLO in simulate.ts). The run never reaches 0.9 clo in this range (0.65 at -5 C).
+       The table this replaced gave 12 C for the run at 5 C and 27 C at 25 C; the current means are 11.3 and 27.6,
+       inside the seed ranges above. Its other cells (19-20, 33, 21-22, 15-16) agree. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>What the watch thermometer reads</h1>
+
+    <svg viewBox="0 0 960 564" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="recording-temperature-title recording-temperature-desc">
+      <title id="recording-temperature-title">What the watch thermometer reads</title>
+      <desc id="recording-temperature-desc">Recorded device temperature over the last 10 minutes against air temperature from −5 to 35 °C, with the air itself as a dashed diagonal. A wrist unit on a run at 5:00/km reads 3.6 °C at −5, 11.3 at 5, 19.5 at 15, 27.6 at 25, 33.3 at 32 and 35.5 at 35 °C, so its lead over the air shrinks from about 9 °C in the cold to under 1 °C at 35. A walker&#x27;s wrist reads 21.8 °C at 15 and 12.9 at −5, far above the air in the cold because a sleeve covers the watch at 10 °C and colder. A handlebar unit on a ride stays within about half a degree of the air, 15.3 °C at 15.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+      <line x1="88.0" y1="370.7" x2="888.0" y2="370.7" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <text x="80.0" y="374.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <line x1="88.0" y1="296.0" x2="888.0" y2="296.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="80.0" y="299.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">10</text>
+      <line x1="88.0" y1="221.3" x2="888.0" y2="221.3" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="80.0" y="224.8" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">20</text>
+      <line x1="88.0" y1="146.7" x2="888.0" y2="146.7" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="80.0" y="150.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">30</text>
+      <line x1="88.0" y1="72.0" x2="888.0" y2="72.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="80.0" y="75.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">40 °C</text>
+      <line x1="88.0" y1="408.0" x2="88.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="88.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−5</text>
+      <line x1="188.0" y1="408.0" x2="188.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="188.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="288.0" y1="408.0" x2="288.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="288.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">5</text>
+      <line x1="388.0" y1="408.0" x2="388.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="388.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">10</text>
+      <line x1="488.0" y1="408.0" x2="488.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="488.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">15</text>
+      <line x1="588.0" y1="408.0" x2="588.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="588.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">20</text>
+      <line x1="688.0" y1="408.0" x2="688.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="688.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">25</text>
+      <line x1="788.0" y1="408.0" x2="788.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="788.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">30</text>
+      <line x1="888.0" y1="408.0" x2="888.0" y2="412.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="888.0" y="424.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">35 °C</text>
+      <text x="488.0" y="444.0" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">air temperature</text>
+      <text x="88.0" y="56.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">reading over the last 10 minutes</text>
+      <polyline points="88.0,408.0 888.0,109.3" fill="none" stroke="rgba(27,29,34,0.45)" stroke-width="1.2" stroke-dasharray="5,4" stroke-linejoin="round"/>
+      <polyline points="88.0,405.9 188.0,368.6 288.0,331.3 388.0,293.9 488.0,256.6 588.0,219.3 688.0,181.9 788.0,144.6 828.0,129.7 888.0,107.3" fill="none" stroke="#7c8f6f" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="88.0" cy="405.9" r="3" fill="#7c8f6f"/>
+      <circle cx="188.0" cy="368.6" r="3" fill="#7c8f6f"/>
+      <circle cx="288.0" cy="331.3" r="3" fill="#7c8f6f"/>
+      <circle cx="388.0" cy="293.9" r="3" fill="#7c8f6f"/>
+      <circle cx="488.0" cy="256.6" r="3" fill="#7c8f6f"/>
+      <circle cx="588.0" cy="219.3" r="3" fill="#7c8f6f"/>
+      <circle cx="688.0" cy="181.9" r="3" fill="#7c8f6f"/>
+      <circle cx="788.0" cy="144.6" r="3" fill="#7c8f6f"/>
+      <circle cx="828.0" cy="129.7" r="3" fill="#7c8f6f"/>
+      <circle cx="888.0" cy="107.3" r="3" fill="#7c8f6f"/>
+      <polyline points="88.0,274.5 188.0,247.8 288.0,229.3 388.0,215.6 488.0,207.7 588.0,180.9 688.0,155.9 788.0,132.3 828.0,122.8 888.0,109.7" fill="none" stroke="#5e7a9b" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="88.0" cy="274.5" r="3" fill="#5e7a9b"/>
+      <circle cx="188.0" cy="247.8" r="3" fill="#5e7a9b"/>
+      <circle cx="288.0" cy="229.3" r="3" fill="#5e7a9b"/>
+      <circle cx="388.0" cy="215.6" r="3" fill="#5e7a9b"/>
+      <circle cx="488.0" cy="207.7" r="3" fill="#5e7a9b"/>
+      <circle cx="588.0" cy="180.9" r="3" fill="#5e7a9b"/>
+      <circle cx="688.0" cy="155.9" r="3" fill="#5e7a9b"/>
+      <circle cx="788.0" cy="132.3" r="3" fill="#5e7a9b"/>
+      <circle cx="828.0" cy="122.8" r="3" fill="#5e7a9b"/>
+      <circle cx="888.0" cy="109.7" r="3" fill="#5e7a9b"/>
+      <polyline points="88.0,343.6 188.0,316.7 288.0,285.9 388.0,255.5 488.0,225.1 588.0,193.7 688.0,164.6 788.0,135.3 828.0,122.2 888.0,105.3" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="88.0" cy="343.6" r="3" fill="#c21f3a"/>
+      <circle cx="188.0" cy="316.7" r="3" fill="#c21f3a"/>
+      <circle cx="288.0" cy="285.9" r="3" fill="#c21f3a"/>
+      <circle cx="388.0" cy="255.5" r="3" fill="#c21f3a"/>
+      <circle cx="488.0" cy="225.1" r="3" fill="#c21f3a"/>
+      <circle cx="588.0" cy="193.7" r="3" fill="#c21f3a"/>
+      <circle cx="688.0" cy="164.6" r="3" fill="#c21f3a"/>
+      <circle cx="788.0" cy="135.3" r="3" fill="#c21f3a"/>
+      <circle cx="828.0" cy="122.2" r="3" fill="#c21f3a"/>
+      <circle cx="888.0" cy="105.3" r="3" fill="#c21f3a"/>
+      <text x="280.0" y="277.9" fill="#c21f3a" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">11.3</text>
+      <text x="496.0" y="241.1" fill="#c21f3a" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="start">19.5</text>
+      <text x="674.0" y="184.6" fill="#c21f3a" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">27.6</text>
+      <text x="822.0" y="112.2" fill="#c21f3a" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">33.3</text>
+      <text x="480.0" y="199.7" fill="#5e7a9b" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">21.8</text>
+      <text x="496.0" y="274.6" fill="#7c8f6f" font-size="10" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="start">15.3</text>
+      <text x="96.0" y="227.3" fill="#5e7a9b" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">walk, 12:00/km</text>
+      <text x="96.0" y="299.7" fill="#c21f3a" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">run, 5:00/km</text>
+      <text x="618.0" y="257.2" fill="#7c8f6f" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">ride, unit on the handlebar</text>
+      <text x="638.0" y="276.6" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">dashed: the air itself</text>
+      <text x="96.0" y="139.2" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif">a sleeve covers the watch</text>
+      <text x="96.0" y="157.2" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif">at 10 °C and colder</text>
+      <line x1="40.0" y1="472.0" x2="920.0" y2="472.0" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40.0" y="504.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128.0" y1="500.0" x2="152.0" y2="500.0" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160.0" y="504.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">wrist, run</text>
+      <line x1="316.0" y1="500.0" x2="340.0" y2="500.0" stroke="#5e7a9b" stroke-width="1.6"/>
+      <text x="348.0" y="504.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">wrist, walk</text>
+      <line x1="504.0" y1="500.0" x2="528.0" y2="500.0" stroke="#7c8f6f" stroke-width="1.6"/>
+      <text x="536.0" y="504.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">handlebar, ride</text>
+      <line x1="692.0" y1="500.0" x2="716.0" y2="500.0" stroke="rgba(27,29,34,0.45)" stroke-width="1.6" stroke-dasharray="5,4"/>
+      <text x="724.0" y="504.0" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">air temperature</text>
+      <text x="40.0" y="528.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Mean of six seeds per point. Run: flat 10 km at 5:00/km. Walk: flat 6 km at 12:00/km. Ride: flat 25 km at 25 km/h.</text>
+      <text x="40.0" y="544.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Manual weather, 60 % humidity, calm and dry. Readings are whole degrees; the mean over ten minutes is not.</text>
+    </svg>
+  </div>
+</body>
+</html>

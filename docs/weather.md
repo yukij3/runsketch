@@ -28,14 +28,12 @@ All weather comes from Open-Meteo. We chose it because:
 - it serves forecasts and past weather in the same format;
 - it can adjust values to an elevation we give it.
 
-We send one request per source, with every route point in it. The source depends on the activity date, counted in UTC days from today:
+We send one request per source, with every route point in it. The source depends on the activity date, counted in UTC days from today. Before 2022 it is the historical weather API's best match: the ERA5 and ERA5-Land reanalysis, and the ECMWF IFS analysis from 2017. From 2022 to the day before yesterday it is the historical forecast API, the same forecast models stitched together from the first hours of each run. From yesterday to 15 days ahead it is the forecast API, which we also ask for past hours back to 60 days. Further ahead there is no forecast, and one real past year out of the last ten stands in for the date.
 
-| Activity date | Source | What it is |
-|---|---|---|
-| Before 2022 | Historical weather API, best match | ERA5 and ERA5-Land reanalysis, and the ECMWF IFS analysis from 2017 |
-| 2022 to the day before yesterday | Historical forecast API | The same forecast models, stitched together from the first hours of each run |
-| Yesterday to 15 days ahead | Forecast API | The forecast; the API is asked for past hours back to 60 days |
-| Further ahead | Historical weather API, the last ten years | One real past year stands in for the date |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/weather-sources-dark.svg">
+  <img src="diagrams/weather-sources.svg" alt="Which Open-Meteo source serves an activity date, counted in UTC days from today. Before 2022 the historical weather API answers with its best match: ERA5 and ERA5-Land reanalysis and the ECMWF IFS analysis from 2017. From 1 January 2022 to the day before yesterday the historical forecast API answers with the same forecast models stitched from the first hours of each run. From yesterday to 15 days ahead the forecast API answers, asked for past hours back to 60 days. Further ahead there is no forecast, so one real year out of the last ten, the one closest to the ten-year median, is moved onto the dates. When a host says a date is out of range the request falls back from forecast to historical forecast to archive; hours an archived forecast lacks are filled from the archive once, and gaps of up to three hours take the nearest valid hour. An activity that runs past the forecast horizon takes the past year for the remaining hours, blending over the first three hours a quarter, a half and three quarters of the way.">
+</picture>
 
 ERA5 trails today by about five days. For recent dates, the archived forecasts are both closer to what you would have seen and available right up to today.
 
@@ -420,60 +418,47 @@ At the lowest and highest points:
 
 First, what the weather does to the route itself, whether anyone is on it or not. Wetness runs from 0 (dry) to 1 (fully wet) and includes mud. Ice is the share of the water film that has frozen.
 
-| Place | 08:00 | 08:30 | 09:00 | 10:00 | 11:00 | 12:00 | 13:00 |
-|---|---|---|---|---|---|---|---|
-| Forest path, km 5, about 2220 m | 0.13 | 0.84 | 0.85 | 0.67 | 0.52 | 0.49 | 0.48 |
-| Ridge, km 9.5, about 3030 m | 0.27 | 1, snow 0.4 cm | 1, snow 2.1 cm, ice 0.54 | 1, snow 2.3 cm, ice 0.38 | 0.98, snow 2.2 cm | 0.98, snow 1.7 cm | 1, snow 1.2 cm |
-| Summit, km 10.5, 3260 m | 0.27 | 1, snow 1.4 cm, ice 0.34 | 1, snow 3.9 cm, ice 1 | 1, snow 4.2 cm, ice 0.96 | 0.81, snow 4.1 cm, ice 0.02 | 0.70, snow 3.9 cm | 0.76, snow 3.4 cm |
-| Lower descent, km 13, about 2700 m | 0.27 | 1 | 1, snow 0.1 cm | 1 | 0.92 | 0.42 | 0.34 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/weather-ground-dark.svg">
+  <img src="diagrams/weather-ground.svg" alt="Surface wetness including mud, fresh snow depth and ice at four places on the example route from 06:00 to 13:00, with the rain hours shaded: 0.2 mm from 07:00, 4.5 to 5.2 mm from 08:00 to 09:00, 0.3 mm to 10:00. The forest path at km 5, 2220 m, goes from 0.13 at 08:00 to 0.84 at 08:30, then drops to 0.67 at 10:00 and holds near 0.48 at 13:00, which is mud rather than a water film. The ridge at km 9.5, 3030 m, is fully wet from 08:30 with 2.1 cm of fresh snow and ice over 54 % of the film at 09:00, keeping 1.2 cm at 13:00. The summit, 3260 m, has a third of its film frozen at 08:30, all of it at 09:00 under 3.9 cm of snow, and none by 12:00, with 3.4 cm left at 13:00. The lower descent at km 13, 2700 m, is soaked from 08:30 to 10:00 and dries to 0.41 at 12:00 and 0.34 at 13:00.">
+</picture>
 
-- The drizzle before 08:00 only dampens things.
-- The heavy hour soaks every surface within half an hour.
-- Above about 2900 m most of it falls as snow, and the wet rock under it freezes while the air sits near zero. The ice comes and goes gradually: a third of the film at 08:30, all of it at 09:00, and none by 12:00 as the air warms.
-- After the front, meltwater keeps the summit wet.
-- Lower down, the rock dries through the afternoon.
+- The drizzle before 08:00 only dampens things: 0.13 on the forest path, 0.27 on the rock.
+- The heavy hour soaks every surface within half an hour. The rock is fully wet by 08:30; the earth path, which holds twice as much water, reaches 0.84.
+- Above about 2900 m most of it falls as snow, and the wet rock under it freezes while the air sits near zero. By 09:00 the ridge has 2.1 cm of fresh snow and the summit 3.9 cm. The ice comes and goes gradually: a third of the film at 08:30, all of it at 09:00, and none by 12:00 as the air warms.
+- After the front, meltwater keeps the summit wet, between 0.7 and 0.8 through the middle of the day, with 3.4 cm of snow still lying at 13:00. The ridge keeps 1.2 cm.
+- Lower down, the rock dries through the afternoon: at km 13 it is back to 0.42 at 12:00 and 0.34 at 13:00.
 - The forest path loses its surface water quickly but keeps its mud. The 0.48 at 13:00 is soil memory, not a film.
 
 ### What the hiker meets
 
-The columns:
+The chart follows the hiker minute by minute, from the start to the finish at 11:46:
 
-- **Along the path:** the wind component at body height, positive from ahead.
-- **Wet:** wetness including mud.
-- **Surface:** the speed factor from wetness, snow and ice (1 = no effect).
-- **Wrist:** the sensor reading.
-- **Barometer:** how far the barometer has moved on pressure alone.
+- **Wind along the path** is the component at body height, positive from ahead.
+- **Wetness** includes mud.
+- **Surface speed factor** is what wetness, snow and ice do to speed (1 = no effect).
+- **Wrist** is the sensor reading.
 
-| Time | km | Height, m | Air, °C | Precipitation, mm/h (snow share) | Wind at 10 m | Along the path, m/s | Wet | Snow, cm | Surface | Wrist, °C | Barometer, m |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 06:00 | 0.0 | 1621 | 6.8 | — | 2.5 from 200° | +1.3 | 0 | 0 | 1.00 | 8 | 0 |
-| 06:30 | 2.4 | 1817 | 6.9 | — | 2.8 from 207° | +0.8 | 0 | 0 | 1.00 | 18 | −4 |
-| 07:00 | 4.0 | 2070 | 6.7 | — | 3.2 from 215° | +1.1 | 0 | 0 | 1.00 | 18 | −7 |
-| 07:30 | 5.6 | 2317 | 6.1 | 0.2 | 4.5 from 224° | +1.9 | 0.07 | 0 | 1.00 | 18 | −10 |
-| 08:00 | 7.1 | 2524 | 5.7 | 0.2 | 5.9 from 230° | +2.7 | 0.13 | 0 | 0.99 | 17 | −12 |
-| 08:30 | 8.1 | 2720 | 2.9 | 5.0 (4 %) | 7.3 from 245° | +4.3 | 1 | 0 | 0.96 | 12 | +10 |
-| 09:00 | 8.9 | 2891 | 0.2 | 5.0 (75 %) | 8.9 from 255° | +5.2 | 1 | 1.0 | 0.87 | 10 | +30 |
-| 09:30 | 9.6 | 3058 | −0.6 | 0.3 (93 %) | 9.2 from 273° | +4.9 | 1 | 2.4 | 0.66 | 10 | +28 |
-| 10:00 | 10.2 | 3195 | −1.3 | 0.3 (98 %) | 10.4 from 290° | +4.5 | 1 | 3.7 | 0.53 | 10 | +25 |
-| 10:30 | 10.9 | 3203 | −0.1 | — | 9.7 from 302° | −3.3 | 1 | 3.8 | 0.50 | 11 | +9 |
-| 11:00 | 11.8 | 2992 | 2.6 | — | 9.1 from 315° | −2.1 | 1 | 1.8 | 0.69 | 12 | −7 |
-| 11:30 | 12.8 | 2742 | 5.2 | — | 8.2 from 317° | −1.7 | 0.80 | 0 | 0.80 | 13 | −19 |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/weather-hike-dark.svg">
+  <img src="diagrams/weather-hike.svg" alt="Five stacked panels over the example hike from 06:00 to the finish at 11:46, sampled every minute: height, air temperature and the wrist reading, precipitation split into rain and snow, the wind along the path, and the ground underfoot. The hiker climbs from 1621 m to 3260 m, reached at 10:16, and comes down to about 2590 m. For the first hour the air stays at 6.7 to 7.0 °C while the height rises by some 450 m; it then falls to −1.3 °C at 09:58 near the top and is back above 5 °C on the way down. The wrist reads 8 °C at the start, 17 to 18 °C on the lower climb, 10 °C in the snow and wind near the summit and 11 to 16 °C coming down. Drizzle reaches the hiker at 07:30 and the downpour at 08:30 at 5.0 mm/h with 4 % snow, rising to 75 % snow at 09:00 and 98 % at 10:00. The wind along the path peaks at +5.2 m/s into the hiker's face on the way up and turns to −3.3 m/s from behind at 10:30. The ground is fully wet from 08:30, fresh snow underfoot reaches 4.3 cm, and the surface speed factor falls from 1 to 0.87 at 09:00, 0.53 at 10:00 and 0.38 at 10:19 on the icy, snowy descent, recovering to 0.82 at 11:30.">
+</picture>
 
 - **Air.**
   - The sun rises at 06:34, when the hiker is a little over 2 km in.
   - For the first hour the warming valley keeps pace with the climb: nearly 450 m of height gained, and the air still reads 6.7–6.9 °C.
   - After that the height wins and the front arrives. The air falls to −1.3 °C at 3195 m at 10:00, with the wind at 10.4 m/s.
   - Coming down in the afternoon it is back above 5 °C.
-- **Rain.** It reaches the hiker as drizzle at 07:30 and becomes the downpour at 08:30, at 2720 m. Over the next ninety minutes the snow share grows from 4 % to 98 %. The summary reads rain 07:00–10:00 with 5.5 mm, and the engine warns: “Rain made 6.3 km of the route wet, and the wet descents were about 29 % slower.”
+- **Rain.** It reaches the hiker as drizzle at 07:30 and becomes the downpour at 08:30, at 2720 m. Over the next ninety minutes the snow share grows from 4 % to 98 %. The summary reads rain 07:00–10:00 with 5.5 mm, and the engine warns: “Rain made 6.3 km of the route wet, and the wet descents were about 30 % slower.”
 - **Wind.** A headwind of up to 5.2 m/s along the path on the way up. After the shift to north-west it is a tailwind of 1.7–3.3 m/s on the way down.
 - **Barometer.**
   - Before the front the air column warms and the pressure at height rises, so the barometer reads about 12 m low at 08:00.
   - The front then drops the pressure and the reading swings to 30 m high by 09:00.
   - As the sky clears it is 19 m low by the finish.
-- **Wrist sensor.** 8 °C at the start, 17–18 °C on the lower climb, 10 °C in the snow and wind near the summit, and 11–13 °C coming down. The cold, wet, windy hour is the lowest reading of the day, which the old fixed curve could not show.
+- **Wrist sensor.** 8 °C at the start, 17–18 °C on the lower climb, 10 °C in the snow and wind near the summit, and 11–16 °C coming down, 14 °C by 11:30. The cold, wet, windy hour is the lowest reading of the day, which the old fixed curve could not show.
 
 <!-- Thermal numbers begin. The example's pace, heart rate and heat balance. -->
-- **Target.** The Steady preset solves an average of 0.65 m/s: 5 h 47 min of moving time. The same hike in dry, calm air at 15 °C solves 0.74 m/s and 5 h 03 min, so the weather costs three quarters of an hour. The hiker reaches the top at 10:18 and finishes at 11:46.
+- **Target.** The Steady preset solves an average of 0.65 m/s: 5 h 46 min of moving time. The same hike in dry, calm air at 15 °C solves 0.75 m/s and 5 h 02 min, so the weather costs three quarters of an hour. The hiker reaches the top at 10:16 and finishes at 11:46.
 - **Hour by hour:**
 
   | Hours | Conditions | Pace | Heart rate |

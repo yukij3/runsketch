@@ -1,6 +1,6 @@
 import { LoaderCircle, Search } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
-import { useApp, useRuntime, useT } from '../../app/runtime';
+import { useRuntime, useT } from '../../app/runtime';
 import { searchPlaces, type PlaceResult } from '../../lib/services/geocode';
 import { cx } from '../controls';
 
@@ -9,7 +9,6 @@ type Phase = 'idle' | 'loading' | 'done' | 'error';
 export function SearchBox() {
   const t = useT();
   const { store, actions } = useRuntime();
-  const lang = useApp((s) => s.lang);
   const id = useId();
   const listId = `${id}-list`;
   const [query, setQuery] = useState('');
@@ -33,7 +32,7 @@ export function SearchBox() {
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setPhase('loading');
-      searchPlaces(q, { bias: store.get().view?.center, lang, signal: controller.signal }).then(
+      searchPlaces(q, { bias: store.get().view?.center, lang: 'en', signal: controller.signal }).then(
         (found) => {
           setResults(found);
           setActive(found.length > 0 ? 0 : -1);
@@ -50,7 +49,7 @@ export function SearchBox() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, lang, store]);
+  }, [query, store]);
 
   const choose = (place: PlaceResult) => {
     skipNext.current = true;

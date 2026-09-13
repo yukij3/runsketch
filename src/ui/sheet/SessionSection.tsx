@@ -47,7 +47,6 @@ function TargetRow() {
   const actions = useActions();
   const session = useApp((s) => s.session);
   const units = useApp((s) => s.units);
-  const lang = useApp((s) => s.lang);
   const terrainDistance = useApp((s) => s.terrain.profile?.totalDistance);
   const waypoints = useApp((s) => s.waypoints);
   const legs = useApp((s) => s.legs);
@@ -93,7 +92,7 @@ function TargetRow() {
         id="rs-target-value"
         ariaLabel={t('target_speed')}
         value={target.mps}
-        format={(v) => formatDecimal(v * speedFactor, 1, lang)}
+        format={(v) => formatDecimal(v * speedFactor, 1)}
         parse={(text) => {
           const v = Number(text.trim().replace(',', '.'));
           return text.trim() !== '' && Number.isFinite(v) && v >= 1 && v <= 90 ? v / speedFactor : null;

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A flat 6 km run whose middle 2 km change · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for terrain-surfaces-dark.svg (generated from terrain-surfaces.html by token swap) (profile: runsketch, see .diagram-design). Dot plot, doc-wide.
+       Data: real engine output, simulate() from src/lib/sim, run via a throwaway script (not committed).
+       Profile: flatProfile(6000) with ProfilePoint.surface / technicality set on 2000 < d <= 4000 m:
+       asphalt = paved; dirt path = ground; gravel = gravel; dirt path, T2 = ground + 0.2; rough path, T3 = rough + 0.4; sand = sand.
+       Athlete defaultAthlete() (recreational, 35 y, rest 55, max 184). Session defaultSession('run'), start 2026-06-01 06:30 UTC,
+       target pace 330 s/km, default variability 0.35, seeds 1-4. Pace = seconds / metres * 1000 over first moving sample..2000 m
+       plus 4000 m..end (road) and 2000..4000 m (middle); HR demand = mean hrDemand over the same samples.
+         asphalt         road 5:30  middle 5:29  HR road 156.2  HR middle 156.8
+         dirt path       road 5:26  middle 5:38  HR road 157.7  HR middle 158.2
+         gravel          road 5:24  middle 5:42  HR road 158.4  HR middle 157.9
+         dirt path, T2   road 5:15  middle 5:59  HR road 161.4  HR middle 160.2
+         rough path, T3  road 4:41  middle 7:08  HR road 173.2  HR middle 163.6
+         sand            road 4:58  middle 6:34  HR road 168.8  HR middle 174.4
+       The table this chart replaces in docs/terrain.md was made on an earlier engine and differs by 1-3 s/km and 0-5 bpm:
+         asphalt 5:28 5:30 159 157 | dirt path 5:23 5:39 161 158 | gravel 5:21 5:44 161 158
+         dirt path, T2 5:13 6:01 165 160 | rough path, T3 4:38 7:09 177 163 | sand 4:55 6:36 174 175
+       Variability 0, other seeds and the younger test runner (25 y, rest 50, max 191) do not reproduce it either. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #16181c; --color-ink: #f5f6f4; --color-muted: #b7bcb8; --color-accent: #ef6479; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>A flat 6 km run whose middle 2 km change</h1>
+
+    <svg viewBox="0 0 960 364" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="terrain-surfaces-dark-title terrain-surfaces-dark-desc">
+      <title id="terrain-surfaces-dark-title">A flat 6 km run whose middle 2 km change</title>
+      <desc id="terrain-surfaces-dark-desc">Dot plot of a flat 6 km run at an average of 5:30/km in which only the middle 2 km change, four seeds, recreational runner. For each surface, pace and heart-rate demand in the middle 2 km against the road on either side: asphalt 5:29 in the middle and 5:30 on the road, heart-rate demand 157 and 156 bpm; dirt path 5:38 in the middle and 5:26 on the road, heart-rate demand 158 and 158 bpm; gravel 5:42 in the middle and 5:24 on the road, heart-rate demand 158 and 158 bpm; dirt path, T2 5:59 in the middle and 5:15 on the road, heart-rate demand 160 and 161 bpm; rough path, T3 7:08 in the middle and 4:41 on the road, heart-rate demand 164 and 173 bpm; sand 6:34 in the middle and 4:58 on the road, heart-rate demand 174 and 169 bpm. Moving time is fixed, so the slower the middle, the faster the road around it: sand and a T3 path make the road 4:58 and 4:41/km. Sand asks 18 bpm more than asphalt in the middle, a T3 path 7 bpm more, and on the T3 run the fast road asks more than the path itself.</desc>
+      <rect width="100%" height="100%" fill="#16181c"/>
+      <text x="24.0" y="24.0" fill="#f5f6f4" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">A flat 6 km run whose middle 2 km change</text>
+      <text x="24.0" y="40.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">recreational runner, 5:30/km average over the whole run, mean of four seeds</text>
+      <line x1="592.0" y1="16.0" x2="592.0" y2="300.0" stroke="rgba(245,246,244,0.12)" stroke-width="0.8"/>
+      <text x="196.0" y="60.0" fill="#f5f6f4" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">Pace</text>
+      <text x="620.0" y="60.0" fill="#f5f6f4" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">Heart-rate demand</text>
+
+      <!-- gridlines -->
+      <line x1="196.0" y1="268.0" x2="560.0" y2="268.0" stroke="rgba(245,246,244,0.22)" stroke-width="1"/>
+      <line x1="620.0" y1="268.0" x2="912.0" y2="268.0" stroke="rgba(245,246,244,0.22)" stroke-width="1"/>
+      <line x1="196.0" y1="68.0" x2="196.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="196.0" y1="268.0" x2="196.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="196.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">4:30</text>
+      <line x1="256.7" y1="68.0" x2="256.7" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="256.7" y1="268.0" x2="256.7" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="256.7" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">5:00</text>
+      <line x1="317.3" y1="68.0" x2="317.3" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="317.3" y1="268.0" x2="317.3" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="317.3" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">5:30</text>
+      <line x1="378.0" y1="68.0" x2="378.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="378.0" y1="268.0" x2="378.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="378.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">6:00</text>
+      <line x1="438.7" y1="68.0" x2="438.7" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="438.7" y1="268.0" x2="438.7" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="438.7" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">6:30</text>
+      <line x1="499.3" y1="68.0" x2="499.3" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="499.3" y1="268.0" x2="499.3" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="499.3" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">7:00</text>
+      <line x1="560.0" y1="68.0" x2="560.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="560.0" y1="268.0" x2="560.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="560.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">7:30</text>
+      <line x1="620.0" y1="68.0" x2="620.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="620.0" y1="268.0" x2="620.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="620.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">150</text>
+      <line x1="668.7" y1="68.0" x2="668.7" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="668.7" y1="268.0" x2="668.7" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="668.7" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">155</text>
+      <line x1="717.3" y1="68.0" x2="717.3" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="717.3" y1="268.0" x2="717.3" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="717.3" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">160</text>
+      <line x1="766.0" y1="68.0" x2="766.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="766.0" y1="268.0" x2="766.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="766.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">165</text>
+      <line x1="814.7" y1="68.0" x2="814.7" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="814.7" y1="268.0" x2="814.7" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="814.7" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">170</text>
+      <line x1="863.3" y1="68.0" x2="863.3" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="863.3" y1="268.0" x2="863.3" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="863.3" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">175</text>
+      <line x1="912.0" y1="68.0" x2="912.0" y2="268.0" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="912.0" y1="268.0" x2="912.0" y2="272.0" stroke="rgba(245,246,244,0.3)" stroke-width="1"/>
+      <text x="912.0" y="284.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">180</text>
+      <text x="378.0" y="302.0" fill="#9ba1a8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">min/km · slower →</text>
+      <text x="766.0" y="302.0" fill="#9ba1a8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">bpm · harder →</text>
+      <line x1="317.3" y1="68.0" x2="317.3" y2="268.0" stroke="rgba(245,246,244,0.35)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="323.3" y="74.0" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace">target average 5:30</text>
+
+      <!-- rows: open dot = road on either side, filled dot = the middle 2 km -->
+      <text x="172.0" y="92.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">asphalt</text>
+      <line x1="318.3" y1="88.0" x2="314.7" y2="88.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="318.3" cy="88.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="314.7" cy="88.0" r="4.5" fill="#7a9ce8"/>
+      <text x="305.7" y="91.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">5:29</text>
+      <text x="327.3" y="91.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace">5:30</text>
+      <line x1="680.3" y1="88.0" x2="686.2" y2="88.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="680.3" cy="88.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="686.2" cy="88.0" r="4.5" fill="#ef6479"/>
+      <text x="671.3" y="91.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">156</text>
+      <text x="695.2" y="91.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace">157</text>
+      <text x="172.0" y="124.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">dirt path</text>
+      <line x1="309.2" y1="120.0" x2="332.9" y2="120.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="309.2" cy="120.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="332.9" cy="120.0" r="4.5" fill="#7a9ce8"/>
+      <text x="300.2" y="123.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">5:26</text>
+      <text x="341.9" y="123.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace">5:38</text>
+      <line x1="694.9" y1="120.0" x2="699.8" y2="120.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="694.9" cy="120.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="699.8" cy="120.0" r="4.5" fill="#ef6479"/>
+      <text x="685.9" y="123.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">158</text>
+      <text x="708.8" y="123.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace">158</text>
+      <text x="172.0" y="156.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">gravel</text>
+      <line x1="304.4" y1="152.0" x2="342.2" y2="152.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="304.4" cy="152.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="342.2" cy="152.0" r="4.5" fill="#7a9ce8"/>
+      <text x="295.4" y="155.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">5:24</text>
+      <text x="351.2" y="155.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace">5:42</text>
+      <line x1="701.8" y1="152.0" x2="696.9" y2="152.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="701.8" cy="152.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="696.9" cy="152.0" r="4.5" fill="#ef6479"/>
+      <text x="687.9" y="155.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">158</text>
+      <text x="710.8" y="155.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace">158</text>
+      <text x="172.0" y="188.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">dirt path, T2</text>
+      <line x1="287.6" y1="184.0" x2="376.2" y2="184.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="287.6" cy="184.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="376.2" cy="184.0" r="4.5" fill="#7a9ce8"/>
+      <text x="278.6" y="187.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">5:15</text>
+      <text x="385.2" y="187.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace">5:59</text>
+      <line x1="731.0" y1="184.0" x2="719.3" y2="184.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="731.0" cy="184.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="719.3" cy="184.0" r="4.5" fill="#ef6479"/>
+      <text x="710.3" y="187.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">160</text>
+      <text x="740.0" y="187.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace">161</text>
+      <text x="172.0" y="220.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">rough path, T3</text>
+      <line x1="218.2" y1="216.0" x2="514.5" y2="216.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="218.2" cy="216.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="514.5" cy="216.0" r="4.5" fill="#7a9ce8"/>
+      <text x="209.2" y="219.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">4:41</text>
+      <text x="523.5" y="219.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace">7:08</text>
+      <line x1="845.8" y1="216.0" x2="752.4" y2="216.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="845.8" cy="216.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="752.4" cy="216.0" r="4.5" fill="#ef6479"/>
+      <text x="743.4" y="219.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">164</text>
+      <text x="854.8" y="219.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace">173</text>
+      <text x="172.0" y="252.0" fill="#f5f6f4" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">sand</text>
+      <line x1="252.0" y1="248.0" x2="447.6" y2="248.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="252.0" cy="248.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="447.6" cy="248.0" r="4.5" fill="#7a9ce8"/>
+      <text x="243.0" y="251.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">4:58</text>
+      <text x="456.6" y="251.5" fill="#7a9ce8" font-size="10" font-family="'Red Hat Mono', monospace">6:34</text>
+      <line x1="803.0" y1="248.0" x2="857.5" y2="248.0" stroke="rgba(245,246,244,0.18)" stroke-width="2"/>
+      <circle cx="803.0" cy="248.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <circle cx="857.5" cy="248.0" r="4.5" fill="#ef6479"/>
+      <text x="794.0" y="251.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">169</text>
+      <text x="866.5" y="251.5" fill="#ef6479" font-size="10" font-family="'Red Hat Mono', monospace">174</text>
+
+      <!-- legend -->
+      <line x1="40.0" y1="320.0" x2="920.0" y2="320.0" stroke="rgba(245,246,244,0.12)" stroke-width="0.8"/>
+      <text x="40.0" y="348.0" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <circle cx="124.0" cy="344.0" r="4" fill="#16181c" stroke="#b7bcb8" stroke-width="1.2"/>
+      <text x="136.0" y="348.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">the road on either side, 0–2 km and 4–6 km</text>
+      <circle cx="452.0" cy="344.0" r="4.5" fill="#7a9ce8"/>
+      <text x="464.0" y="348.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">middle 2 km: pace</text>
+      <circle cx="628.0" cy="344.0" r="4.5" fill="#ef6479"/>
+      <text x="640.0" y="348.0" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">middle 2 km: heart-rate demand</text>
+    </svg>
+  </div>
+</body>
+</html>

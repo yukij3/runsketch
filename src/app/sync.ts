@@ -14,7 +14,6 @@ const PERSISTED: ReadonlyArray<keyof AppState> = [
   'targetAuto',
   'effortPreset',
   'units',
-  'lang',
   'profile',
   'waypoints',
   'view',

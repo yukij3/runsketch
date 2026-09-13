@@ -1,11 +1,10 @@
 // Example routes for the empty map and the toolbar menu, each with the session it is best simulated with.
 import type { EffortPreset } from '../lib/sim';
 import type { ActivityType, LngLat, SessionSettings, SnapProfile, StopsLevel, TargetSpec } from '../lib/types';
-import type { Lang } from './i18n';
 
 export interface ExampleRoute {
   id: string;
-  name: Readonly<Record<Lang, string>>;
+  name: string;
   profile: SnapProfile;
   /** Activity the example loads with. */
   activity: ActivityType;
@@ -37,7 +36,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
     // Plaça d'Espanya → Palau Nacional → Passeig Olímpic → castle → Miramar → Poble-sec → Plaça d'Espanya, ~130 m of
     // climbing. Points are the OSRM foot snap locations (checked 2026-09-12, all < 50 m).
     id: 'montjuic',
-    name: { en: 'Montjuïc loop, Barcelona', ru: 'Круг по Монжуику, Барселона' },
+    name: 'Montjuïc loop, Barcelona',
     profile: 'foot',
     activity: 'run',
     suggest: { effort: 'steady' },
@@ -56,7 +55,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Garabashi station 3850 m → Pastukhov rocks → saddle → West summit, and back the same way; almost all of it on glacier.
     id: 'elbrus-south',
-    name: { en: 'Elbrus, south route', ru: 'Эльбрус, южный маршрут' },
+    name: 'Elbrus, south route',
     profile: 'alpine',
     activity: 'alpine',
     start: { local: '02:30', utcOffsetMin: 180 },
@@ -79,7 +78,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Betlemi hut 3650 m → summit (5054 m since the 2019 survey) → hut, over the Gergeti glacier.
     id: 'kazbek-betlemi',
-    name: { en: 'Kazbek from Betlemi hut', ru: 'Казбек от Бетлемской хижины' },
+    name: 'Kazbek from Betlemi hut',
     profile: 'alpine',
     activity: 'alpine',
     start: { local: '02:00', utcOffsetMin: 240 },
@@ -98,7 +97,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Goûter hut 3835 m → Dôme du Goûter → Vallot hut → summit → back.
     id: 'mont-blanc-gouter',
-    name: { en: 'Mont Blanc, Goûter route', ru: 'Монблан, маршрут через Гуте' },
+    name: 'Mont Blanc, Goûter route',
     profile: 'alpine',
     activity: 'alpine',
     start: { local: '02:00', utcOffsetMin: 120 },
@@ -121,7 +120,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Barafu camp 4673 m → Stella Point → Uhuru Peak → Stella Point → Barafu → Mweka camp 3100 m: a walk-up on scree.
     id: 'kilimanjaro-summit-night',
-    name: { en: 'Kilimanjaro summit night', ru: 'Килиманджаро, ночное восхождение' },
+    name: 'Kilimanjaro summit night',
     profile: 'alpine',
     activity: 'alpine',
     start: { local: '23:30', utcOffsetMin: 180 },
@@ -143,7 +142,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Cólera camp 5950 m → Independencia hut → La Cueva at the foot of the Canaleta → summit → back.
     id: 'aconcagua-normal',
-    name: { en: 'Aconcagua, normal route', ru: 'Аконкагуа, классический маршрут' },
+    name: 'Aconcagua, normal route',
     profile: 'alpine',
     activity: 'alpine',
     start: { local: '03:00', utcOffsetMin: -180 },
@@ -166,7 +165,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Lobuche 4940 m → Gorak Shep → Everest base camp monument 5364 m → Gorak Shep; the last stretch is a glacier path.
     id: 'ebc-lobuche',
-    name: { en: 'Everest base camp from Lobuche', ru: 'Базовый лагерь Эвереста из Лобуче' },
+    name: 'Everest base camp from Lobuche',
     profile: 'hiking',
     activity: 'hike',
     start: { local: '07:00', utcOffsetMin: 345 },
@@ -187,7 +186,7 @@ export const EXAMPLES: readonly ExampleRoute[] = [
   {
     // Thorong Phedi 4540 m → High Camp → Thorong La 5416 m → Muktinath, the long day of the Annapurna circuit.
     id: 'thorong-la',
-    name: { en: 'Thorong La crossing', ru: 'Перевал Торонг-Ла' },
+    name: 'Thorong La crossing',
     profile: 'hiking',
     activity: 'hike',
     start: { local: '04:30', utcOffsetMin: 345 },

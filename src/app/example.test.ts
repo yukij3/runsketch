@@ -17,8 +17,7 @@ describe('example routes', () => {
     expect(EXAMPLES[0].id).toBe('montjuic');
     expect(new Set(EXAMPLES.map((e) => e.id)).size).toBe(EXAMPLES.length);
     for (const e of EXAMPLES) {
-      expect(e.name.en.trim(), e.id).not.toBe('');
-      expect(e.name.ru.trim(), e.id).not.toBe('');
+      expect(e.name.trim(), e.id).not.toBe('');
       expect(SNAP_PROFILES).toContain(e.profile);
       expect(ACTIVITIES).toContain(e.activity);
       expect(e.coords.length, e.id).toBeGreaterThanOrEqual(2);
@@ -80,7 +79,7 @@ describe('example routes', () => {
 
 describe('loadExample', () => {
   const setup = () => {
-    const store = createStore(buildInitialState({ stored: null, hash: '', language: 'en', now: NOW }));
+    const store = createStore(buildInitialState({ stored: null, hash: '', now: NOW }));
     return { store, actions: createActions(store) };
   };
 

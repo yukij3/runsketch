@@ -24,7 +24,7 @@ import { Legend, ReadoutRow } from './ReadoutBar';
 import { indexAtPx, makeXScale, type XAxis } from './scale';
 import { buildTraceModel, isFootSport, plotsPace } from './series';
 import { LabelLayer, StaticLayer, type PanelNames } from './StaticLayer';
-import { stringsFor, unitText } from './strings';
+import { STRINGS } from './strings';
 import { useElementSize } from './useElementSize';
 import './traces.css';
 
@@ -34,8 +34,8 @@ export const MIN_TIME_SPAN_S = 10;
 let revealSerial = 0;
 
 export function Traces(props: TracesProps) {
-  const { result, activity, units, lang, zones, playhead, rest = null, onPlayhead, busy } = props;
-  const s = stringsFor(lang);
+  const { result, activity, units, zones, playhead, rest = null, onPlayhead, busy } = props;
+  const s = STRINGS;
   const [axisPref, setAxisPref] = useState<XAxis>('distance');
   const [pinnedState, setPinned] = useState(false);
   const [live, setLive] = useState('');
@@ -64,8 +64,8 @@ export function Traces(props: TracesProps) {
   const yMaps = useMemo(() => (model ? panelYMaps(model, layout) : null), [model, layout]);
   const ink = useMemo(() => (model && scale ? buildInk(model, scale, layout) : null), [model, scale, layout]);
   const axes = useMemo(
-    () => (model && scale && yMaps ? buildAxes(model, scale, layout, yMaps, stableZones, lang) : null),
-    [model, scale, layout, yMaps, stableZones, lang],
+    () => (model && scale && yMaps ? buildAxes(model, scale, layout, yMaps, stableZones) : null),
+    [model, scale, layout, yMaps, stableZones],
   );
   // A new result object gets a new key, remounting the ink layer and replaying the pen reveal.
   const revealKey = useMemo(() => ++revealSerial, [usable]);
@@ -74,12 +74,12 @@ export function Traces(props: TracesProps) {
   const pace = plotsPace(activity);
   const names = useMemo<PanelNames>(
     () => ({
-      elevation: { name: s.panel.elevation, unit: unitText(s, elevationUnit(units)) },
+      elevation: { name: s.panel.elevation, unit: elevationUnit(units) },
       pace: pace
-        ? { name: s.panel.pace, unit: unitText(s, paceUnit(units)) }
-        : { name: s.panel.speed, unit: unitText(s, speedUnit(units)) },
-      hr: { name: s.panel.hr, unit: unitText(s, 'bpm') },
-      cadence: { name: s.panel.cadence, unit: unitText(s, foot ? 'spm' : 'rpm') },
+        ? { name: s.panel.pace, unit: paceUnit(units) }
+        : { name: s.panel.speed, unit: speedUnit(units) },
+      hr: { name: s.panel.hr, unit: 'bpm' },
+      cadence: { name: s.panel.cadence, unit: foot ? 'spm' : 'rpm' },
     }),
     [s, units, foot, pace],
   );
@@ -94,8 +94,6 @@ export function Traces(props: TracesProps) {
   useEffect(() => {
     if (scrub === null) setPinned(false);
   }, [scrub]);
-
-  useEffect(() => setLive(''), [lang]);
 
   const emit = (next: number | null) => {
     if (next !== scrub) onPlayhead(next);

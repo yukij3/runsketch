@@ -21,7 +21,7 @@ function hillyProfile(route: LngLat[]): TerrainProfile {
 }
 
 function setup(overrides: Partial<PipelineDeps> = {}) {
-  const store = createStore(buildInitialState({ stored: null, hash: '', language: 'en', now: NOW }));
+  const store = createStore(buildInitialState({ stored: null, hash: '', now: NOW }));
   const actions = createActions(store);
   const routeLeg = vi.fn(async (a: LngLat, b: LngLat, profile: SnapProfile) => {
     const mid: LngLat = [(a[0] + b[0]) / 2 + 1.23456789e-4, (a[1] + b[1]) / 2];
@@ -216,14 +216,12 @@ describe('reload reproduces the route', () => {
 });
 
 describe('import errors', () => {
-  it('are localized by code', () => {
-    const ru = (key: Parameters<typeof translate>[1], params?: Parameters<typeof translate>[2]) => translate('ru', key, params);
-    const en = (key: Parameters<typeof translate>[1], params?: Parameters<typeof translate>[2]) => translate('en', key, params);
-    expect(importErrorText(ru, new RouteImportError('unsupported', 'x', 'kml'))).toBe('Неподдерживаемый файл: ожидался GPX или TCX, а корневой элемент — <kml>.');
-    expect(importErrorText(en, new RouteImportError('fit', 'x'))).toMatch(/^FIT files cannot be imported/);
-    expect(importErrorText(en, new RouteImportError('invalidXml', 'x'))).toBe('This file is not valid XML.');
-    expect(importErrorText(ru, new RouteImportError('invalidXml', 'x', 'line 1'))).toBe('Файл не является корректным XML (line 1).');
-    expect(importErrorText(ru, new RouteImportError('empty', 'x'))).toBe('Файл пустой.');
-    expect(importErrorText(ru, new Error('plain'))).toBe('plain');
+  it('are written by code', () => {
+    expect(importErrorText(translate, new RouteImportError('unsupported', 'x', 'kml'))).toBe('Unsupported file: expected GPX or TCX, but the document root is <kml>.');
+    expect(importErrorText(translate, new RouteImportError('fit', 'x'))).toMatch(/^FIT files cannot be imported/);
+    expect(importErrorText(translate, new RouteImportError('invalidXml', 'x'))).toBe('This file is not valid XML.');
+    expect(importErrorText(translate, new RouteImportError('invalidXml', 'x', 'line 1'))).toBe('This file is not valid XML (line 1).');
+    expect(importErrorText(translate, new RouteImportError('empty', 'x'))).toBe('The file is empty.');
+    expect(importErrorText(translate, new Error('plain'))).toBe('plain');
   });
 });

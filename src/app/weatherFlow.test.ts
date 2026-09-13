@@ -34,7 +34,7 @@ function seriesFor(req: WeatherRequest, fetchedAt = NOW, timezone = 'Europe/Madr
 }
 
 function setup(overrides: Partial<PipelineDeps> = {}, state?: AppState) {
-  const store = createStore(state ?? buildInitialState({ stored: null, hash: '', language: 'en', now: NOW }));
+  const store = createStore(state ?? buildInitialState({ stored: null, hash: '', now: NOW }));
   const actions = createActions(store);
   const routeLeg = vi.fn(async (a: LngLat, b: LngLat, profile: SnapProfile) => ({
     coords: [a, b],
@@ -165,7 +165,7 @@ describe('automatic weather in the pipeline', () => {
     first.stop();
 
     const fetchWeather = vi.fn<WeatherFetcher>(async (req) => seriesFor(req, NOW + 60_000));
-    const reload = setup({ weatherCache, fetchWeather }, buildInitialState({ stored: persisted, hash: '', language: 'en', now: NOW }));
+    const reload = setup({ weatherCache, fetchWeather }, buildInitialState({ stored: persisted, hash: '', now: NOW }));
     await vi.advanceTimersByTimeAsync(TO_WEATHER + 300);
     expect(fetchWeather).not.toHaveBeenCalled();
     expect(lastInput(reload.simulate).weather?.fetchedAt).toBe(NOW);
@@ -209,7 +209,7 @@ describe('automatic weather in the pipeline', () => {
   it('an example start keeps its local clock time once the route zone is known', async () => {
     const winter = Date.UTC(2026, 0, 12, 9);
     const fetchWeather = vi.fn<WeatherFetcher>(async (req) => ({ ...seriesFor(req, winter, 'Europe/Paris'), key: weatherKey(req) }));
-    const state = buildInitialState({ stored: null, hash: '', language: 'en', now: winter });
+    const state = buildInitialState({ stored: null, hash: '', now: winter });
     const { store, actions, stop } = setup({ fetchWeather, now: () => winter }, state);
     actions.loadExample('mont-blanc-gouter');
     // The example's 02:00 is set at its summer offset (UTC+2) until the zone is known.
@@ -225,7 +225,7 @@ describe('automatic weather in the pipeline', () => {
 });
 
 describe('weather identity and the route clock', () => {
-  const base = buildInitialState({ stored: null, hash: '', language: 'en', now: NOW });
+  const base = buildInitialState({ stored: null, hash: '', now: NOW });
   const later = { ...base.session, startTime: base.session.startTime + 3_600_000 };
 
   it('the start time enters the simulation key only while a series is active', () => {

@@ -6,7 +6,7 @@ import { createStore } from './store';
 
 const NOW = Date.UTC(2026, 8, 12, 7, 0);
 const defaultManual = { humidityPct: 60, windMps: 0, windFromDeg: 0, rainMmH: 0 };
-const reload = (stored: unknown, now = NOW + 86_400_000, hash = '') => buildInitialState({ stored: JSON.parse(JSON.stringify(stored)), hash, language: 'en', now });
+const reload = (stored: unknown, now = NOW + 86_400_000, hash = '') => buildInitialState({ stored: JSON.parse(JSON.stringify(stored)), hash, now });
 
 describe('weather settings', () => {
   it('new sessions and stored sessions without them are automatic with neutral manual values', () => {
@@ -47,7 +47,7 @@ describe('weather settings', () => {
     const settings = { mode: 'manual', manual: { humidityPct: 85, windMps: 6, windFromDeg: 270, rainMmH: 4 }, pinned: ['wind'] };
     const hash = `#${encodeShare(store.get())}`;
     expect(decodeShare(hash)?.weather).toEqual(settings);
-    expect(buildInitialState({ stored: null, hash, language: 'en', now: NOW }).session.weather).toEqual(settings);
+    expect(buildInitialState({ stored: null, hash, now: NOW }).session.weather).toEqual(settings);
     // Junk in the link falls back to the neutral default rather than being trusted.
     expect(decodeShare('#v=1&r=&t=x&s=1&wm=sometimes')?.weather).toBeUndefined();
     expect(decodeShare('#v=1&r=&t=x&s=1&wp=wind.hail')?.weather).toEqual({ mode: 'auto', manual: defaultManual, pinned: ['wind'] });

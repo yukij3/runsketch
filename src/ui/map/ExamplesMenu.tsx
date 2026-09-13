@@ -10,7 +10,6 @@ import { KM_PER_MI, unitLabels } from '../units';
 export function ExamplesMenu() {
   const t = useT();
   const actions = useActions();
-  const lang = useApp((s) => s.lang);
   const units = useApp((s) => s.units);
   const menuId = useId();
   const [open, setOpen] = useState(false);
@@ -83,9 +82,9 @@ export function ExamplesMenu() {
                 actions.loadExample(example.id);
               }}
             >
-              <span className="examples__name">{example.name[lang]}</span>
+              <span className="examples__name">{example.name}</span>
               <span className="examples__meta">
-                <span className="num">{formatDecimal(units === 'metric' ? example.km : example.km / KM_PER_MI, 1, lang)}</span>
+                <span className="num">{formatDecimal(units === 'metric' ? example.km : example.km / KM_PER_MI, 1)}</span>
                 <span className="unit">{u.distance}</span>
                 <span aria-hidden="true"> · </span>
                 <span className="num">{formatElevation(example.maxEleM, units)}</span>

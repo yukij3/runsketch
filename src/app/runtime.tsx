@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useSyncExternalStore, type ReactNode } from 'react';
 import { createActions, type Actions } from './actions';
-import { translate, type MessageKey, type Params, type Translate } from './i18n';
+import { translate, type Translate } from './i18n';
 import type { AppState } from './state';
 import type { Store } from './store';
 
@@ -37,6 +37,5 @@ export function useActions(): Actions {
 }
 
 export function useT(): Translate {
-  const lang = useApp((s) => s.lang);
-  return useCallback((key: MessageKey, params?: Params) => translate(lang, key, params), [lang]);
+  return translate;
 }

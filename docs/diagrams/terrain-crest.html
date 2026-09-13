@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed after the top of a climb and the bottom of a descent · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for terrain-crest.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Data: real engine output, simulate() from src/lib/sim, run via a throwaway script (not committed).
+       Profiles: climbProfile({ before: 2000, climb: 1000, grade: 0.08, after: 3000 }, { smoothSigma: 20 }) and
+       descentProfile with the same lengths and -0.08. Athlete defaultAthlete() (recreational, 35 y, 70 kg).
+       Session defaultSession('run'), start 2026-06-01 06:30 UTC, target pace 330 s/km, variability 0, seeds 1-8.
+       Speed per second = dist[i+1] - dist[i] (true route distance), aligned at the crest (indexAtDistance 3000 m),
+       averaged over the eight seeds, then a 5 s centred mean. Normalised by the mean speed over 3800-5800 m
+       (climb run 3.192 m/s, descent run 2.971 m/s).
+       Climb, share of the later flat: 10 s 84.8 %, 30 s 92.08 %, 60 s 96.94 %, 90 s 98.93 %, 120 s 99.66 %;
+       on the climb itself 78.84 %; stays within 2 % from 73 s.
+       Descent: at the bottom 113.48 %, 10 s 108.12 %, 24 s 102.22 %; stays within 2 % from 26 s.
+       With the default variability 0.35 the climb reads 84.6 / 91.2 / 97.1 / 99.5 / 98.8 % (pace texture),
+       so the table in docs/terrain.md (85 / 92 / 97 / 99 / 100 %) matches the variability-0 run drawn here. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Speed after the top of a climb and the bottom of a descent</h1>
+
+    <svg viewBox="0 0 960 324" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="terrain-crest-title terrain-crest-desc">
+      <title id="terrain-crest-title">Speed after the top of a climb and the bottom of a descent</title>
+      <desc id="terrain-crest-desc">Speed as a share of the flat speed that follows, averaged over eight seeds with variability at zero for a recreational runner at an average of 5:30/km, from 60 seconds before to 180 seconds after the top of a 1 km climb at +8 % and the bottom of a 1 km descent at −8 %. On the climb the runner holds about 79 % of the later flat speed. After the crest speed comes back gradually rather than at once: 85 % at 10 s, 92 % at 30 s, 97 % at 60 s, 99 % at 90 s and 100 % at 120 s, staying within 2 % from 73 s. On the descent the runner goes about 115 % of the later flat speed, still 113.5 % at the bottom, and is within 2 % of it from 26 s.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+      <text x="24.0" y="24.0" fill="#1b1d22" font-size="13" font-weight="600" font-family="'Public Sans', sans-serif">Speed after the top of a climb and the bottom of a descent</text>
+      <text x="24.0" y="40.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">recreational runner at 5:30/km, variability at zero, mean of eight seeds, as a share of the flat speed that follows</text>
+
+      <!-- within 2 % of the later flat speed -->
+      <rect x="80.0" y="150.4" width="832.0" height="19.2" fill="rgba(141,147,154,0.10)"/>
+      <text x="908.0" y="183.6" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">±2 %</text>
+
+      <!-- gridlines -->
+      <line x1="80.0" y1="280.0" x2="912.0" y2="280.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80.0" y1="256.0" x2="912.0" y2="256.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="259.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">80</text>
+      <line x1="80.0" y1="208.0" x2="912.0" y2="208.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="211.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">90</text>
+      <line x1="80.0" y1="160.0" x2="912.0" y2="160.0" stroke="rgba(27,29,34,0.16)" stroke-width="0.8"/>
+      <text x="72.0" y="163.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">100</text>
+      <line x1="80.0" y1="112.0" x2="912.0" y2="112.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="115.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">110</text>
+      <line x1="80.0" y1="64.0" x2="912.0" y2="64.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72.0" y="67.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">120 %</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="280.0" x2="80.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="80.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−60 s</text>
+      <line x1="184.0" y1="280.0" x2="184.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="184.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−30</text>
+      <line x1="288.0" y1="280.0" x2="288.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="288.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="392.0" y1="280.0" x2="392.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="392.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+30</text>
+      <line x1="496.0" y1="280.0" x2="496.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="496.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+60</text>
+      <line x1="600.0" y1="280.0" x2="600.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="600.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+90</text>
+      <line x1="704.0" y1="280.0" x2="704.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="704.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+120</text>
+      <line x1="808.0" y1="280.0" x2="808.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="808.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+150</text>
+      <line x1="912.0" y1="280.0" x2="912.0" y2="284.0" stroke="rgba(27,29,34,0.3)" stroke-width="1"/>
+      <text x="912.0" y="296.0" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+180 s</text>
+      <text x="496.0" y="314.0" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">← before · seconds from the crest · after →</text>
+      <line x1="288.0" y1="64.0" x2="288.0" y2="280.0" stroke="rgba(27,29,34,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="294.0" y="74.0" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">top of the climb · bottom of the descent</text>
+
+      <!-- series: 5 s centred mean of the eight-seed ensemble -->
+      <polyline points="80.0,88.1 83.5,88.0 86.9,88.0 90.4,88.0 93.9,88.1 97.3,88.2 100.8,88.3 104.3,88.4 107.7,88.4 111.2,88.4 114.7,88.3 118.1,88.1 121.6,88.0 125.1,88.0 128.5,88.0 132.0,87.9 135.5,88.0 138.9,88.0 142.4,88.0 145.9,88.0 149.3,88.0 152.8,87.9 156.3,87.9 159.7,87.9 163.2,87.8 166.7,87.8 170.1,87.8 173.6,87.8 177.1,87.7 180.5,87.6 184.0,87.5 187.5,87.4 190.9,87.3 194.4,87.2 197.9,87.0 201.3,86.9 204.8,86.8 208.3,86.8 211.7,86.8 215.2,86.9 218.7,87.1 222.1,87.3 225.6,87.6 229.1,87.7 232.5,87.8 236.0,87.9 239.5,88.0 242.9,88.1 246.4,88.4 249.9,88.6 253.3,88.7 256.8,88.9 260.3,89.1 263.7,89.3 267.2,89.7 270.7,90.4 274.1,91.1 277.6,91.9 281.1,92.9 284.5,94.0 288.0,95.3 291.5,96.8 294.9,98.6 298.4,100.6 301.9,103.0 305.3,105.8 308.8,108.6 312.3,111.7 315.7,114.8 319.2,118.0 322.7,121.0 326.1,124.1 329.6,127.1 333.1,130.0 336.5,132.7 340.0,135.2 343.5,137.5 346.9,139.4 350.4,141.1 353.9,142.7 357.3,144.1 360.8,145.5 364.3,146.8 367.7,148.1 371.2,149.3 374.7,150.4 378.1,151.4 381.6,152.2 385.1,152.9 388.5,153.5 392.0,154.0 395.5,154.5 398.9,154.9 402.4,155.3 405.9,155.7 409.3,156.2 412.8,156.6 416.3,157.1 419.7,157.6 423.2,157.8 426.7,158.1 430.1,158.4 433.6,158.6 437.1,158.9 440.5,159.3 444.0,159.6 447.5,159.8 450.9,159.9 454.4,159.9 457.9,159.9 461.3,159.8 464.8,159.8 468.3,159.7 471.7,159.7 475.2,159.7 478.7,159.7 482.1,159.7 485.6,159.9 489.1,160.0 492.5,160.1 496.0,160.1 499.5,160.1 502.9,160.1 506.4,160.1 509.9,160.1 513.3,160.2 516.8,160.2 520.3,160.3 523.7,160.4 527.2,160.5 530.7,160.5 534.1,160.6 537.6,160.5 541.1,160.5 544.5,160.4 548.0,160.3 551.5,160.3 554.9,160.2 558.4,160.2 561.9,160.3 565.3,160.3 568.8,160.3 572.3,160.3 575.7,160.3 579.2,160.2 582.7,160.2 586.1,160.2 589.6,160.2 593.1,160.2 596.5,160.2 600.0,160.1 603.5,160.0 606.9,160.0 610.4,159.9 613.9,159.9 617.3,160.0 620.8,160.0 624.3,159.9 627.7,159.8 631.2,159.7 634.7,159.7 638.1,159.7 641.6,159.7 645.1,159.8 648.5,159.7 652.0,159.6 655.5,159.5 658.9,159.4 662.4,159.4 665.9,159.5 669.3,159.6 672.8,159.8 676.3,159.9 679.7,160.0 683.2,160.0 686.7,160.1 690.1,160.2 693.6,160.3 697.1,160.4 700.5,160.5 704.0,160.6 707.5,160.7 710.9,160.8 714.4,160.8 717.9,160.8 721.3,160.7 724.8,160.6 728.3,160.5 731.7,160.5 735.2,160.5 738.7,160.5 742.1,160.5 745.6,160.4 749.1,160.4 752.5,160.2 756.0,160.2 759.5,160.1 762.9,160.1 766.4,160.1 769.9,160.0 773.3,160.0 776.8,159.9 780.3,159.8 783.7,159.7 787.2,159.7 790.7,159.8 794.1,159.9 797.6,160.0 801.1,160.1 804.5,160.0 808.0,160.0 811.5,160.0 814.9,160.0 818.4,159.9 821.9,159.8 825.3,159.7 828.8,159.8 832.3,159.8 835.7,159.9 839.2,160.0 842.7,160.0 846.1,160.0 849.6,160.0 853.1,160.0 856.5,160.0 860.0,159.9 863.5,159.8 866.9,159.8 870.4,159.7 873.9,159.7 877.3,159.8 880.8,159.9 884.3,160.0 887.7,160.0 891.2,160.0 894.7,160.0 898.1,159.9 901.6,159.8 905.1,159.7 908.5,159.7 912.0,159.7" fill="none" stroke="#474c55" stroke-width="1.6" stroke-linejoin="round"/>
+      <polyline points="80.0,261.9 83.5,261.9 86.9,261.8 90.4,261.8 93.9,261.8 97.3,261.8 100.8,261.7 104.3,261.7 107.7,261.6 111.2,261.6 114.7,261.7 118.1,261.8 121.6,261.9 125.1,262.0 128.5,262.0 132.0,262.0 135.5,261.9 138.9,261.7 142.4,261.6 145.9,261.5 149.3,261.5 152.8,261.6 156.3,261.6 159.7,261.7 163.2,261.8 166.7,261.8 170.1,261.8 173.6,261.7 177.1,261.7 180.5,261.6 184.0,261.6 187.5,261.5 190.9,261.5 194.4,261.5 197.9,261.6 201.3,261.7 204.8,261.8 208.3,261.9 211.7,261.9 215.2,262.0 218.7,262.0 222.1,262.0 225.6,262.0 229.1,262.1 232.5,262.1 236.0,262.0 239.5,261.8 242.9,261.4 246.4,261.0 249.9,260.6 253.3,260.1 256.8,259.5 260.3,258.9 263.7,258.2 267.2,257.4 270.7,256.6 274.1,255.7 277.6,254.7 281.1,253.6 284.5,252.4 288.0,251.0 291.5,249.4 294.9,247.8 298.4,246.2 301.9,244.4 305.3,242.6 308.8,240.8 312.3,238.9 315.7,236.9 319.2,235.0 322.7,233.0 326.1,230.9 329.6,228.8 333.1,226.7 336.5,224.7 340.0,222.6 343.5,220.7 346.9,218.8 350.4,216.9 353.9,215.1 357.3,213.3 360.8,211.6 364.3,209.8 367.7,208.2 371.2,206.6 374.7,205.1 378.1,203.6 381.6,202.2 385.1,200.8 388.5,199.4 392.0,198.0 395.5,196.7 398.9,195.5 402.4,194.3 405.9,193.2 409.3,192.1 412.8,191.0 416.3,189.9 419.7,188.8 423.2,187.8 426.7,186.9 430.1,186.1 433.6,185.2 437.1,184.4 440.5,183.4 444.0,182.6 447.5,181.7 450.9,181.0 454.4,180.4 457.9,179.8 461.3,179.2 464.8,178.7 468.3,178.2 471.7,177.6 475.2,177.1 478.7,176.7 482.1,176.2 485.6,175.8 489.1,175.4 492.5,175.0 496.0,174.7 499.5,174.3 502.9,173.9 506.4,173.5 509.9,172.9 513.3,172.3 516.8,171.9 520.3,171.4 523.7,171.1 527.2,170.8 530.7,170.5 534.1,170.1 537.6,169.7 541.1,169.3 544.5,168.9 548.0,168.6 551.5,168.3 554.9,168.0 558.4,167.7 561.9,167.3 565.3,167.0 568.8,166.6 572.3,166.3 575.7,166.1 579.2,166.1 582.7,166.0 586.1,165.9 589.6,165.7 593.1,165.5 596.5,165.3 600.0,165.1 603.5,164.8 606.9,164.6 610.4,164.4 613.9,164.1 617.3,164.1 620.8,164.0 624.3,163.9 627.7,163.9 631.2,163.7 634.7,163.6 638.1,163.5 641.6,163.4 645.1,163.2 648.5,163.0 652.0,162.8 655.5,162.6 658.9,162.5 662.4,162.4 665.9,162.4 669.3,162.5 672.8,162.4 676.3,162.4 679.7,162.4 683.2,162.3 686.7,162.1 690.1,161.9 693.6,161.7 697.1,161.6 700.5,161.6 704.0,161.6 707.5,161.7 710.9,161.7 714.4,161.7 717.9,161.7 721.3,161.7 724.8,161.6 728.3,161.6 731.7,161.4 735.2,161.3 738.7,161.1 742.1,160.9 745.6,160.7 749.1,160.5 752.5,160.3 756.0,160.1 759.5,160.0 762.9,160.0 766.4,160.0 769.9,159.9 773.3,159.8 776.8,159.7 780.3,159.5 783.7,159.4 787.2,159.4 790.7,159.4 794.1,159.4 797.6,159.4 801.1,159.5 804.5,159.6 808.0,159.7 811.5,159.8 814.9,159.9 818.4,159.9 821.9,159.9 825.3,159.8 828.8,159.8 832.3,159.8 835.7,159.8 839.2,159.8 842.7,159.8 846.1,159.9 849.6,159.9 853.1,160.0 856.5,160.0 860.0,160.0 863.5,159.9 866.9,159.8 870.4,159.7 873.9,159.6 877.3,159.7 880.8,159.7 884.3,159.8 887.7,159.9 891.2,160.0 894.7,160.0 898.1,160.2 901.6,160.4 905.1,160.6 908.5,160.8 912.0,161.0" fill="none" stroke="#2154c4" stroke-width="2" stroke-linejoin="round"/>
+      <text x="86.9" y="253.8" fill="#2154c4" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif">climb at +8 %, then flat</text>
+      <text x="86.9" y="80.0" fill="#474c55" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif">descent at −8 %, then flat</text>
+
+      <!-- values after the crest -->
+      <circle cx="322.7" cy="233.0" r="2.5" fill="#2154c4"/>
+      <text x="328.7" y="247.0" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">85 %</text>
+      <circle cx="392.0" cy="198.0" r="2.5" fill="#2154c4"/>
+      <text x="398.0" y="212.0" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">92 %</text>
+      <circle cx="496.0" cy="174.7" r="2.5" fill="#2154c4"/>
+      <text x="502.0" y="188.7" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">97 %</text>
+      <circle cx="600.0" cy="165.1" r="2.5" fill="#2154c4"/>
+      <text x="606.0" y="179.1" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">99 %</text>
+      <circle cx="704.0" cy="161.6" r="2.5" fill="#2154c4"/>
+      <text x="710.0" y="175.6" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">100 %</text>
+
+      <!-- how long until speed is within 2 % of the flat speed -->
+      <line x1="541.1" y1="173.3" x2="541.1" y2="191.2" stroke="rgba(27,29,34,0.4)" stroke-width="1" stroke-dasharray="2,2"/>
+      <text x="547.1" y="199.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">within 2 % from 73 s</text>
+      <line x1="378.1" y1="147.4" x2="378.1" y2="138.4" stroke="rgba(27,29,34,0.4)" stroke-width="1" stroke-dasharray="2,2"/>
+      <text x="384.1" y="136.4" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">within 2 % from 26 s</text>
+      <circle cx="288.0" cy="95.3" r="2.5" fill="#474c55"/>
+      <text x="282.0" y="111.3" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">113.5 % at the bottom</text>
+    </svg>
+  </div>
+</body>
+</html>

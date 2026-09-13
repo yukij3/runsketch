@@ -33,13 +33,7 @@ The competitor figures are computed from their published code. Fake My Stats der
 
 What we measure: the planned running speed on a constant grade, as a multiple of the same runner's flat speed. The reference is Kay's quartic fitted to the records of 91 uphill and 15 downhill hill races, which is the best-documented speed-versus-gradient curve we know of.
 
-| grade | +2 % | +5 % | +8 % | +10 % | +15 % | +20 % |
-|---|---|---|---|---|---|---|
-| Kay 2012 records | 0.926 | 0.816 | 0.713 | 0.651 | 0.520 | 0.421 |
-| Runsketch | 0.950 | 0.869 | 0.788 | 0.736 | 0.619 | 0.529 |
-| Fake My Stats | 0.898 | 0.768 | 0.663 | 0.603 | 0.485 | 0.400 |
-| Dibma | 0.962 | 0.862 | 0.763 | 0.719 | 0.667 | 0.667 |
-| SimuRun, fakemy.run | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+At +5 % the records give 0.816, Runsketch 0.869, Fake My Stats 0.768 and Dibma 0.862. At +10 % they give 0.651, 0.736, 0.603 and 0.719, and at +20 % 0.421, 0.529, 0.400 and 0.667. SimuRun and fakemy.run stay at exactly 1.000 at every grade. Climbs and descents are one curve, so both rows are drawn in one chart at the end of row 2.
 
 We are the fastest of the three modelled tools on climbs, and faster than the race records: 0.736 against 0.651 at +10 %, and 0.529 against 0.421 at +20 %. That is deliberate. Runners do not slow enough on hills to hold their effort level, which is what the exponent of 0.7 in the pace factor represents, and Townshend's runners bore that out with oxygen uptake rising from 89 % of their ventilatory threshold on the flat to 100 % on the climbs. But it is a modelling choice anchored to one study of eight runners, not a settled answer, and Kay's records are a different population running a different way.
 
@@ -49,13 +43,7 @@ Fake My Stats is the most conservative, because it takes speed directly from the
 
 The same measurement on negative grades, plus one derived number: how much a unit of uphill gradient costs in pace against how much a unit of downhill gradient gives back. Kay's steep-gradient fits give 1.818 s/m uphill against 0.8233 s/m downhill, a ratio of 2.21, so a climb costs about 2.2 times what the matching descent returns.
 
-| grade | −5 % | −10 % | −15 % | −20 % | −25 % | −30 % |
-|---|---|---|---|---|---|---|
-| Kay 2012 records | 1.159 | 1.228 | 1.174 | 1.032 | 0.866 | 0.716 |
-| Runsketch, elite | 1.154 | 1.217 | 1.159 | 1.017 | 0.853 | 0.708 |
-| Runsketch, recreational | 1.124 | 1.156 | 1.063 | 0.897 | 0.731 | 0.603 |
-| Fake My Stats | 1.314 | 1.400 | 1.400 | 1.400 | 1.400 | 1.400 |
-| Dibma | 1.093 | 1.176 | 1.176 | 1.176 | 1.176 | 1.176 |
+At −10 % the records give 1.228, our elite curve 1.217 and our recreational curve 1.156, against 1.400 for Fake My Stats and 1.176 for Dibma. At −20 % the records and our two curves give 1.032, 1.017 and 0.897, and by −30 % they are down to 0.716, 0.708 and 0.603, while both competitors are still at their caps.
 
 Our elite curve tracks the records within 0.015 the whole way down, and the asymmetry comes out at 2.28 against Kay's 2.21. The recreational curve sits below the records on purpose: descending fast on steep ground is a skill, and the spread between runners grows with steepness.
 
@@ -180,9 +168,7 @@ Dibma and Fake My Stats both have stops, and Fake My Stats places roughly one pe
 
 What we measure: a flat 10 km solved at a fixed effort preset, sweeping air temperature away from the neutral baseline of 15 °C, 60 % humidity, calm and dry.
 
-| | 20 °C | 25 °C | 30 °C | 32 °C | 35 °C |
-|---|---|---|---|---|---|
-| Moving time, steady effort | +1.67 % | +2.19 % | +3.04 % | +3.46 % | +4.28 % |
+At steady effort the moving time is 1.67 % longer at 20 °C, 2.19 % at 25 °C, 3.04 % at 30 °C, 3.46 % at 32 °C and 4.28 % at 35 °C.
 
 The published slope is −0.3 to −0.4 % per °C of wet-bulb globe temperature outside a band of 7.5–15 °C, and the top men in seven marathons were 1.7, 2.5, 3.3 and 4.5 % slower than the course record across rising WBGT quartiles. Our curve is the same order and shape. Three honest qualifications. The loss depends on which effort preset is being solved, running from 2.19 to 2.52 % at 25 °C across easy, steady, tempo and race. A half marathon loses more than a 10 km at every preset, 2.79 % against 2.19 % at 25 °C for steady effort, which is the right direction: heat costs more the longer you are out in it. And at 35 °C the tempo and race presets jump to 7.4 and 8.9 %, and to about 13.7 % over a half marathon, which looks like the solver running into what is sustainable rather than a smooth physiological curve, so we would not draw that end of the range as though it were one.
 
