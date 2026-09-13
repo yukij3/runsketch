@@ -87,6 +87,99 @@
   color: var(--warn);
 }
 
+/* Weather */
+
+.weather-status {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  text-wrap: pretty;
+}
+
+.weather-status.is-error {
+  color: var(--danger);
+}
+
+.weather-status__summary {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.weather-status__summary.is-stale-text {
+  opacity: 0.5;
+}
+
+.weather-status__source {
+  margin-top: 3px;
+  color: var(--ink-3);
+}
+
+.weather-status .link-btn {
+  font-size: var(--text-xs);
+}
+
+.weather-pins {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-2);
+}
+
+.weather-pins__label {
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+
+.pin-group {
+  display: inline-flex;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-1);
+  background: var(--field);
+}
+
+.pin-group__btn {
+  min-height: calc(var(--control-h-sm) - 2px);
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.pin-group__btn + .pin-group__btn {
+  border-left: 1px solid var(--rule-strong);
+}
+
+.pin-group__btn:hover {
+  background: var(--wash-hover);
+  color: var(--ink);
+}
+
+.pin-group__btn[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--ink-inverse);
+}
+
+.pin-group__btn:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.select--compact {
+  width: auto;
+}
+
 /* Waypoints */
 
 .wp-list {

@@ -176,6 +176,39 @@ describe('pipeline', () => {
   });
 });
 
+describe('pipeline way tags', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('passes the joined way tags of routed legs to terrain', async () => {
+    const routeLeg = vi.fn(async (a: LngLat, b: LngLat) => ({
+      coords: [a, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + 1e-4] as LngLat, b],
+      distance: haversine(a, b),
+      provider: 'brouter' as const,
+      fallback: false,
+      ways: [
+        { end: 1, tags: 'highway=path' },
+        { end: 2, tags: 'highway=steps' },
+      ],
+    }));
+    const { actions, buildProfile, stop } = setup({ routeLeg });
+    actions.addWaypoint(0, 0);
+    actions.addWaypoint(0.01, 0);
+    actions.addWaypoint(0.01, 0.01);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(buildProfile).toHaveBeenCalledTimes(1);
+    const [route, , , ways] = buildProfile.mock.calls[0] as unknown[];
+    expect(route).toHaveLength(5);
+    expect(ways).toEqual([
+      { end: 1, tags: 'highway=path' },
+      { end: 2, tags: 'highway=steps' },
+      { end: 3, tags: 'highway=path' },
+      { end: 4, tags: 'highway=steps' },
+    ]);
+    stop();
+  });
+});
+
 describe('sync', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());

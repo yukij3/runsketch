@@ -22,7 +22,7 @@ import { PlayheadLayer } from './PlayheadLayer';
 import { clampIndex, emptyCells, liveText, panelReadouts, readoutCells } from './readout';
 import { Legend, ReadoutRow } from './ReadoutBar';
 import { indexAtPx, makeXScale, type XAxis } from './scale';
-import { buildTraceModel, isFootSport } from './series';
+import { buildTraceModel, isFootSport, plotsPace } from './series';
 import { LabelLayer, StaticLayer, type PanelNames } from './StaticLayer';
 import { stringsFor, unitText } from './strings';
 import { useElementSize } from './useElementSize';
@@ -71,16 +71,17 @@ export function Traces(props: TracesProps) {
   const revealKey = useMemo(() => ++revealSerial, [usable]);
 
   const foot = isFootSport(activity);
+  const pace = plotsPace(activity);
   const names = useMemo<PanelNames>(
     () => ({
       elevation: { name: s.panel.elevation, unit: unitText(s, elevationUnit(units)) },
-      pace: foot
+      pace: pace
         ? { name: s.panel.pace, unit: unitText(s, paceUnit(units)) }
         : { name: s.panel.speed, unit: unitText(s, speedUnit(units)) },
       hr: { name: s.panel.hr, unit: unitText(s, 'bpm') },
       cadence: { name: s.panel.cadence, unit: unitText(s, foot ? 'spm' : 'rpm') },
     }),
-    [s, units, foot],
+    [s, units, foot, pace],
   );
 
   // `scrub` is the playhead someone set; with none, the line rests at the rest point (crest of the largest climb).

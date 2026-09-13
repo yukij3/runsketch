@@ -1,7 +1,8 @@
 import type { LngLat, TerrainProfile } from '../types';
 import { cumulativeDistances } from '../geo';
-import { HostQueue, HttpError, Semaphore, TimeoutError, abortError, fetchBlob, fetchJson, sleep, throwIfAborted } from './http';
+import { HttpError, Semaphore, TimeoutError, abortError, fetchBlob, fetchJson, sleep, throwIfAborted } from './http';
 import { LruCache } from './lru';
+import { openMeteoQueue } from './openMeteo';
 
 export interface ElevationSamples {
   /** Metres; NaN where no source answered. */
@@ -195,7 +196,6 @@ export const loadTerrariumTile: TileLoader = async (source, z, x, y, signal) => 
 export const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/elevation';
 /** Hard limit: 101 coordinates → HTTP 400. */
 export const OPEN_METEO_MAX_POINTS = 100;
-const openMeteoQueue = new HostQueue(150);
 
 export function openMeteoUrl(coords: LngLat[]): string {
   const lat = coords.map((c) => c[1].toFixed(5)).join(',');
@@ -217,7 +217,7 @@ export const fetchOpenMeteoElevations: PointElevationFetcher = async (coords, si
   if (coords.length === 0) return [];
   if (coords.length > OPEN_METEO_MAX_POINTS) throw new Error(`Open-Meteo accepts at most ${OPEN_METEO_MAX_POINTS} points`);
   const url = openMeteoUrl(coords);
-  const json = await openMeteoQueue.run(() => fetchJson(url, { signal }), signal);
+  const json = await openMeteoQueue(url).run(() => fetchJson(url, { signal }), signal);
   return parseOpenMeteoElevation(json, coords.length);
 };
 

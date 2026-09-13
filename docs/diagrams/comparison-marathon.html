@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drift and fade over a marathon · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-marathon.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Covers rows 5 and 6 of docs/comparison.md in one figure: both read the same flat marathon at 6:00/km,
+       mean of 4 seeds, and separating them would print the same run twice.
+       Points are plotted at the MIDPOINT of each 5 km segment (2.5, 7.5 … 37.5 km) because each value is a
+       segment mean, not an instantaneous reading.
+       Heart rate 147.7 -> 164.0 bpm; pace 352.2 -> 371.8 s/km. The pace axis is inverted so that a falling
+       line means slowing down.
+       Two measured figures are stated, not derived from the drawn points:
+         Decoupling 1.134, inside Smyth's 1.16 +/- 0.22 across 82,303 recreational marathon runners.
+         Second half 4.25 % slower than the first.
+       The 4.25 % CANNOT be recomputed from these eight points: they stop at 40 km and do not split at the
+       true half (21.0975 km), so the segments alone imply 3.99 %. The figure is measured on the full run,
+       and the drawn segments are a summary of it. Stated on the chart as a measured value, not as an
+       arithmetic the reader is invited to check against the vertices.
+       Deaner's distribution is drawn as a band on the fade annotation only: 5.7 +/- 5.4 % for smaller,
+       better-paced samples, with the 15.6 % (men) and 11.7 % (women) means of 91,929 finishers marked,
+       since those means are pulled up by a long tail of large slowdowns. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Heart rate rises while pace falls, over a flat marathon</h1>
+
+    <svg viewBox="0 0 960 424" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-marathon-title comparison-marathon-desc">
+      <title id="comparison-marathon-title">Heart rate rises while pace falls, over a flat marathon</title>
+      <desc id="comparison-marathon-desc">Per five-kilometre segment over a flat marathon at six minutes per kilometre, averaged over four seeds. Heart rate climbs from 147.7 bpm in the first segment to 164.0 in the last, while pace slows from 352 to 372 seconds per kilometre, the two lines pulling apart as the race goes on. The measured decoupling of internal to external load is 1.134, inside the published band of 1.16 plus or minus 0.22 from 82,303 recreational marathon runners. The measured second half is 4.25 per cent slower than the first, at the well-paced end of a published range of 5.7 plus or minus 5.4 per cent for smaller samples, and far below the 15.6 per cent mean for men and 11.7 per cent for women across 91,929 finishers.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines (left axis: heart rate) -->
+      <line x1="80" y1="280.0" x2="880" y2="280.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80" y1="236.8" x2="880" y2="236.8" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="193.6" x2="880" y2="193.6" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="150.4" x2="880" y2="150.4" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="107.2" x2="880" y2="107.2" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72" y="283.5" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">145</text>
+      <text x="72" y="240.3" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">150</text>
+      <text x="72" y="197.1" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">155</text>
+      <text x="72" y="153.9" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">160</text>
+      <text x="72" y="110.7" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">165 bpm</text>
+
+      <!-- right axis: pace, inverted so falling = slowing -->
+      <!-- Pace axis is y = 64 + (s/km − 345) × 7.2, so these four baselines are exactly 345, 355, 365 and
+           375 s/km. They were previously labelled 5:45 / 6:00 / 6:15 / "6:15+", which named values the
+           positions do not carry: 6:00 is 360 s/km and sits at y 172, not 136. -->
+      <text x="888" y="67.5" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">5:45</text>
+      <text x="888" y="139.5" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">5:55</text>
+      <text x="888" y="211.5" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">6:05</text>
+      <text x="888" y="283.5" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace">6:15</text>
+
+      <!-- x ticks -->
+      <line x1="80" y1="280" x2="80" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="280" y1="280" x2="280" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="280" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">10</text>
+      <line x1="480" y1="280" x2="480" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="480" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">20</text>
+      <line x1="680" y1="280" x2="680" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="680" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">30</text>
+      <line x1="880" y1="280" x2="880" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="880" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">40 km</text>
+      <text x="480" y="316" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">distance · each point is the mean of a 5 km segment</text>
+
+      <!-- series -->
+      <polyline points="130.0,115.8 230.0,118.7 330.0,89.2 430.0,108.6 530.0,134.6 630.0,209.4 730.0,234.6 830.0,257.0" fill="none" stroke="#2154c4" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="130.0,256.7 230.0,203.1 330.0,167.7 430.0,146.1 530.0,121.9 630.0,124.5 730.0,112.4 830.0,115.8" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="130.0" cy="256.7" r="3" fill="#c21f3a"/>
+      <circle cx="230.0" cy="203.1" r="3" fill="#c21f3a"/>
+      <circle cx="330.0" cy="167.7" r="3" fill="#c21f3a"/>
+      <circle cx="430.0" cy="146.1" r="3" fill="#c21f3a"/>
+      <circle cx="530.0" cy="121.9" r="3" fill="#c21f3a"/>
+      <circle cx="630.0" cy="124.5" r="3" fill="#c21f3a"/>
+      <circle cx="730.0" cy="112.4" r="3" fill="#c21f3a"/>
+      <circle cx="830.0" cy="115.8" r="3" fill="#c21f3a"/>
+      <circle cx="130.0" cy="115.8" r="3" fill="#2154c4"/>
+      <circle cx="230.0" cy="118.7" r="3" fill="#2154c4"/>
+      <circle cx="330.0" cy="89.2" r="3" fill="#2154c4"/>
+      <circle cx="430.0" cy="108.6" r="3" fill="#2154c4"/>
+      <circle cx="530.0" cy="134.6" r="3" fill="#2154c4"/>
+      <circle cx="630.0" cy="209.4" r="3" fill="#2154c4"/>
+      <circle cx="730.0" cy="234.6" r="3" fill="#2154c4"/>
+      <circle cx="830.0" cy="257.0" r="3" fill="#2154c4"/>
+
+      <!-- Moved off its own line. At x 140-206 the heart-rate line runs y 251.3 -> 216.0, so at the old
+           y 248 it crossed the text between x 146 and 165. Re-sited under the flat right-hand section,
+           where the line sits at y 122 and the pace line is down at y 200. -->
+      <text x="604" y="140" fill="#c21f3a" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">heart rate</text>
+      <text x="140" y="106" fill="#2154c4" font-size="12" font-weight="600" font-family="'Public Sans', sans-serif">pace</text>
+
+      <!-- measured figures, stated not derived -->
+      <text x="480" y="60" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="middle">the two pull apart: decoupling 1.134, inside Smyth's 1.16 ± 0.22</text>
+
+      <!-- legend -->
+      <line x1="40" y1="336" x2="920" y2="336" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="372" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="364" x2="152" y2="364" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Heart rate (left axis)</text>
+      <line x1="360" y1="364" x2="384" y2="364" stroke="#2154c4" stroke-width="2"/>
+      <text x="392" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Pace (right axis, slower downward)</text>
+
+      <text x="128" y="400" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace">Measured on the full run: second half 4.25 % slower. Published fade: 5.7 ± 5.4 % (better-paced samples);</text>
+      <text x="128" y="416" fill="#636973" font-size="11" font-family="'Red Hat Mono', monospace">15.6 % men and 11.7 % women across 91,929 finishers. Our default runner fades less than a typical field.</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -8,7 +8,9 @@ export {
   type EffortPreset,
   type PresetSolution,
 } from './presets';
-export { defaultAthlete, defaultSession, estimateMaxHr, hrZones, resolveVo2max, type HrZone } from './athlete';
+export { defaultAthlete, defaultSession, estimateMaxHr, hrZones, mountainDefaults, resolveVo2max, type HrZone, type MountainSettings } from './athlete';
+export { sanitiseWeatherSettings } from './environment';
+export { defaultSnowline } from './ground';
 export type { StopEvent } from './stops';
 export {
   climbProfile,
@@ -20,6 +22,8 @@ export {
   segmentProfile,
   squareLoopProfile,
   twoPointProfile,
+  weatherScenario,
   type GradeSegment,
   type ScenarioOptions,
+  type WeatherScenarioOptions,
 } from './scenarios';

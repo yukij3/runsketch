@@ -79,6 +79,11 @@ export function isFootSport(activity: ActivityType): boolean {
   return activity !== 'ride';
 }
 
+/** Pace per km or mile for foot sports; mountaineering moves too slowly for a pace to read, so it plots speed like rides. */
+export function plotsPace(activity: ActivityType): boolean {
+  return isFootSport(activity) && activity !== 'alpine';
+}
+
 /** Centred mean over `window` samples, counting only finite samples where mask ≠ 0. NaN when none qualify. */
 export function maskedMean(values: ArrayLike<number>, mask: ArrayLike<number> | null, window: number): Float64Array {
   const n = values.length;
@@ -273,7 +278,7 @@ export function buildTraceModel(result: SimulationResult, activity: ActivityType
   const s = result.streams;
   const n = s.t.length;
   const foot = isFootSport(activity);
-  const kind: SpeedKind = foot ? 'pace' : 'speed';
+  const kind: SpeedKind = plotsPace(activity) ? 'pace' : 'speed';
   const moving = s.moving;
 
   const smoothMoving = maskedMean(s.speed, moving, SMOOTH_WINDOW_S);

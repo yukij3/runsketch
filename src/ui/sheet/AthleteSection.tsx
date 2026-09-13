@@ -77,6 +77,7 @@ export function AthleteSection() {
         <FieldRow label={t('fitness')} labelId="rs-fitness-label" stacked>
           <Segmented
             fill
+            proportional
             labelledBy="rs-fitness-label"
             value={athlete.fitness}
             onChange={(fitness) => actions.updateAthlete({ fitness })}

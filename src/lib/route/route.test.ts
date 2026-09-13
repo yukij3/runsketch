@@ -22,7 +22,7 @@ describe('newWaypointId', () => {
 
 describe('joinLegs', () => {
   it('drops duplicated joints between legs and consecutive duplicates', () => {
-    const coords = joinLegs([
+    const { coords, ways } = joinLegs([
       leg('a', 'b', [
         [0, 0],
         [0, 0],
@@ -45,10 +45,11 @@ describe('joinLegs', () => {
       [2.5, 2.5],
       [3, 3],
     ]);
+    expect(ways).toBeUndefined();
   });
 
   it('returns an empty line for no legs', () => {
-    expect(joinLegs([])).toEqual([]);
+    expect(joinLegs([])).toEqual({ coords: [] });
   });
 });
 

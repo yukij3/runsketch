@@ -19,10 +19,10 @@ export const FIXTURE_CALORIES = 27;
 export const FIXTURE_NAME = 'Tempo <Run> & "Hills"';
 export const FIXTURE_DESCRIPTION = "Easy 'shakeout' & strides — утро";
 
-const BASE_SPEED: Record<ActivityType, number> = { run: 3.2, ride: 7.5, walk: 1.4, hike: 1.2 };
+const BASE_SPEED: Record<ActivityType, number> = { run: 3.2, ride: 7.5, walk: 1.4, hike: 1.2, alpine: 0.6 };
 /** Odd values so foot-sport halving produces x.5 on even seconds. */
-const BASE_CADENCE: Record<ActivityType, number> = { run: 171, ride: 88, walk: 117, hike: 105 };
-const BASE_POWER: Record<ActivityType, number> = { run: 290, ride: 210, walk: 110, hike: 150 };
+const BASE_CADENCE: Record<ActivityType, number> = { run: 171, ride: 88, walk: 117, hike: 105, alpine: 81 };
+const BASE_POWER: Record<ActivityType, number> = { run: 290, ride: 210, walk: 110, hike: 150, alpine: 120 };
 
 const LAT0 = 52.52;
 const LON0 = 13.405;
@@ -54,6 +54,7 @@ function buildStreams(type: ActivityType): ActivityStreams {
     power: new Float64Array(n),
     grade: new Float64Array(n),
     moving: new Uint8Array(n),
+    temperature: new Float64Array(n),
   };
   let hr = 92.4;
   for (let i = 0; i < n; i++) {
@@ -74,6 +75,8 @@ function buildStreams(type: ActivityType): ActivityStreams {
     s.hr[i] = hr;
     s.cadence[i] = moving ? BASE_CADENCE[type] - (i % 2) : 0;
     s.power[i] = moving ? BASE_POWER[type] + 25 * Math.sin(i / 7) : 0;
+    // Device sensor warming from 18 °C by a degree every 40 s.
+    s.temperature[i] = 18 + Math.floor(i / 40);
   }
   return s;
 }

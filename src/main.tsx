@@ -15,8 +15,10 @@ import { RuntimeProvider, createRuntime } from './app/runtime';
 import { createSimClient } from './app/simClient';
 import { createStore } from './app/store';
 import { shareHash, startSync } from './app/sync';
+import { WeatherCache } from './app/weatherCache';
 import { sampleElevations } from './lib/services/elevation';
 import { routeLeg } from './lib/services/routing';
+import { fetchWeather } from './lib/services/weather';
 import { buildTerrainProfile } from './lib/terrain';
 
 function browserStorage(): Storage | undefined {
@@ -29,6 +31,7 @@ function browserStorage(): Storage | undefined {
 
 const storage = browserStorage();
 const legCache = LegCache.load(storage);
+const weatherCache = WeatherCache.load(storage);
 const store = createStore(
   buildInitialState({ stored: loadStored(storage), hash: location.hash, language: navigator.language, now: Date.now(), legs: legCache }),
 );
@@ -41,14 +44,17 @@ const simClient = createSimClient({
 
 startPipeline(store, {
   routeLeg,
-  buildProfile: (route, activity, signal) => buildTerrainProfile(route, sampleElevations, { activity, signal }),
+  buildProfile: (route, activity, signal, ways) => buildTerrainProfile(route, sampleElevations, { activity, signal, ways }),
   simulate: simClient.simulate,
   solvePreset: simClient.solvePreset,
+  fetchWeather,
+  weatherCache,
+  online: () => navigator.onLine !== false,
 });
-startSync(store, { storage, location, history, legCache });
+startSync(store, { storage, location, history, legCache, weatherCache });
 
 // Dev-only handle for QA scripts (streams, actions); stripped from production builds.
-if (import.meta.env.DEV) Object.assign(window, { __runsketch: { ...runtime, simClient, legCache } });
+if (import.meta.env.DEV) Object.assign(window, { __runsketch: { ...runtime, simClient, legCache, weatherCache } });
 
 // A share link pasted into this tab replaces the route.
 window.addEventListener('hashchange', () => {

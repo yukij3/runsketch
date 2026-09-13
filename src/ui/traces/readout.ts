@@ -13,7 +13,7 @@ import {
 } from '../../lib/format';
 import type { ActivityType, Units } from '../../lib/types';
 import type { PanelId } from './layout';
-import { isFootSport, type TraceModel } from './series';
+import { isFootSport, plotsPace, type TraceModel } from './series';
 import { unitText, type TraceStrings } from './strings';
 
 export type ReadoutKey = 'elapsed' | 'distance' | 'speed' | 'hr' | 'grade' | 'cadence' | 'elevation';
@@ -135,14 +135,15 @@ export function liveText(cells: readonly ReadoutCell[]): string {
 
 /** Readout row before any result exists: labels stay put, values are dashes. */
 export function emptyCells(s: TraceStrings, activity: ActivityType, units: Units): ReadoutCell[] {
-  const pace = isFootSport(activity);
+  const pace = plotsPace(activity);
+  const foot = isFootSport(activity);
   return [
     { key: 'elapsed', label: s.cell.elapsed, value: DASH, unit: '' },
     { key: 'distance', label: s.cell.distance, value: DASH, unit: unitText(s, distanceUnit(units)) },
     { key: 'speed', label: pace ? s.cell.pace : s.cell.speed, value: DASH, unit: unitText(s, pace ? paceUnit(units) : speedUnit(units)) },
     { key: 'hr', label: s.cell.hr, value: DASH, unit: unitText(s, 'bpm') },
     { key: 'grade', label: s.cell.grade, value: DASH, unit: '%' },
-    { key: 'cadence', label: s.cell.cadence, value: DASH, unit: unitText(s, pace ? 'spm' : 'rpm') },
+    { key: 'cadence', label: s.cell.cadence, value: DASH, unit: unitText(s, foot ? 'spm' : 'rpm') },
     { key: 'elevation', label: s.cell.elevation, value: DASH, unit: unitText(s, elevationUnit(units)) },
   ];
 }

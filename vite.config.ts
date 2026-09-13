@@ -9,5 +9,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    // Several tests run multi-hour simulations end to end; a shared CI runner takes several times longer than a laptop.
+    testTimeout: 30000,
   },
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { LngLat, TerrainProfile } from '../types';
+import type { LngLat, TerrainProfile, WaySpan } from '../types';
 import { haversine, offsetMeters, resampleLine } from '../geo';
 import type { ElevationSampler } from '../services/elevation';
 import {
@@ -11,7 +11,9 @@ import {
   gaussianSmooth,
   gradeLimit,
   medianFilter,
+  removeDemPatches,
   smoothingSigma,
+  traitsAlong,
 } from './index';
 
 const start: LngLat = [6.6, 46.5];
@@ -83,7 +85,10 @@ describe('buildTerrainProfile on a synthetic hill', () => {
     const run = await buildTerrainProfile(short, samplerFrom(wall, 'mapterhorn'), { activity: 'run' });
     const ride = await buildTerrainProfile(short, samplerFrom(wall, 'mapterhorn'), { activity: 'ride' });
     expect(Math.max(...run.points.map((p) => p.grade))).toBeCloseTo(0.45, 9);
-    expect(Math.max(...ride.points.map((p) => p.grade))).toBeCloseTo(0.25, 9);
+    expect(Math.max(...ride.points.map((p) => p.grade))).toBeCloseTo(0.35, 9);
+    expect(run.gradeClampedM).toBeGreaterThan(0);
+    expect(ride.gradeClampedM).toBeGreaterThanOrEqual(run.gradeClampedM!);
+    expect(gradeLimit('ride')).toBe(0.35);
     expect(gradeLimit('hike')).toBe(0.45);
     expect(gradeLimit('walk')).toBe(0.45);
   });
@@ -191,5 +196,210 @@ describe('filters', () => {
     expect(smoothingSigma('mapterhorn')).toBe(15);
     expect(smoothingSigma('aws-terrarium')).toBe(25);
     expect(smoothingSigma('open-meteo')).toBe(25);
+  });
+});
+
+/** A DEM of `size` m pixels holding the truth at their centres, linear in between (how a 30 m surface model is sampled). */
+function pixels(fn: (d: number) => number, size = 30): (d: number) => number {
+  return (d) => {
+    const k = Math.floor(d / size);
+    const t = d / size - k;
+    return fn(k * size) * (1 - t) + fn((k + 1) * size) * t;
+  };
+}
+
+/** Twelve canopy or roof patches 6–16 m high and 40–240 m wide, one per 800 m of a 10 km route. */
+function patches(seed: number): Array<[from: number, to: number, height: number]> {
+  const rnd = lcg(seed);
+  const unit = () => (rnd() + 1) / 2;
+  return Array.from({ length: 12 }, (_, k) => {
+    const width = 40 + 200 * unit();
+    const height = 6 + 10 * unit();
+    const from = 400 + k * 800 + (700 - width) * unit();
+    return [from, from + width, height];
+  });
+}
+
+const raised = (list: Array<[number, number, number]>, d: number) => list.reduce((s, [a, b, h]) => s + (d >= a && d <= b ? h : 0), 0);
+const maxGrade = (profile: TerrainProfile) => Math.max(...profile.points.map((p) => Math.abs(p.grade)));
+
+/** 300 m at +12 % from 4 km, 400 m level, 300 m at −12 %. */
+function climb(d: number): number {
+  if (d < 4000) return 400;
+  if (d < 4300) return 400 + 0.12 * (d - 4000);
+  if (d < 4700) return 436;
+  if (d < 5000) return 436 - 0.12 * (d - 4700);
+  return 400;
+}
+
+describe('DEM artefacts', () => {
+  const route: LngLat[] = [start, offsetMeters(start, 0, 10_000)];
+
+  // Before the patch filter this case gave 118–123 m of ascent and grades of 20–28 %.
+  it.each([
+    ['mapterhorn', 1],
+    ['mapterhorn', 2],
+    ['aws-terrarium', 3],
+    ['aws-terrarium', 4],
+  ] as const)('canopy and roofs do not turn a flat route into hills (%s, layout %i)', async (source, seed) => {
+    const list = patches(seed);
+    const profile = await buildTerrainProfile(route, samplerFrom(pixels((d) => 400 + raised(list, d)), source));
+    expect(profile.ascent).toBeLessThan(20);
+    expect(maxGrade(profile)).toBeLessThan(0.08);
+  });
+
+  it.each(['mapterhorn', 'aws-terrarium'] as const)('a real 300 m climb at 12 %% keeps its ascent and grade, patches or not (%s)', async (source) => {
+    const list = patches(5);
+    for (const fn of [climb, (d: number) => climb(d) + raised(list, d)]) {
+      const profile = await buildTerrainProfile(route, samplerFrom(pixels(fn), source));
+      expect(Math.abs(profile.ascent - 36)).toBeLessThan(36 * 0.05);
+      const peak = Math.max(...profile.points.filter((p) => p.d > 3900 && p.d < 5100).map((p) => Math.abs(p.grade)));
+      expect(Math.abs(peak - 0.12)).toBeLessThan(0.12 * 0.15);
+    }
+  });
+
+  it('keeps a steep step onto ground that stays higher', async () => {
+    const profile = await buildTerrainProfile(route, samplerFrom(pixels((d) => (d < 5000 ? 400 : 410)), 'aws-terrarium'));
+    expect(Math.abs(profile.ascent - 10)).toBeLessThan(1);
+  });
+
+  it('treats a knoll with short steep ramps on a road as a DEM patch', async () => {
+    const short: LngLat[] = [start, offsetMeters(start, 0, 2000)];
+    // 8 m up and down over 32 m ramps, 176 m apart.
+    const knoll = (d: number) => 400 + Math.max(0, Math.min(8, 0.25 * (d - 900), 0.25 * (1140 - d)));
+    const road = await buildTerrainProfile(short, samplerFrom(pixels(knoll, 10), 'mapterhorn'), {
+      ways: [{ end: 1, tags: 'highway=residential surface=asphalt' }],
+    });
+    expect(road.ascent).toBeLessThan(1);
+  });
+
+  // Steep ways used to skip the patch filter: these gave about 130 m of ascent and 22–30 % grades.
+  it.each([
+    ['T2', 'highway=path sac_scale=mountain_hiking', 'mapterhorn', 1],
+    ['T2', 'highway=path sac_scale=mountain_hiking', 'aws-terrarium', 2],
+    ['T3', 'highway=path surface=ground sac_scale=demanding_mountain_hiking', 'mapterhorn', 3],
+    ['T3', 'highway=path surface=ground sac_scale=demanding_mountain_hiking', 'aws-terrarium', 4],
+  ] as const)('canopy and roofs do not turn a flat %s path into hills (%s, layout %i)', async (_, tags, source, seed) => {
+    const list = patches(seed);
+    const profile = await buildTerrainProfile(route, samplerFrom(pixels((d) => 400 + raised(list, d)), source), {
+      activity: 'hike',
+      ways: [{ end: 1, tags }],
+    });
+    expect(profile.ascent).toBeLessThan(20);
+    expect(maxGrade(profile)).toBeLessThan(0.08);
+  });
+
+  it.each([
+    ['mapterhorn', 10, 11],
+    ['aws-terrarium', 30, 12],
+  ] as const)('a steep switchback trail keeps its ascent (%s)', async (source, size, seed) => {
+    // 3 km of ramps 40–120 m long at 25–35 %, each followed by a flat turn of 8–20 m.
+    const rnd = lcg(seed);
+    const unit = () => (rnd() + 1) / 2;
+    const knots: Array<[number, number]> = [
+      [0, 1000],
+      [200, 1000],
+    ];
+    while (knots[knots.length - 1][0] < 2800) {
+      const [x, z] = knots[knots.length - 1];
+      const ramp = 40 + 80 * unit();
+      const top: [number, number] = [x + ramp, z + (0.25 + 0.1 * unit()) * ramp];
+      knots.push(top, [top[0] + 8 + 12 * unit(), top[1]]);
+    }
+    const climb = knots[knots.length - 1][1] - 1000;
+    const trail = (d: number) => {
+      const i = knots.findIndex(([x]) => x >= d);
+      if (i < 0) return knots[knots.length - 1][1];
+      if (i === 0) return knots[0][1];
+      const [x0, z0] = knots[i - 1];
+      const [x1, z1] = knots[i];
+      return z0 + ((z1 - z0) * (d - x0)) / (x1 - x0);
+    };
+    const profile = await buildTerrainProfile([start, offsetMeters(start, 0, 3000)], samplerFrom(pixels(trail, size), source), {
+      activity: 'hike',
+      ways: [{ end: 1, tags: 'highway=path surface=ground sac_scale=demanding_mountain_hiking' }],
+    });
+    expect(climb).toBeGreaterThan(500);
+    expect(Math.abs(profile.ascent - climb)).toBeLessThan(0.05 * climb);
+  });
+
+  it('removeDemPatches subtracts a raised patch and leaves the slope under it', () => {
+    const d = Float64Array.from({ length: 401 }, (_, i) => i * 5);
+    const ele = Array.from(d, (x) => 100 + 0.05 * x + (x >= 800 && x < 1000 ? 12 : 0));
+    const out = removeDemPatches(ele, d, 0.15);
+    out.forEach((v, i) => expect(v).toBeCloseTo(100 + 0.05 * d[i], 6));
+    expect(Array.from(removeDemPatches([1, 2], [0, 5], 0.15))).toEqual([1, 2]);
+  });
+});
+
+describe('bridges and tunnels', () => {
+  const route: LngLat[] = [start, offsetMeters(start, 0, 840), offsetMeters(start, 0, 1160), offsetMeters(start, 0, 2000)];
+  const across = (tag: string): WaySpan[] => [
+    { end: 1, tags: 'highway=secondary surface=asphalt' },
+    { end: 2, tags: `highway=secondary surface=asphalt ${tag}` },
+    { end: 3, tags: 'highway=secondary surface=asphalt' },
+  ];
+  // 25 m deep or high with 100 m walls: too long to pass for a DEM patch.
+  const valley = (d: number) => 400 - Math.max(0, Math.min(25, 0.25 * (d - 850), 0.25 * (1150 - d)));
+  const ridge = (d: number) => 800 - valley(d);
+
+  it.each([
+    ['bridge=yes', valley],
+    ['man_made=bridge', valley],
+    ['tunnel=yes', ridge],
+  ] as const)('%s: the way runs straight between the ends', async (tag, fn) => {
+    const sampler = samplerFrom(fn, 'mapterhorn');
+    const untagged = await buildTerrainProfile(route, sampler);
+    const tagged = await buildTerrainProfile(route, sampler, { ways: across(tag) });
+    expect(untagged.ascent).toBeGreaterThan(20);
+    expect(tagged.ascent).toBeLessThan(0.5);
+    expect(maxGrade(tagged)).toBeLessThan(0.005);
+    expect(tagged.points.every((p) => p.surface === 'paved' && p.technicality === 0)).toBe(true);
+  });
+});
+
+describe('grade limits by way', () => {
+  it('clamps implausible grades for the way class and reports the clamped metres', async () => {
+    const short: LngLat[] = [start, offsetMeters(start, 0, 1000)];
+    const ramp = (d: number) => 400 + 0.3 * Math.max(0, Math.min(200, d - 400));
+    const sampler = samplerFrom(ramp, 'mapterhorn');
+    const untagged = await buildTerrainProfile(short, sampler);
+    const road = await buildTerrainProfile(short, sampler, { ways: [{ end: 1, tags: 'highway=residential' }] });
+    const steps = await buildTerrainProfile(short, sampler, { ways: [{ end: 1, tags: 'highway=steps' }] });
+    expect(maxGrade(untagged)).toBeCloseTo(0.3, 2);
+    expect(untagged.gradeClampedM).toBe(0);
+    expect(maxGrade(road)).toBe(0.25);
+    expect(road.gradeClampedM).toBeGreaterThan(150);
+    expect(road.gradeClampedM).toBeLessThan(220);
+    expect(maxGrade(steps)).toBeCloseTo(0.3, 2);
+    expect(steps.gradeClampedM).toBe(0);
+  });
+});
+
+describe('surfaces along the route', () => {
+  const route: LngLat[] = [start, offsetMeters(start, 0, 100), offsetMeters(start, 0, 104), offsetMeters(start, 0, 200), offsetMeters(start, 0, 300)];
+  const ways: WaySpan[] = [
+    { end: 1, tags: 'highway=path surface=ground sac_scale=demanding_mountain_hiking' },
+    { end: 2, tags: '' },
+    { end: 3, tags: 'highway=steps' },
+    { end: 4, tags: '' },
+  ];
+
+  it('resamples way traits onto profile points; untagged stretches borrow within 10 m', async () => {
+    const profile = await buildTerrainProfile(route, samplerFrom(() => 500, 'mapterhorn'), { ways, activity: 'hike' });
+    const at = (d: number) => pointAt(profile, d);
+    expect(at(50)).toMatchObject({ surface: 'ground', technicality: 0.4 });
+    expect(at(100)).toMatchObject({ surface: 'ground', technicality: 0.4 });
+    expect(at(150)).toMatchObject({ surface: 'steps', technicality: 0 });
+    expect(at(205)).toMatchObject({ surface: 'steps', technicality: 0 });
+    expect(at(215)).not.toHaveProperty('surface');
+    expect(at(250)).not.toHaveProperty('technicality');
+  });
+
+  it('ignores spans that do not describe the route, and leaves untagged routes without traits', async () => {
+    const { d } = resampleLine(route, 5);
+    expect(traitsAlong(route, [{ end: 2, tags: 'highway=path' }], d)).toBeNull();
+    const profile = await buildTerrainProfile(route, samplerFrom(() => 500, 'mapterhorn'));
+    expect(profile.points.some((p) => 'surface' in p || 'technicality' in p)).toBe(false);
   });
 });

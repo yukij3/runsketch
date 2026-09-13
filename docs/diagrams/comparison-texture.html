@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texture and stops against their references · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-texture.svg (profile: runsketch, see .diagram-design). Bar chart, doc-wide.
+       Summary statistics for rows 7, 8 and 9 of docs/comparison.md. Each bar is our measured value as a
+       share of its reference; the reference is the 100 % rule and both raw numbers are printed, so the bar
+       never carries the units. Axis runs to 140 % because one value is above the reference.
+
+       EVERY WANDER FIGURE CARRIES ITS WINDOW. "Spread around a moving average" depends steeply on how wide
+       that average is: on this same file it runs 0.947 bpm at 31 s, 1.496 at 61 s, 2.442 at 121 s and 3.371
+       at 181 s. A single number for it is meaningless without the window, and both sides of every
+       comparison here are measured at the same 61 s window.
+
+       The one bar over the reference is HR around its 61 s average: 1.988 bpm against the file's 1.496, so
+       our minute-scale heart-rate wander is about a third LARGER than the real file's. An earlier version of
+       this figure reported it as 15 % smaller; that came from measuring our side over one window width and
+       the file's over another, which manufactured a shortfall out of a surplus. Drawn in the accent because
+       it is the one value that misses, not because over-shooting is worse than under-shooting.
+
+       Rows 7 and 8 reference ONE decoded file: a 47-minute, 9 km run recorded every second on a Garmin
+       fenix 2 with a chest strap. A sanity check, not a population. Row 9 is the Highway Capacity Manual
+       pedestrian delay model, which implies about 1.20 stops per km and a 35 s mean wait.
+       The two 120 s overlay figures alongside this one show the shape these numbers summarise. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Bar chart · Runsketch</p>
+    <h1>Texture and stops, measured against their references</h1>
+
+    <svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-texture-title comparison-texture-desc">
+      <title id="comparison-texture-title">Texture and stops, measured against their references</title>
+      <desc id="comparison-texture-desc">Eight measurements drawn as bars, each the Runsketch value as a share of its reference, with both raw numbers printed and the reference marked at 100 per cent. Seven sit just under or on the reference: speed around its 61-second average 4.09 against 4.42 per cent, speed correlation with the previous second 0.941 against 0.948, spread of the one-second speed change 0.047 against 0.048 metres per second, spread of the one-second heart-rate change 0.610 against 0.612 bpm, seconds with no heart-rate change 64.3 against 63.8 per cent, stops per kilometre 1.12 against 1.20, and mean wait at a stop 34.0 against 35 seconds. One overshoots: heart rate around its 61-second average is 1.988 bpm against the file's 1.496, about a third larger, and it is highlighted. Both sides of every comparison are measured over the same window, which matters because that statistic more than triples if the window is widened from 31 to 181 seconds.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <text x="300" y="72" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">Runsketch as a share of its reference →</text>
+      <line x1="591.4" y1="80" x2="591.4" y2="368" stroke="rgba(27,29,34,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="591.4" y="74" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">reference = 100 %</text>
+      <text x="760" y="74" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">ours · reference</text>
+
+      <text x="300" y="106" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">Speed around its 61 s average</text>
+      <rect x="320" y="96" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="96" width="251.2" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="106" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">93 %</text>
+      <text x="760" y="106" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">4.09 % · 4.42 %</text>
+      <text x="300" y="142" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">Speed: correlation w/ previous second</text>
+      <rect x="320" y="132" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="132" width="269.4" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="142" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">99 %</text>
+      <text x="760" y="142" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">0.941 · 0.948</text>
+      <text x="300" y="178" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">Speed: spread of the 1 s change</text>
+      <rect x="320" y="168" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="168" width="265.8" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="178" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">98 %</text>
+      <text x="760" y="178" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">0.047 m/s · 0.048 m/s</text>
+      <text x="300" y="214" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">HR: spread of the 1 s change</text>
+      <rect x="320" y="204" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="204" width="270.5" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="214" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">100 %</text>
+      <text x="760" y="214" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">0.610 bpm · 0.612 bpm</text>
+      <text x="300" y="250" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">HR: seconds with no change</text>
+      <rect x="320" y="240" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="240" width="273.6" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="250" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">101 %</text>
+      <text x="760" y="250" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">64.3 % · 63.8 %</text>
+      <text x="300" y="286" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">HR around its 61 s average</text>
+      <rect x="320" y="276" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="276" width="360.7" height="12" rx="2" fill="#c21f3a"/>
+      <text x="712" y="286" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">133 %</text>
+      <text x="760" y="286" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">1.988 bpm · 1.496 bpm</text>
+      <text x="300" y="322" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">Stops per kilometre</text>
+      <rect x="320" y="312" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="312" width="253.3" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="322" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">93 %</text>
+      <text x="760" y="322" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">1.12 · 1.20</text>
+      <text x="300" y="358" fill="#1b1d22" font-size="12" font-family="'Public Sans', sans-serif" text-anchor="end">Mean wait at a stop</text>
+      <rect x="320" y="348" width="380" height="12" rx="2" fill="rgba(27,29,34,0.05)"/>
+      <rect x="320" y="348" width="263.7" height="12" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="712" y="358" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace">97 %</text>
+      <text x="760" y="358" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">34.0 s · 35 s</text>
+
+      <line x1="40" y1="384" x2="920" y2="384" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="408" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <rect x="128" y="400" width="24" height="10" rx="2" fill="rgba(27,29,34,0.55)"/>
+      <text x="160" y="408" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">At or just under the reference</text>
+      <rect x="392" y="400" width="24" height="10" rx="2" fill="#c21f3a"/>
+      <text x="424" y="408" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Above it: our wander is about a third larger</text>
+
+      <text x="40" y="432" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Speed and heart rate: one decoded 47-minute file, Garmin fēnix 2 with a chest strap — a sanity check, not a population.</text>
+      <text x="40" y="448" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Both sides measured identically: a 61 s moving average over the steady middle — 600 s to the end minus 300 s, speed above 2 m/s.</text>
+      <text x="40" y="464" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">That statistic needs both: on this file it runs 0.95 bpm at a 31 s window and 3.37 at 181 s, and 2.62 rather than 1.50 if the opening ramp is included.</text>
+      <text x="40" y="480" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Stops: Highway Capacity Manual pedestrian delay model.</text>
+    </svg>
+  </div>
+</body>
+</html>

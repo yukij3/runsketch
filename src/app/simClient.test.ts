@@ -42,7 +42,9 @@ describe('simulation client', () => {
     expect(response.ok).toBe(true);
     if (!response.ok || response.kind !== 'simulate') return;
     expect(Array.from(response.result.streams.hr)).toEqual(Array.from(simulate(input(5)).streams.hr));
-    expect(transferList(response)).toHaveLength(12);
+    expect(transferList(response)).toHaveLength(13);
+    expect(transferList(response)).toContain(response.result.streams.temperature.buffer);
+    expect(Math.max(...response.result.streams.temperature)).toBeGreaterThan(0);
     expect(transferList({ id: 2, ok: false, error: 'x' })).toEqual([]);
   });
 

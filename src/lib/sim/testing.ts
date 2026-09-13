@@ -13,6 +13,12 @@ export function meanRange(a: ArrayLike<number>, lo: number, hi: number): number 
   return count > 0 ? sum / count : NaN;
 }
 
+/** First sample that moves; the samples before it are the standing start. */
+export function firstMovingIndex(s: ActivityStreams): number {
+  for (let i = 1; i < s.moving.length; i++) if (s.moving[i]) return i;
+  return s.moving.length;
+}
+
 /** First sample whose distance reaches d (last sample if never). */
 export function indexAtDistance(s: ActivityStreams, d: number): number {
   for (let i = 0; i < s.dist.length; i++) if (s.dist[i] >= d) return i;

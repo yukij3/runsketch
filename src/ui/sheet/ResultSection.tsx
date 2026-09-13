@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react';
 import { useActions, useApp, useT } from '../../app/runtime';
 import { localizeWarning } from '../../app/warnings';
+import { precipitationText, temperatureIn } from '../../app/weatherText';
 import { formatDecimal, formatDistance, formatDuration, formatElevation, formatPace, formatSpeed } from '../../lib/format';
 import { DataRow, Section, cx } from '../controls';
 import { unitLabels } from '../units';
@@ -21,7 +22,10 @@ export function ResultSection() {
   const u = unitLabels(units, t);
   const summary = sim.result?.summary;
   const ride = sim.activity === 'ride';
+  // Mountaineering is too slow for a pace per km to read; it shows speed like a ride.
+  const speed = ride || sim.activity === 'alpine';
   const warnings = sim.result?.warnings ?? [];
+  const weather = sim.result?.weather;
 
   let note = '';
   if (!summary) note = count < 2 ? t('resultEmpty') : sim.state === 'error' ? t('statusSimFailed', { message: sim.error ?? '' }) : t('resultPending');
@@ -34,7 +38,7 @@ export function ResultSection() {
         <dl className={cx('table', busy && 'is-stale')}>
           <DataRow label={t('movingTime')} value={formatDuration(summary.moving)} />
           <DataRow label={t('elapsedTime')} value={formatDuration(summary.elapsed)} />
-          {ride ? (
+          {speed ? (
             <DataRow label={t('avgSpeed')} value={formatSpeed(summary.avgSpeed, units, 1, lang)} unit={u.speed} />
           ) : (
             <DataRow label={t('avgPace')} value={formatPace(summary.avgSpeed, units)} unit={u.pace} />
@@ -47,7 +51,12 @@ export function ResultSection() {
           <DataRow label={t('avgCadence')} value={whole(summary.avgCadence)} unit={t(ride ? 'unit_rpm' : 'unit_spm')} />
           {ride ? <DataRow label={t('avgPower')} value={whole(summary.avgPower)} unit={t('unit_w')} /> : null}
           <DataRow label={t('recordedAscent')} value={formatElevation(summary.ascent, units)} unit={u.elevation} />
+          {!ride && summary.maxEle !== undefined ? <DataRow label={t('maxAltitude')} value={formatElevation(summary.maxEle, units)} unit={u.elevation} /> : null}
+          {!ride && (summary.climbRate ?? 0) > 0 ? (
+            <DataRow label={t('climbRate')} value={formatElevation(summary.climbRate ?? 0, units)} unit={t(units === 'metric' ? 'unit_mh' : 'unit_fth')} />
+          ) : null}
           <DataRow label={t('calories')} value={whole(summary.calories)} unit={t('unit_kcal')} />
+          {weather ? <WeatherResultRows /> : null}
         </dl>
       )}
       {warnings.length > 0 ? (
@@ -67,6 +76,36 @@ export function ResultSection() {
   );
 }
 
+/** What the weather gave the athlete: air temperature range, precipitation and the peak core temperature. */
+function WeatherResultRows() {
+  const t = useT();
+  const lang = useApp((s) => s.lang);
+  const units = useApp((s) => s.units);
+  const weather = useApp((s) => s.sim.result?.weather);
+  if (!weather) return null;
+  const u = unitLabels(units, t);
+  const degrees = (c: number) => String(Math.round(temperatureIn(c, units))).replace('-', '−');
+  const lo = degrees(weather.airTempMin);
+  const hi = degrees(weather.airTempMax);
+  const wet = weather.rainMm >= 0.05;
+  return (
+    <>
+      <DataRow label={t('result_airTemp')}>
+        <span className="num">{lo === hi ? hi : `${lo}…${hi}`}</span>
+        <span className="unit">{u.temperature}</span>
+      </DataRow>
+      {wet ? (
+        <DataRow label={t('result_rain')} value={precipitationText(weather.rainMm, lang)} unit={t('unit_mm')} />
+      ) : (
+        <DataRow label={t('result_rain')} value={t('weatherDry')} text />
+      )}
+      {Number.isFinite(weather.coreTempMax) ? (
+        <DataRow label={t('result_coreTemp')} value={formatDecimal(temperatureIn(weather.coreTempMax, units), 1, lang)} unit={u.temperature} />
+      ) : null}
+    </>
+  );
+}
+
 export function SplitsSection() {
   const t = useT();
   const actions = useActions();
@@ -78,7 +117,7 @@ export function SplitsSection() {
   const busy = useBusy();
   const u = unitLabels(units, t);
   const laps = result?.summary.laps ?? [];
-  const ride = activity === 'ride';
+  const ride = activity === 'ride' || activity === 'alpine';
 
   return (
     <Section id="splits" title={t('sectionSplits')} busy={busy}>

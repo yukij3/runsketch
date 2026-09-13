@@ -1,14 +1,14 @@
 import { bbox } from '../lib/geo';
 import { closeLoop, newWaypointId, outAndBack, reverseWaypoints } from '../lib/route';
-import { estimateMaxHr, type EffortPreset } from '../lib/sim';
-import type { Athlete, LngLat, SessionSettings, SnapProfile, Units, Waypoint } from '../lib/types';
+import { estimateMaxHr, mountainDefaults, type EffortPreset } from '../lib/sim';
+import type { Athlete, LngLat, ManualWeather, SessionSettings, SnapProfile, Units, WeatherPin, WeatherSettings, Waypoint } from '../lib/types';
 import { MAX_IMPORT_WAYPOINTS } from './config';
 import { decimateTrack } from './decimate';
-import { EXAMPLE_ROUTE } from './example';
+import { EXAMPLES, exampleStart, exampleTarget } from './example';
 import * as history from './history';
 import { defaultActivityName, type Lang } from './i18n';
 import { encodeTarget, pickTypeDefaults, toWaypoints, type SharePayload } from './persistence';
-import { lapDistanceFor, localStartHour, type AppState, type MapView, type Notice } from './state';
+import { defaultWeatherSettings, lapDistanceFor, localStartHour, type AppState, type MapView, type Notice } from './state';
 import type { Store } from './store';
 
 export type Actions = ReturnType<typeof createActions>;
@@ -23,6 +23,12 @@ export function createActions(store: Store<AppState>) {
 
   const withAutoName = (session: SessionSettings, lang: Lang, nameAuto: boolean): SessionSettings =>
     nameAuto ? { ...session, name: defaultActivityName(lang, session.type, localStartHour(session)) } : session;
+
+  const weatherOf = (session: SessionSettings): WeatherSettings => session.weather ?? defaultWeatherSettings();
+  const setWeather = (patch: Partial<WeatherSettings>) => {
+    const s = store.get();
+    store.set({ session: { ...s.session, weather: { ...weatherOf(s.session), ...patch } } });
+  };
 
   const fitTo = (coords: LngLat[], followRoute = false) => {
     if (coords.length === 0) return;
@@ -74,9 +80,35 @@ export function createActions(store: Store<AppState>) {
     setProfile(profile: SnapProfile) {
       store.set({ profile });
     },
-    loadExample() {
-      commitWaypoints(toWaypoints(EXAMPLE_ROUTE.coords), { profile: EXAMPLE_ROUTE.profile, selectedId: null, notice: null });
-      fitTo(EXAMPLE_ROUTE.coords, true);
+    /** Loads an example (Montjuïc by default) with its profile, activity, mountain settings, start, temperature and target; undo restores the waypoints. */
+    loadExample(id?: string) {
+      const example = EXAMPLES.find((e) => e.id === id) ?? EXAMPLES[0];
+      const s = store.get();
+      let session = s.session;
+      if (example.activity !== session.type) session = { ...session, ...pickTypeDefaults(example.activity, session) };
+      // A mountain day loads its own gear and conditions, whatever the previous session carried.
+      session = { ...session, ...mountainDefaults(example.activity), ...example.mountain };
+      if (example.stops) session = { ...session, stops: example.stops };
+      // The example's local start is a wall-clock time at the route; the route's zone refines it once the weather arrives.
+      const startFlags: Partial<AppState> = example.start ? { startAuto: false } : {};
+      if (example.start) session = { ...session, ...exampleStart(example.start, session.startTime) };
+      if (example.temperatureC !== undefined) session = { ...session, temperatureC: example.temperatureC };
+      let targetFlags: Partial<AppState>;
+      if ('effort' in example.suggest) {
+        targetFlags = { effortPreset: example.suggest.effort, targetAuto: true };
+      } else {
+        session = { ...session, target: exampleTarget(example.suggest.elapsedH) };
+        targetFlags = { effortPreset: null, targetAuto: false };
+      }
+      commitWaypoints(toWaypoints(example.coords), {
+        profile: example.profile,
+        session: withAutoName(session, s.lang, s.nameAuto),
+        selectedId: null,
+        notice: null,
+        ...targetFlags,
+        ...startFlags,
+      });
+      fitTo(example.coords, true);
     },
     /** Decimated track becomes waypoints joined by straight legs; returns the waypoint count. */
     importTrack(coords: LngLat[], name: string | undefined): number {
@@ -100,6 +132,10 @@ export function createActions(store: Store<AppState>) {
       }
       if (payload.seed !== undefined) session = { ...session, seed: payload.seed };
       if (payload.hrTarget !== undefined) session = { ...session, hrTarget: payload.hrTarget };
+      if (payload.startTime !== undefined) {
+        session = { ...session, startTime: payload.startTime, utcOffsetMin: payload.utcOffsetMin ?? -new Date(payload.startTime).getTimezoneOffset() };
+        targetFlags = { ...targetFlags, startAuto: false };
+      }
       commitWaypoints(toWaypoints(payload.coords), {
         profile: payload.profile ?? s.profile,
         session: withAutoName(session, s.lang, s.nameAuto),
@@ -145,7 +181,33 @@ export function createActions(store: Store<AppState>) {
         // An untouched target follows the effort instead of a fixed default (25 km/h is 150 % VO2R on some hills).
         if (targetAuto) effortPreset = effortPreset ?? 'steady';
       }
-      store.set({ session: withAutoName(session, s.lang, s.nameAuto), targetAuto, effortPreset });
+      const startFlags: Partial<AppState> = patch.startTime !== undefined ? { startAuto: false } : {};
+      store.set({ session: withAutoName(session, s.lang, s.nameAuto), targetAuto, effortPreset, ...startFlags });
+    },
+    /** The start the user set, with the offset of the zone it was typed in; it no longer follows "now". */
+    setStart(startTime: number, utcOffsetMin: number) {
+      if (!Number.isFinite(startTime) || !Number.isFinite(utcOffsetMin)) return;
+      const s = store.get();
+      store.set({ startAuto: false, session: withAutoName({ ...s.session, startTime, utcOffsetMin }, s.lang, s.nameAuto) });
+    },
+    setWeatherMode(mode: WeatherSettings['mode']) {
+      if (weatherOf(store.get().session).mode !== mode) setWeather({ mode });
+    },
+    /** Manual conditions: the whole activity in manual mode, the fallback and the pinned values in automatic mode. */
+    updateManualWeather(patch: Partial<ManualWeather>) {
+      setWeather({ manual: { ...weatherOf(store.get().session).manual, ...patch } });
+    },
+    toggleWeatherPin(pin: WeatherPin) {
+      const pinned = weatherOf(store.get().session).pinned;
+      const order: readonly WeatherPin[] = ['temperature', 'wind', 'precipitation'];
+      setWeather({ pinned: pinned.includes(pin) ? pinned.filter((p) => p !== pin) : order.filter((p) => p === pin || pinned.includes(p)) });
+    },
+    retryWeather() {
+      store.set({ weatherRetry: store.get().weatherRetry + 1 });
+    },
+    /** Fetches a fresh forecast for the same route and days, bypassing the stored series. */
+    refreshWeather() {
+      store.set({ weatherRefresh: store.get().weatherRefresh + 1 });
     },
     /** Solve the target for an effort on this route; the pipeline applies it once the terrain is known. */
     setEffortPreset(effortPreset: EffortPreset) {

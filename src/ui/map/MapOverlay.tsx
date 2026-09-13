@@ -9,7 +9,7 @@ export function EmptyPlate() {
     <div className="empty-plate">
       <h2 className="empty-plate__title">{t('emptyTitle')}</h2>
       <p className="empty-plate__body">{t('emptyBody')}</p>
-      <button type="button" className="btn btn--primary" onClick={actions.loadExample}>
+      <button type="button" className="btn btn--primary" onClick={() => actions.loadExample()}>
         {t('loadExample')}
       </button>
       <p className="empty-plate__hint">{t('exampleHint')}</p>

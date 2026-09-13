@@ -69,8 +69,9 @@ function fillGaps(a: Float64Array, d: Float64Array, fallback: number): void {
 }
 
 /**
- * Forward-only cursor for monotonic distance queries. After `seek(s)`, `j` is the segment index and
- * `f` the fraction within it; `lerp(arr)` interpolates any per-point array.
+ * Cursor for mostly monotonic distance queries (it walks from the last segment in either direction, so small
+ * steps back stay cheap). After `seek(s)`, `j` is the segment index and `f` the fraction within it; `lerp(arr)`
+ * interpolates any per-point array.
  */
 export class Cursor {
   j = 0;
@@ -85,7 +86,7 @@ export class Cursor {
       return;
     }
     let j = this.j;
-    if (s < d[j]) j = 0;
+    while (j > 0 && s < d[j]) j--;
     while (j < n - 2 && d[j + 1] <= s) j++;
     this.j = j;
     const seg = d[j + 1] - d[j];
@@ -109,10 +110,32 @@ export function mapGrade(t: Track, fn: (g: number) => number): Float64Array {
 
 const MAX_CAP = 100;
 
+/** The turn radius at speed v is measured over ±v·CORNER_LOOK_S of route, clamped to CORNER_WINDOW metres. */
+export const CORNER_LOOK_S = 1.5;
+export const CORNER_WINDOW = { min: 5, max: 40 } as const;
+
+/** √(a_lat·R) for the circle through points i − m, i, i + m (R = ℓ / (2·sin(Δθ/2))); Infinity when straight. */
+function circleSpeed(x: Float64Array, y: Float64Array, i: number, m: number, aLat: number): number {
+  const ax = x[i] - x[i - m];
+  const ay = y[i] - y[i - m];
+  const bx = x[i + m] - x[i];
+  const by = y[i + m] - y[i];
+  const la = Math.hypot(ax, ay);
+  const lb = Math.hypot(bx, by);
+  if (la < 1e-3 || lb < 1e-3) return Infinity;
+  const cos = Math.max(-1, Math.min(1, (ax * bx + ay * by) / (la * lb)));
+  const turn = Math.acos(cos);
+  if (turn < 1e-4) return Infinity;
+  return Math.sqrt((aLat * 0.5 * (la + lb)) / (2 * Math.sin(turn / 2)));
+}
+
 /**
- * Corner speed caps v ≤ √(a_lat·R) with R from the heading change over ±5 m (three points on a circle:
- * R = ℓ / (2·sin(Δθ/2))), then a backward pass so braking (aDec) starts before the corner and, when
- * aAcc > 0, a forward pass limiting acceleration out of it.
+ * Corner speed caps v ≤ √(a_lat·R). R comes from three points ±L apart, and the half-window L grows with the speed
+ * being tested (L = v·1.5 s, 5–40 m). At running speeds a polyline vertex still reads as the sharp street corner it
+ * usually is (±5 m); at riding speeds the same heading change is spread over tens of metres, so the vertices of a
+ * gently curving road no longer look like kinks. Each point's cap is the highest speed that its own window allows.
+ * A backward pass then starts braking (aDec) before the corner and, when aAcc > 0, a forward pass limits
+ * acceleration out of it.
  */
 export function cornerCaps(t: Track, aLat: number, aDec: number, aAcc: number, vMax: number): Float64Array {
   const { n, d, lon, lat } = t;
@@ -126,22 +149,22 @@ export function cornerCaps(t: Track, aLat: number, aDec: number, aAcc: number, v
     x[i] = (lon[i] - lon0) * M_PER_DEG * Math.cos(lat[i] * DEG);
     y[i] = (lat[i] - lat0) * M_PER_DEG;
   }
-  const spacing = d[n - 1] / (n - 1);
-  const m = Math.max(1, Math.round(5 / Math.max(spacing, 0.1)));
-  for (let i = m; i < n - m; i++) {
-    const ax = x[i] - x[i - m];
-    const ay = y[i] - y[i - m];
-    const bx = x[i + m] - x[i];
-    const by = y[i + m] - y[i];
-    const la = Math.hypot(ax, ay);
-    const lb = Math.hypot(bx, by);
-    if (la < 1e-3 || lb < 1e-3) continue;
-    const cos = Math.max(-1, Math.min(1, (ax * bx + ay * by) / (la * lb)));
-    const turn = Math.acos(cos);
-    if (turn < 1e-4) continue;
-    const radius = (0.5 * (la + lb)) / (2 * Math.sin(turn / 2));
-    const c = Math.sqrt(aLat * radius);
-    if (c < cap[i]) cap[i] = c;
+  const spacing = Math.max(d[n - 1] / (n - 1), 0.1);
+  const mMin = Math.max(1, Math.round(CORNER_WINDOW.min / spacing));
+  const mMax = Math.max(mMin, Math.round(CORNER_WINDOW.max / spacing));
+  for (let i = mMin; i < n - mMin; i++) {
+    // Window m serves speeds in [(m − ½)·spacing, (m + ½)·spacing) / CORNER_LOOK_S; the widest window that fits
+    // here serves every faster speed. Walk down from the widest until a band contains an admissible speed.
+    const top = Math.min(mMax, i, n - 1 - i);
+    for (let m = top; m >= mMin; m--) {
+      const lo = m === mMin ? 0 : ((m - 0.5) * spacing) / CORNER_LOOK_S;
+      const hi = m === top ? Infinity : ((m + 0.5) * spacing) / CORNER_LOOK_S;
+      const v = Math.min(circleSpeed(x, y, i, m, aLat), hi);
+      if (v >= lo) {
+        if (v < cap[i]) cap[i] = v;
+        break;
+      }
+    }
   }
   for (let i = n - 2; i >= 0; i--) {
     const lim = Math.sqrt(cap[i + 1] * cap[i + 1] + 2 * aDec * (d[i + 1] - d[i]));

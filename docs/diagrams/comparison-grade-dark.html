@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed against gradient · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-grade-dark.svg (generated from comparison-grade.html by token swap) (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Covers rows 1 and 2 of docs/comparison.md in one figure: climbs and descents are one continuous
+       curve, and the turnover past -20 % is only readable if both halves share an axis.
+       x = grade %, -30..+20 at the 15 measured points. y = speed as a multiple of the same runner's flat speed.
+       Runsketch is read straight off the model function (no simulation). Competitor curves are computed from
+       their published code. Kay 2012 is a quartic fitted to the records of 91 uphill and 15 downhill hill
+       races: ELITE RACE RECORDS, not typical runners, and labelled as such.
+       Uphill every Runsketch fitness level is identical (the descent-skill blend only touches negative
+       grades), so the shaded beginner..elite band closes at 0 % and the two drawn curves meet there.
+       SimuRun and fakemy.run have no gradient term at all: they are exactly 1.000 at every grade, which is
+       the emphasised 1.0 rule rather than a sixth polyline.
+       Elite tracks Kay within 0.015 the whole way down. Fake My Stats computes 1.67 at -10 % and 2.00 at
+       -20 % from the Minetti cost curve and then clamps to 1.40, so it plateaus and never turns back down;
+       Dibma flattens at 1.176 downhill and floors at 0.667 from +15 % up, where the records reach 0.421. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #16181c; --color-ink: #f5f6f4; --color-muted: #b7bcb8; --color-accent: #ef6479; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Speed against gradient, next to hill-race records</h1>
+
+    <svg viewBox="0 0 960 424" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-grade-dark-title comparison-grade-dark-desc">
+      <title id="comparison-grade-dark-title">Speed against gradient, next to hill-race records</title>
+      <desc id="comparison-grade-dark-desc">Speed as a multiple of flat speed from a 30 per cent descent to a 20 per cent climb. Kay's 2012 curve fitted to hill-race records rises to 1.23 times flat at 10 per cent down, then turns over and falls below flat speed by 30 per cent down. Runsketch's elite curve tracks it within 0.015 all the way down and its recreational curve sits below, with a shaded band covering the beginner-to-elite spread that closes at zero. Uphill all Runsketch levels are identical, reaching 0.736 at a 10 per cent climb against the records' 0.651. Fake My Stats plateaus at 1.40 on every descent steeper than 10 per cent, and Dibma plateaus at 1.176 downhill and floors at 0.667 above a 15 per cent climb where the records reach 0.421. SimuRun and fakemy.run have no gradient term and sit at exactly 1.0 everywhere.</desc>
+      <rect width="100%" height="100%" fill="#16181c"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="280.0" x2="912" y2="280.0" stroke="rgba(245,246,244,0.22)" stroke-width="1"/>
+      <line x1="80" y1="238.9" x2="912" y2="238.9" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="197.7" x2="912" y2="197.7" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="115.4" x2="912" y2="115.4" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="74.3" x2="912" y2="74.3" stroke="rgba(245,246,244,0.08)" stroke-width="0.8"/>
+      <text x="72" y="283.5" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0.4</text>
+      <text x="72" y="242.4" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0.6</text>
+      <text x="72" y="201.2" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0.8</text>
+      <text x="72" y="160.1" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1.0</text>
+      <text x="72" y="118.9" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1.2</text>
+      <text x="72" y="77.8" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">1.4×</text>
+
+      <!-- the constant-speed generators ARE the 1.0 rule -->
+      <line x1="80" y1="156.6" x2="912" y2="156.6" stroke="rgba(245,246,244,0.28)" stroke-width="1"/>
+      <text x="912" y="150.6" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">SimuRun · fakemy.run — no gradient term</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="280" x2="80.0" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="80.0" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−30 %</text>
+      <line x1="246.4" y1="280" x2="246.4" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="246.4" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−20</text>
+      <line x1="412.8" y1="280" x2="412.8" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="412.8" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−10</text>
+      <line x1="579.2" y1="280" x2="579.2" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="579.2" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="745.6" y1="280" x2="745.6" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="745.6" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+10</text>
+      <line x1="912.0" y1="280" x2="912.0" y2="284" stroke="rgba(245,246,244,0.30)" stroke-width="1"/>
+      <text x="912.0" y="296" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">+20 %</text>
+      <text x="496" y="316" fill="#9ba1a8" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">← descent · grade · climb →</text>
+
+      <!-- descent-skill spread, beginner … elite (closes at 0 %) -->
+      <polygon points="80.0,216.6 163.2,186.8 246.4,153.1 329.6,123.9 412.8,111.9 446.1,114.2 496.0,124.9 545.9,142.6 579.2,156.6 579.2,156.6 545.9,146.3 496.0,135.0 446.1,130.7 412.8,132.3 329.6,162.9 246.4,208.8 163.2,248.7 80.0,277.5" fill="rgba(239,100,121,0.12)"/>
+      <!-- competitors -->
+      <polyline points="80.0,74.3 163.2,74.3 246.4,74.3 329.6,74.3 412.8,74.3 446.1,74.3 496.0,92.0 545.9,132.9 579.2,156.6 612.5,177.6 662.4,204.3 712.3,225.9 745.6,238.2 828.8,262.5 912.0,280.0" fill="none" stroke="#82a0c0" stroke-width="1.4" stroke-linejoin="round"/>
+      <polyline points="80.0,120.4 163.2,120.4 246.4,120.4 329.6,120.4 412.8,120.4 446.1,124.5 496.0,137.4 545.9,150.2 579.2,156.6 612.5,164.4 662.4,185.0 712.3,205.3 745.6,214.4 828.8,225.1 912.0,225.1" fill="none" stroke="#d3ad7a" stroke-width="1.4" stroke-linejoin="round"/>
+      <!-- reference -->
+      <polyline points="80.0,215.0 163.2,184.1 246.4,150.0 329.6,120.8 412.8,109.7 446.1,112.3 496.0,123.9 545.9,142.2 579.2,156.6 612.5,171.8 662.4,194.4 712.3,215.6 745.6,228.4 828.8,255.3 912.0,275.7" fill="none" stroke="#b7bcb8" stroke-width="1.6" stroke-dasharray="6,3" stroke-linejoin="round"/>
+      <!-- ours -->
+      <polyline points="80.0,216.6 163.2,186.8 246.4,153.1 329.6,123.9 412.8,111.9 446.1,114.2 496.0,124.9 545.9,142.6 579.2,156.6 612.5,166.9 662.4,183.5 712.3,200.2 745.6,210.9 828.8,234.9 912.0,253.5" fill="none" stroke="#ef6479" stroke-width="1.4" stroke-dasharray="4,2" stroke-linejoin="round"/>
+      <polyline points="80.0,238.2 163.2,211.9 246.4,177.8 329.6,143.6 412.8,124.5 446.1,124.3 496.0,131.1 545.9,144.8 579.2,156.6 612.5,166.9 662.4,183.5 712.3,200.2 745.6,210.9 828.8,234.9 912.0,253.5" fill="none" stroke="#ef6479" stroke-width="2" stroke-linejoin="round"/>
+
+      <!-- editorial callouts -->
+      <text x="246.4" y="60" fill="#f5f6f4" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="middle">the caps stay flat where the records turn over</text>
+      <path d="M 246.4 66 V 70" fill="none" stroke="rgba(245,246,244,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="246.4" cy="74.3" r="2.5" fill="#f5f6f4"/>
+      <!-- Both bottom-right callouts moved into the open band between the 1.0 rule and the climb curves
+           (y 172-200 is clear of every series from x 750 rightward) and leadered down to their point.
+           They used to sit at y 243/266, where Kay's dashed curve ran straight through the text. -->
+      <text x="906" y="180" fill="#f5f6f4" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">Dibma floors at 0.667</text>
+      <text x="906" y="196" fill="#9ba1a8" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">the records fall to 0.421</text>
+      <path d="M 870 204 V 220" fill="none" stroke="rgba(245,246,244,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="870.4" cy="225.1" r="2.5" fill="#f5f6f4"/>
+
+      <!-- legend, two rows -->
+      <line x1="40" y1="336" x2="920" y2="336" stroke="rgba(245,246,244,0.12)" stroke-width="0.8"/>
+      <text x="40" y="372" fill="#b7bcb8" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <line x1="128" y1="364" x2="152" y2="364" stroke="#b7bcb8" stroke-width="1.6" stroke-dasharray="6,3"/>
+      <text x="160" y="368" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">Kay 2012 race records</text>
+      <line x1="360" y1="364" x2="384" y2="364" stroke="#ef6479" stroke-width="2"/>
+      <text x="392" y="368" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">Runsketch, recreational</text>
+      <line x1="624" y1="364" x2="648" y2="364" stroke="#ef6479" stroke-width="1.4" stroke-dasharray="4,2"/>
+      <text x="656" y="368" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">Runsketch, elite</text>
+
+      <rect x="128" y="390" width="24" height="10" rx="2" fill="rgba(239,100,121,0.12)"/>
+      <text x="160" y="400" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">descent skill: beginner → elite</text>
+      <line x1="360" y1="396" x2="384" y2="396" stroke="#82a0c0" stroke-width="1.4"/>
+      <text x="392" y="400" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">Fake My Stats</text>
+      <line x1="624" y1="396" x2="648" y2="396" stroke="#d3ad7a" stroke-width="1.4"/>
+      <text x="656" y="400" fill="#b7bcb8" font-size="12" font-family="'Public Sans', sans-serif">Dibma</text>
+    </svg>
+  </div>
+</body>
+</html>

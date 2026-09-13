@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two minutes of heart rate, second by second · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-hr-texture.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Row 8 of docs/comparison.md. 120 samples at 1 Hz, the same window as the speed figure.
+         Runsketch  flat 10 km at 5:00/km, chest strap, seed 3, seconds 1200-1319. Mean 170.3 bpm, 166-176.
+         fenix2     the decoded 47-minute, 9 km file over the same offset. Mean 170.1 bpm, 166-174.
+         fakemy.run computed from its published formula, not captured from the tool. Mean 149.3, 134-164.
+
+       Unlike the speed figure, this one IS drawn on a shared absolute axis, because the two means agree to
+       within 0.2 bpm (170.3 against 170.1) — there is no height mismatch to mislead anyone. fakemy.run sits
+       about 20 bpm lower simply because its formula is anchored to a 150 bpm average, and the point of
+       drawing it is the shape, not the level.
+
+       The recorded file skipped 2 seconds in this window. They are drawn as GAPS, not interpolated.
+       Ours and the file both move in small integer steps and hold a value for seconds at a time: the
+       1 s change SD is 0.610 against 0.612 bpm and 64.3 % of seconds are unchanged against 63.8 %.
+       fakemy.run redraws its noise at every track point at +/-15 bpm, so it jumps 134-164 second to second
+       with no inertia at all -- the jagged band nothing in a real trace resembles. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Two minutes of heart rate, against a recording and a formula</h1>
+
+    <svg viewBox="0 0 960 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-hr-texture-title comparison-hr-texture-desc">
+      <title id="comparison-hr-texture-title">Two minutes of heart rate, against a recording and a formula</title>
+      <desc id="comparison-hr-texture-desc">Two minutes of heart rate sampled every second. The Runsketch trace averages 170.3 bpm and the Garmin fenix 2 recording 170.1, so both are drawn on the same beats-per-minute axis, and the two seconds the watch skipped are left as gaps. Both move in small steps and hold the same value for seconds at a time, wandering a few beats across the window, with the Runsketch trace swinging a little wider. The fakemy.run formula sits about twenty beats lower, near 149 bpm, and jumps between 134 and 164 from one second to the next, a jagged band with no inertia, because its noise is redrawn independently at every track point.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="260.0" x2="912" y2="260.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80" y1="220.8" x2="912" y2="220.8" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="181.6" x2="912" y2="181.6" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="142.4" x2="912" y2="142.4" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="103.2" x2="912" y2="103.2" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="64.0" x2="912" y2="64.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72" y="263.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">130</text>
+      <text x="72" y="224.3" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">140</text>
+      <text x="72" y="185.1" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">150</text>
+      <text x="72" y="145.9" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">160</text>
+      <text x="72" y="106.7" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">170</text>
+      <text x="72" y="67.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">180 bpm</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="260" x2="80.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="219.9" y1="260" x2="219.9" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="219.9" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">20</text>
+      <line x1="359.8" y1="260" x2="359.8" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="359.8" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">40</text>
+      <line x1="499.7" y1="260" x2="499.7" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="499.7" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">60</text>
+      <line x1="639.5" y1="260" x2="639.5" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="639.5" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">80</text>
+      <line x1="779.4" y1="260" x2="779.4" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="779.4" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">100</text>
+      <line x1="912.0" y1="260" x2="912.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="912.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">120 s</text>
+      <text x="496" y="296" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">seconds</text>
+
+      <path d="M 80.0,173.8 L 87.0,146.3 L 94.0,224.7 L 101.0,213.0 L 108.0,142.4 L 115.0,216.9 L 121.9,158.1 L 128.9,220.8 L 135.9,165.9 L 142.9,244.3 L 149.9,146.3 L 156.9,173.8 L 163.9,213.0 L 170.9,220.8 L 177.9,181.6 L 184.9,224.7 L 191.9,185.5 L 198.9,205.1 L 205.8,240.4 L 212.8,177.7 L 219.8,216.9 L 226.8,220.8 L 233.8,158.1 L 240.8,185.5 L 247.8,209.0 L 254.8,236.5 L 261.8,162.0 L 268.8,134.6 L 275.8,130.6 L 282.8,130.6 L 289.7,228.6 L 296.7,201.2 L 303.7,169.8 L 310.7,232.6 L 317.7,134.6 L 324.7,158.1 L 331.7,181.6 L 338.7,228.6 L 345.7,177.7 L 352.7,193.4 L 359.7,201.2 L 366.7,205.1 L 373.6,209.0 L 380.6,142.4 L 387.6,126.7 L 394.6,193.4 L 401.6,209.0 L 408.6,162.0 L 415.6,150.2 L 422.6,232.6 L 429.6,146.3 L 436.6,126.7 L 443.6,158.1 L 450.6,216.9 L 457.5,224.7 L 464.5,201.2 L 471.5,169.8 L 478.5,205.1 L 485.5,197.3 L 492.5,138.5 L 499.5,240.4 L 506.5,165.9 L 513.5,134.6 L 520.5,169.8 L 527.5,220.8 L 534.5,158.1 L 541.4,209.0 L 548.4,201.2 L 555.4,216.9 L 562.4,173.8 L 569.4,220.8 L 576.4,173.8 L 583.4,193.4 L 590.4,193.4 L 597.4,193.4 L 604.4,134.6 L 611.4,181.6 L 618.4,177.7 L 625.3,213.0 L 632.3,205.1 L 639.3,162.0 L 646.3,220.8 L 653.3,205.1 L 660.3,205.1 L 667.3,173.8 L 674.3,185.5 L 681.3,158.1 L 688.3,146.3 L 695.3,220.8 L 702.3,177.7 L 709.2,134.6 L 716.2,224.7 L 723.2,146.3 L 730.2,193.4 L 737.2,126.7 L 744.2,138.5 L 751.2,154.2 L 758.2,232.6 L 765.2,181.6 L 772.2,150.2 L 779.2,146.3 L 786.2,142.4 L 793.1,169.8 L 800.1,189.4 L 807.1,162.0 L 814.1,130.6 L 821.1,201.2 L 828.1,220.8 L 835.1,236.5 L 842.1,165.9 L 849.1,126.7 L 856.1,185.5 L 863.1,224.7 L 870.1,224.7 L 877.0,205.1 L 884.0,173.8 L 891.0,146.3 L 898.0,216.9 L 905.0,177.7 L 912.0,185.5" fill="none" stroke="#5e7a9b" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M 80.0,103.2 L 87.0,103.2 L 94.0,103.2 L 101.0,103.2 L 108.0,107.1 L 115.0,103.2 L 121.9,99.3 L 128.9,103.2 L 135.9,103.2 L 142.9,103.2 L 149.9,103.2 L 156.9,103.2 L 163.9,107.1 L 170.9,107.1 L 177.9,111.0 L 184.9,115.0 L 191.9,115.0 L 198.9,115.0 L 205.8,115.0 L 212.8,115.0 L 219.8,115.0 L 226.8,118.9 L 233.8,118.9 L 240.8,118.9 L 247.8,115.0 L 254.8,118.9 L 261.8,118.9 L 268.8,115.0 L 275.8,115.0 L 282.8,115.0 L 289.7,115.0 L 296.7,115.0 L 303.7,115.0 L 310.7,115.0 L 317.7,115.0 L 324.7,118.9 L 331.7,111.0 L 338.7,111.0 L 345.7,115.0 L 352.7,111.0 L 359.7,111.0 L 366.7,111.0 L 373.6,107.1 L 380.6,107.1 L 387.6,107.1 L 394.6,103.2 L 401.6,103.2 L 408.6,99.3 L 415.6,99.3 L 422.6,99.3 L 429.6,99.3 L 436.6,99.3 L 443.6,99.3 L 450.6,95.4 L 457.5,95.4 L 464.5,95.4 L 471.5,91.4 L 478.5,87.5 L 485.5,87.5 L 492.5,87.5 L 499.5,87.5 L 506.5,87.5 L 513.5,91.4 L 520.5,91.4 L 527.5,91.4 L 534.5,95.4 L 541.4,95.4 L 548.4,95.4 M 569.4,95.4 L 576.4,95.4 L 583.4,95.4 L 590.4,91.4 L 597.4,91.4 L 604.4,91.4 L 611.4,95.4 L 618.4,95.4 L 625.3,95.4 L 632.3,95.4 L 639.3,95.4 L 646.3,95.4 L 653.3,99.3 L 660.3,99.3 L 667.3,99.3 L 674.3,99.3 L 681.3,99.3 L 688.3,103.2 L 695.3,99.3 L 702.3,103.2 L 709.2,103.2 L 716.2,103.2 L 723.2,103.2 L 730.2,99.3 L 737.2,103.2 L 744.2,103.2 L 751.2,103.2 L 758.2,103.2 L 765.2,103.2 L 772.2,103.2 L 779.2,103.2 L 786.2,99.3 L 793.1,99.3 L 800.1,99.3 L 807.1,103.2 L 814.1,99.3 L 821.1,103.2 L 828.1,99.3 L 835.1,99.3 L 842.1,103.2 L 849.1,99.3 L 856.1,99.3 L 863.1,99.3 L 870.1,99.3 L 877.0,99.3 L 884.0,99.3 L 891.0,99.3 L 898.0,95.4 L 905.0,95.4 L 912.0,95.4" fill="none" stroke="#474c55" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M 80.0,87.5 L 87.0,87.5 L 94.0,87.5 L 101.0,87.5 L 108.0,91.4 L 115.0,91.4 L 121.9,91.4 L 128.9,87.5 L 135.9,87.5 L 142.9,87.5 L 149.9,87.5 L 156.9,83.6 L 163.9,83.6 L 170.9,87.5 L 177.9,87.5 L 184.9,87.5 L 191.9,91.4 L 198.9,87.5 L 205.8,91.4 L 212.8,87.5 L 219.8,87.5 L 226.8,87.5 L 233.8,87.5 L 240.8,87.5 L 247.8,83.6 L 254.8,83.6 L 261.8,87.5 L 268.8,87.5 L 275.8,83.6 L 282.8,79.7 L 289.7,87.5 L 296.7,87.5 L 303.7,87.5 L 310.7,87.5 L 317.7,91.4 L 324.7,91.4 L 331.7,95.4 L 338.7,95.4 L 345.7,99.3 L 352.7,99.3 L 359.7,99.3 L 366.7,103.2 L 373.6,103.2 L 380.6,103.2 L 387.6,107.1 L 394.6,107.1 L 401.6,107.1 L 408.6,107.1 L 415.6,107.1 L 422.6,107.1 L 429.6,107.1 L 436.6,107.1 L 443.6,103.2 L 450.6,103.2 L 457.5,103.2 L 464.5,103.2 L 471.5,103.2 L 478.5,99.3 L 485.5,103.2 L 492.5,103.2 L 499.5,99.3 L 506.5,99.3 L 513.5,99.3 L 520.5,99.3 L 527.5,99.3 L 534.5,103.2 L 541.4,99.3 L 548.4,103.2 L 555.4,103.2 L 562.4,103.2 L 569.4,103.2 L 576.4,107.1 L 583.4,107.1 L 590.4,103.2 L 597.4,111.0 L 604.4,107.1 L 611.4,107.1 L 618.4,107.1 L 625.3,107.1 L 632.3,107.1 L 639.3,107.1 L 646.3,107.1 L 653.3,111.0 L 660.3,111.0 L 667.3,111.0 L 674.3,111.0 L 681.3,111.0 L 688.3,115.0 L 695.3,115.0 L 702.3,115.0 L 709.2,115.0 L 716.2,115.0 L 723.2,115.0 L 730.2,118.9 L 737.2,118.9 L 744.2,118.9 L 751.2,118.9 L 758.2,115.0 L 765.2,115.0 L 772.2,118.9 L 779.2,118.9 L 786.2,118.9 L 793.1,118.9 L 800.1,115.0 L 807.1,115.0 L 814.1,115.0 L 821.1,115.0 L 828.1,115.0 L 835.1,115.0 L 842.1,115.0 L 849.1,115.0 L 856.1,111.0 L 863.1,111.0 L 870.1,111.0 L 877.0,111.0 L 884.0,111.0 L 891.0,111.0 L 898.0,107.1 L 905.0,111.0 L 912.0,107.1" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+
+      <!-- The fakemy.run trace sweeps y 127-244 across the full width, so there is no room for a label
+           inside the plot on its side: at its old y 196 the line struck straight through the text. Lifted
+           into the empty canvas above the plot area, where its colour still ties it to the series.
+           The overlap label moves 96 -> 90 for clearance: the fenix 2 line sits at about y 99 on the right. -->
+      <text x="920" y="52" fill="#5e7a9b" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">fakemy.run: no inertia at all</text>
+      <text x="920" y="90" fill="#c21f3a" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">ours and the file overlap here</text>
+
+      <!-- legend -->
+      <line x1="40" y1="312" x2="920" y2="312" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="344" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="340" x2="152" y2="340" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Runsketch (mean 170.3 bpm)</text>
+      <line x1="392" y1="340" x2="416" y2="340" stroke="#474c55" stroke-width="1.6"/>
+      <text x="424" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Garmin fēnix 2 file (mean 170.1 bpm)</text>
+      <line x1="712" y1="340" x2="736" y2="340" stroke="#5e7a9b" stroke-width="1.2"/>
+      <text x="744" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">fakemy.run formula</text>
+
+      <text x="40" y="372" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Shared bpm axis here, unlike the speed figure: the two means agree to within 0.2 bpm, so there is no height mismatch to mislead.</text>
+      <text x="40" y="388" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Gaps in the recorded line are the two seconds the watch did not record, left as gaps rather than interpolated.</text>
+    </svg>
+  </div>
+</body>
+</html>

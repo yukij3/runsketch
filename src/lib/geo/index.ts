@@ -1,6 +1,8 @@
 // Geodesy helpers. Coordinates are [lon, lat].
 import type { LngLat } from '../types';
 
+export { ASCENT_THRESHOLD_M, ascentDescent, ascentIncrements, climbingSamples } from './ascent';
+
 /** IUGG mean Earth radius, metres. */
 export const EARTH_RADIUS_M = 6371008.8;
 

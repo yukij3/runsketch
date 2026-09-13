@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heart-rate lag to a step change · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-step.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Row 4 of docs/comparison.md. Fraction of an instantaneous 60 bpm step (100 -> 160 bpm and back)
+       completed over 300 s, sampled every 10 s.
+       Runsketch: t63 = 50 s rising, 100 s recovering, a ratio of 2.0 for the default athlete. Fitness scales
+       both (38/75 s fitter, 70/140 s less fit); only the default pair is drawn.
+       Fake My Stats uses ONE pair for every transition, 28 s and 55 s, drawn here as 1-exp(-t/tau).
+       The chart marks that a step is not a hill: on a real climb, where demand ramps in as the runner slows
+       rather than stepping, our rise takes 104 s (row 3). The step number is the model's own time constant.
+       For the rising side a treadmill study of eleven runners fitted 70.6 s first-order, or 18.6 s + 38.0 s
+       second-order; our 50 s sits between the two fits. FOR THE RECOVERY SIDE THERE IS NO RUNNING REFERENCE
+       AT ALL, so no reference band is drawn on either half. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Heart-rate lag to a step change in demand</h1>
+
+    <svg viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-step-title comparison-step-desc">
+      <title id="comparison-step-title">Heart-rate lag to a step change in demand</title>
+      <desc id="comparison-step-desc">The fraction of an instantaneous 60 bpm step in demand that heart rate has completed, over 300 seconds. Runsketch covers 63 per cent of a rise in 50 seconds and 63 per cent of a recovery in 100 seconds, a ratio of two to one. Fake My Stats uses a single pair for every transition, 28 seconds rising and 55 seconds recovering, so both of its curves are faster than ours. A note marks that a step is not a hill: on a real climb, where demand ramps in as the runner slows, the Runsketch rise takes 104 seconds instead. There is no running field reference for the recovery side, so none is drawn.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="260.0" x2="912" y2="260.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80" y1="211.0" x2="912" y2="211.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="162.0" x2="912" y2="162.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="113.0" x2="912" y2="113.0" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="64.0" x2="912" y2="64.0" stroke="rgba(27,29,34,0.16)" stroke-width="0.8"/>
+      <text x="72" y="263.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <text x="72" y="214.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">25</text>
+      <text x="72" y="165.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">50</text>
+      <text x="72" y="116.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">75</text>
+      <text x="72" y="67.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">100 %</text>
+
+      <!-- 63 % rule -->
+      <line x1="80" y1="136.5" x2="912" y2="136.5" stroke="rgba(27,29,34,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="908" y="130.5" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">63 % of the step</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="260" x2="80.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="218.7" y1="260" x2="218.7" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="218.7" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">50</text>
+      <line x1="357.3" y1="260" x2="357.3" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="357.3" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">100</text>
+      <line x1="496.0" y1="260" x2="496.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="496.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">150</text>
+      <line x1="634.7" y1="260" x2="634.7" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="634.7" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">200</text>
+      <line x1="773.3" y1="260" x2="773.3" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="773.3" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">250</text>
+      <line x1="912.0" y1="260" x2="912.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="912.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">300 s</text>
+      <text x="496" y="296" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">seconds after the step</text>
+
+      <!-- Fake My Stats, single 28 / 55 s pair -->
+      <polyline points="80.0,260.0 85.5,246.5 91.1,233.9 96.6,222.2 102.2,211.3 107.7,201.1 113.3,191.7 118.8,182.9 124.4,174.7 129.9,167.1 135.5,160.0 141.0,153.3 146.6,147.2 152.1,141.4 157.7,136.1 163.2,131.1 168.7,126.5 174.3,122.2 179.8,118.2 185.4,114.4 190.9,111.0 196.5,107.7 202.0,104.7 207.6,101.9 213.1,99.3 218.7,96.9 224.2,94.6 229.8,92.5 235.3,90.5 240.9,88.7 246.4,87.0 251.9,85.4 257.5,83.9 263.0,82.6 268.6,81.3 274.1,80.1 279.7,79.0 285.2,77.9 290.8,77.0 296.3,76.1 301.9,75.3 307.4,74.5 313.0,73.8 318.5,73.1 324.1,72.5 329.6,71.9 335.1,71.3 340.7,70.8 346.2,70.4 351.8,69.9 357.3,69.5 362.9,69.1 368.4,68.8 374.0,68.4 379.5,68.1 385.1,67.9 390.6,67.6 396.2,67.3 401.7,67.1 407.3,66.9 412.8,66.7 418.3,66.5 423.9,66.3 429.4,66.2 435.0,66.0 440.5,65.9 446.1,65.8 451.6,65.6 457.2,65.5 462.7,65.4 468.3,65.3 473.8,65.2 479.4,65.1 484.9,65.1 490.5,65.0 496.0,64.9 501.5,64.9 507.1,64.8 512.6,64.7 518.2,64.7 523.7,64.6 529.3,64.6 534.8,64.6 540.4,64.5 545.9,64.5 551.5,64.5 557.0,64.4 562.6,64.4 568.1,64.4 573.7,64.3 579.2,64.3 584.7,64.3 590.3,64.3 595.8,64.3 601.4,64.2 606.9,64.2 612.5,64.2 618.0,64.2 623.6,64.2 629.1,64.2 634.7,64.2 640.2,64.1 645.8,64.1 651.3,64.1 656.9,64.1 662.4,64.1 667.9,64.1 673.5,64.1 679.0,64.1 684.6,64.1 690.1,64.1 695.7,64.1 701.2,64.1 706.8,64.1 712.3,64.1 717.9,64.1 723.4,64.0 729.0,64.0 734.5,64.0 740.1,64.0 745.6,64.0 751.1,64.0 756.7,64.0 762.2,64.0 767.8,64.0 773.3,64.0 778.9,64.0 784.4,64.0 790.0,64.0 795.5,64.0 801.1,64.0 806.6,64.0 812.2,64.0 817.7,64.0 823.3,64.0 828.8,64.0 834.3,64.0 839.9,64.0 845.4,64.0 851.0,64.0 856.5,64.0 862.1,64.0 867.6,64.0 873.2,64.0 878.7,64.0 884.3,64.0 889.8,64.0 895.4,64.0 900.9,64.0 906.5,64.0 912.0,64.0" fill="none" stroke="#5e7a9b" stroke-width="1.4" stroke-linejoin="round"/>
+      <polyline points="80.0,260.0 85.5,253.0 91.1,246.3 96.6,239.7 102.2,233.5 107.7,227.4 113.3,221.6 118.8,216.0 124.4,210.5 129.9,205.3 135.5,200.2 141.0,195.4 146.6,190.7 152.1,186.2 157.7,181.8 163.2,177.6 168.7,173.5 174.3,169.6 179.8,165.9 185.4,162.2 190.9,158.7 196.5,155.3 202.0,152.1 207.6,148.9 213.1,145.9 218.7,143.0 224.2,140.1 229.8,137.4 235.3,134.8 240.9,132.3 246.4,129.8 251.9,127.5 257.5,125.2 263.0,123.0 268.6,120.9 274.1,118.9 279.7,116.9 285.2,115.0 290.8,113.2 296.3,111.5 301.9,109.8 307.4,108.1 313.0,106.6 318.5,105.0 324.1,103.6 329.6,102.2 335.1,100.8 340.7,99.5 346.2,98.2 351.8,97.0 357.3,95.8 362.9,94.7 368.4,93.6 374.0,92.5 379.5,91.5 385.1,90.5 390.6,89.6 396.2,88.7 401.7,87.8 407.3,86.9 412.8,86.1 418.3,85.3 423.9,84.6 429.4,83.8 435.0,83.1 440.5,82.4 446.1,81.8 451.6,81.1 457.2,80.5 462.7,79.9 468.3,79.4 473.8,78.8 479.4,78.3 484.9,77.8 490.5,77.3 496.0,76.8 501.5,76.4 507.1,75.9 512.6,75.5 518.2,75.1 523.7,74.7 529.3,74.3 534.8,73.9 540.4,73.6 545.9,73.2 551.5,72.9 557.0,72.6 562.6,72.3 568.1,72.0 573.7,71.7 579.2,71.4 584.7,71.2 590.3,70.9 595.8,70.7 601.4,70.4 606.9,70.2 612.5,70.0 618.0,69.8 623.6,69.6 629.1,69.4 634.7,69.2 640.2,69.0 645.8,68.8 651.3,68.6 656.9,68.5 662.4,68.3 667.9,68.2 673.5,68.0 679.0,67.9 684.6,67.7 690.1,67.6 695.7,67.5 701.2,67.3 706.8,67.2 712.3,67.1 717.9,67.0 723.4,66.9 729.0,66.8 734.5,66.7 740.1,66.6 745.6,66.5 751.1,66.4 756.7,66.3 762.2,66.2 767.8,66.2 773.3,66.1 778.9,66.0 784.4,65.9 790.0,65.9 795.5,65.8 801.1,65.7 806.6,65.7 812.2,65.6 817.7,65.6 823.3,65.5 828.8,65.4 834.3,65.4 839.9,65.3 845.4,65.3 851.0,65.3 856.5,65.2 862.1,65.2 867.6,65.1 873.2,65.1 878.7,65.0 884.3,65.0 889.8,65.0 895.4,64.9 900.9,64.9 906.5,64.9 912.0,64.8" fill="none" stroke="#5e7a9b" stroke-width="1.4" stroke-dasharray="4,2" stroke-linejoin="round"/>
+      <!-- Runsketch -->
+      <polyline points="80.0,260.0 107.7,224.5 135.5,195.3 163.2,171.6 190.9,152.0 218.7,136.1 246.4,123.0 274.1,112.4 301.9,103.6 329.6,96.3 357.3,90.5 385.1,85.8 412.8,81.8 440.5,78.5 468.3,76.0 496.0,73.8 523.7,72.0 551.5,70.5 579.2,69.3 606.9,68.3 634.7,67.5 662.4,66.9 690.1,66.4 717.9,66.0 745.6,65.6 773.3,65.4 801.1,65.2 828.8,65.0 856.5,64.8 884.3,64.6 912.0,64.4" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="80.0,260.0 107.7,241.4 135.5,224.5 163.2,209.2 190.9,195.3 218.7,183.0 246.4,171.6 274.1,161.4 301.9,152.0 329.6,143.8 357.3,136.1 385.1,129.3 412.8,123.0 440.5,117.5 468.3,112.4 496.0,107.7 523.7,103.6 551.5,99.9 579.2,96.3 606.9,93.4 634.7,90.5 662.4,87.9 690.1,85.8 717.9,83.6 745.6,81.8 773.3,80.1 801.1,78.5 828.8,77.1 856.5,76.0 884.3,74.8 912.0,73.8" fill="none" stroke="#c21f3a" stroke-width="1.8" stroke-dasharray="5,3" stroke-linejoin="round"/>
+
+      <!-- t63 markers -->
+      <circle cx="157.7" cy="136.1" r="2.5" fill="#5e7a9b"/>
+      <circle cx="232.5" cy="136.1" r="2.5" fill="#5e7a9b"/>
+      <circle cx="218.7" cy="136.1" r="3" fill="#c21f3a"/>
+      <circle cx="357.3" cy="136.1" r="3" fill="#c21f3a"/>
+      <text x="218.7" y="112" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">50 s</text>
+      <text x="357.3" y="112" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">100 s</text>
+      <text x="140" y="168" fill="#5e7a9b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">28 s</text>
+      <text x="250" y="184" fill="#5e7a9b" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">55 s</text>
+
+      <!-- A step is not a hill. Moved into the open band below every curve — past x 590 all four are above
+           y 100 — and the leader dropped. It used to sit at y 84, where our own rising curve passed through
+           the text (that curve runs y 86 to 69 across x 380-600). This is a caveat, not a pointer to a
+           coordinate, so it needs no leader. -->
+      <text x="896" y="200" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">on a real climb our rise takes 104 s, not 50</text>
+
+      <!-- legend -->
+      <line x1="40" y1="312" x2="920" y2="312" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="344" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="340" x2="152" y2="340" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Runsketch rising</text>
+      <line x1="316" y1="340" x2="340" y2="340" stroke="#c21f3a" stroke-width="1.8" stroke-dasharray="5,3"/>
+      <text x="348" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Runsketch recovering</text>
+      <line x1="536" y1="340" x2="560" y2="340" stroke="#5e7a9b" stroke-width="1.4"/>
+      <text x="568" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Fake My Stats rising</text>
+      <line x1="744" y1="340" x2="768" y2="340" stroke="#5e7a9b" stroke-width="1.4" stroke-dasharray="4,2"/>
+      <text x="776" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Fake My Stats recovering</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -26,24 +26,20 @@ interface FieldRowProps {
 }
 
 export function FieldRow({ label, htmlFor, labelId, hint, stacked, children }: FieldRowProps) {
-  const labelContent = (
-    <>
-      <span>{label}</span>
-      {hint ? <span className="row__hint">{hint}</span> : null}
-    </>
-  );
   return (
     <div className={cx('row', stacked && 'row--stacked')}>
       {htmlFor ? (
         <label className="row__label" htmlFor={htmlFor} id={labelId}>
-          {labelContent}
+          {label}
         </label>
       ) : (
         <span className="row__label" id={labelId}>
-          {labelContent}
+          {label}
         </span>
       )}
       <div className="row__value">{children}</div>
+      {/* Under both columns, so a zone or an "automatic" note has the whole width and stays on one line. */}
+      {hint ? <span className="row__hint">{hint}</span> : null}
     </div>
   );
 }
@@ -78,12 +74,19 @@ interface SegmentedProps<T extends string> {
   label?: string;
   size?: 'sm' | 'md';
   fill?: boolean;
+  /** With `fill`: options share the row in proportion to their labels, for strips whose labels differ a lot in length. */
+  proportional?: boolean;
 }
 
-export function Segmented<T extends string>({ value, options, onChange, labelledBy, label, size = 'md', fill }: SegmentedProps<T>) {
+export function Segmented<T extends string>({ value, options, onChange, labelledBy, label, size = 'md', fill, proportional }: SegmentedProps<T>) {
   const name = useId();
   return (
-    <div className={cx('seg', size === 'sm' && 'seg--sm', fill && 'seg--fill')} role="radiogroup" aria-labelledby={labelledBy} aria-label={labelledBy ? undefined : label}>
+    <div
+      className={cx('seg', size === 'sm' && 'seg--sm', fill && 'seg--fill', fill && proportional && 'seg--proportional')}
+      role="radiogroup"
+      aria-labelledby={labelledBy}
+      aria-label={labelledBy ? undefined : label}
+    >
       {options.map((o) => (
         <label key={o.value} className={cx('seg__opt', o.value === value && 'is-on')} title={o.title}>
           <input className="seg__input" type="radio" name={name} value={o.value} checked={o.value === value} onChange={() => onChange(o.value)} />

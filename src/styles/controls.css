@@ -300,6 +300,12 @@
   min-width: 0;
 }
 
+/* Five activities, one as long as "Mountaineering": each option grows from its own label. */
+.seg--proportional .seg__opt {
+  flex: 1 1 auto;
+  padding-inline: 6px;
+}
+
 .seg__opt {
   position: relative;
   display: inline-flex;
@@ -406,6 +412,7 @@
 }
 
 .row__hint {
+  grid-column: 1 / -1;
   margin-top: 2px;
   color: var(--ink-3);
   font-size: var(--text-xs);

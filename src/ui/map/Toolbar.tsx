@@ -7,6 +7,7 @@ import { SNAP_PROFILES } from '../../app/state';
 import { parseRouteFile } from '../../lib/import';
 import type { SnapProfile } from '../../lib/types';
 import { IconButton, cx } from '../controls';
+import { ExamplesMenu } from './ExamplesMenu';
 import { SearchBox } from './SearchBox';
 
 function Notice() {
@@ -97,6 +98,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
           <IconButton icon={ArrowUpDown} label={t('reverse')} onClick={actions.reverse} disabled={count < 2} />
         </div>
         <div className="toolbar__group">
+          <ExamplesMenu />
           <IconButton icon={FileUp} label={t('importRoute')} onClick={() => fileRef.current?.click()} />
           <input ref={fileRef} type="file" accept=".gpx,.tcx,.fit" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => void onFile(e)} />
           <span ref={clearRef} className="toolbar__clear">

@@ -1,12 +1,14 @@
 // localStorage preferences and the share link in location.hash. Everything read back is validated.
 import { decodePolyline, encodePolyline } from '../lib/geo';
 import { legKey, newWaypointId } from '../lib/route';
-import { EFFORT_PRESETS, defaultAthlete, defaultSession, estimateMaxHr, type EffortPreset } from '../lib/sim';
+import { EFFORT_PRESETS, defaultAthlete, defaultSession, estimateMaxHr, mountainDefaults, sanitiseWeatherSettings, type EffortPreset, type MountainSettings } from '../lib/sim';
 import type { LegGeometry } from '../lib/services/routing';
 import type {
+  Acclimatisation,
   ActivityType,
   Athlete,
   FitnessLevel,
+  Footwear,
   GpsNoiseLevel,
   HrSensor,
   LngLat,
@@ -14,14 +16,16 @@ import type {
   RouteLeg,
   SessionSettings,
   SnapProfile,
+  SnowCondition,
   StopsLevel,
   TargetSpec,
   Units,
   Waypoint,
 } from '../lib/types';
+import { isTimeZone } from '../lib/weather/time';
 import { STORAGE_KEY } from './config';
 import { defaultActivityName, detectLang, type Lang } from './i18n';
-import { ACTIVITIES, SNAP_PROFILES, lapDistanceFor, localStartHour, type AppState, type MapView } from './state';
+import { ACTIVITIES, SNAP_PROFILES, defaultWeatherSettings, lapDistanceFor, localStartHour, stopsLevels, type AppState, type MapView } from './state';
 
 type Json = Record<string, unknown>;
 
@@ -34,9 +38,12 @@ const str = (v: unknown, max: number, fallback: string): string => (typeof v ===
 
 const FITNESS: readonly FitnessLevel[] = ['beginner', 'recreational', 'trained', 'elite'];
 const PACING: readonly PacingStrategy[] = ['even', 'negative', 'positive'];
-const STOPS: readonly StopsLevel[] = ['none', 'few', 'urban'];
+const STOPS: readonly StopsLevel[] = ['none', 'few', 'urban', 'alpine'];
 const GPS: readonly GpsNoiseLevel[] = ['off', 'low', 'normal', 'high'];
 const SENSORS: readonly HrSensor[] = ['strap', 'optical'];
+const ACCLIMATISATION: readonly Acclimatisation[] = ['none', 'partial', 'full'];
+const FOOTWEAR: readonly Footwear[] = ['trail-shoes', 'mountain-boots', 'double-boots'];
+const SNOW: readonly SnowCondition[] = ['firm', 'soft', 'deep'];
 
 export function sanitizeAthlete(raw: unknown, fallback: Athlete = defaultAthlete()): Athlete {
   const r = isObject(raw) ? raw : {};
@@ -71,14 +78,22 @@ export function sanitizeHrTarget(raw: unknown): number | null {
   return typeof raw === 'number' && Number.isFinite(raw) && raw >= 40 && raw <= 230 ? Math.round(raw) : null;
 }
 
-/** Stored session preferences over today's defaults; start time is always "now". */
+/** Stored session preferences over today's defaults (the start time is handled by buildInitialState). Weather settings default to automatic. */
 export function sanitizeSession(raw: unknown, base: SessionSettings): SessionSettings {
   const r = isObject(raw) ? raw : {};
   const type = oneOf(r.type, ACTIVITIES, base.type);
   const typed = type === base.type ? base : { ...defaultSession(type, base.startTime), startTime: base.startTime, utcOffsetMin: base.utcOffsetMin };
+  // States saved before the mountain fields existed take the activity's defaults.
+  const mountain = mountainDefaults(type);
   return {
     ...typed,
     type,
+    acclimatisation: oneOf(r.acclimatisation, ACCLIMATISATION, typed.acclimatisation ?? mountain.acclimatisation),
+    packKg: num(r.packKg, 0, 60, typed.packKg ?? mountain.packKg),
+    footwear: oneOf(r.footwear, FOOTWEAR, typed.footwear ?? mountain.footwear),
+    crampons: typeof r.crampons === 'boolean' ? r.crampons : (typed.crampons ?? mountain.crampons),
+    snow: oneOf(r.snow, SNOW, typed.snow ?? mountain.snow),
+    snowlineM: typeof r.snowlineM === 'number' && Number.isFinite(r.snowlineM) && r.snowlineM >= 0 && r.snowlineM <= 9000 ? Math.round(r.snowlineM) : null,
     target: sanitizeTarget(r.target, typed.target),
     variability: num(r.variability, 0, 1, typed.variability),
     pacing: oneOf(r.pacing, PACING, typed.pacing),
@@ -90,8 +105,18 @@ export function sanitizeSession(raw: unknown, base: SessionSettings): SessionSet
     name: str(r.name, 120, typed.name),
     description: str(r.description, 2000, typed.description),
     hrTarget: sanitizeHrTarget(r.hrTarget),
+    weather: sanitiseWeatherSettings(r.weather) ?? defaultWeatherSettings(),
   };
 }
+
+/** Minutes east of UTC that exist somewhere (−12:00 … +14:00). */
+export function sanitizeOffset(raw: unknown): number | null {
+  return typeof raw === 'number' && Number.isInteger(raw) && raw >= -720 && raw <= 840 ? raw : null;
+}
+
+/** Start instants a session may carry: 1970 … 2100, epoch ms. */
+const START_RANGE = { min: 0, max: Date.UTC(2100, 0, 1) } as const;
+const validStart = (raw: unknown): raw is number => typeof raw === 'number' && Number.isFinite(raw) && raw >= START_RANGE.min && raw <= START_RANGE.max;
 
 function sanitizeCoords(raw: unknown, max = 500): LngLat[] {
   if (!Array.isArray(raw)) return [];
@@ -120,6 +145,11 @@ export interface PersistedState {
   athlete: Athlete;
   maxHrAuto: boolean;
   session: Omit<SessionSettings, 'startTime' | 'utcOffsetMin' | 'lapDistance'>;
+  /** Present only when the start was set (startAuto false). */
+  startTime?: number;
+  utcOffsetMin?: number;
+  startAuto: boolean;
+  routeZone: string;
   nameAuto: boolean;
   targetAuto: boolean;
   effortPreset: EffortPreset | null;
@@ -131,12 +161,15 @@ export interface PersistedState {
 }
 
 export function toPersisted(s: AppState): PersistedState {
-  const { startTime: _start, utcOffsetMin: _offset, lapDistance: _lap, ...session } = s.session;
+  const { startTime, utcOffsetMin, lapDistance: _lap, ...session } = s.session;
   return {
     v: 1,
     athlete: s.athlete,
     maxHrAuto: s.maxHrAuto,
     session: { ...session, hrTarget: session.hrTarget ?? null },
+    ...(s.startAuto ? {} : { startTime, utcOffsetMin }),
+    startAuto: s.startAuto,
+    routeZone: s.routeZone,
     nameAuto: s.nameAuto,
     targetAuto: s.targetAuto,
     effortPreset: s.effortPreset,
@@ -149,7 +182,9 @@ export function toPersisted(s: AppState): PersistedState {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Share link: #v=1&r=<polyline>&p=<profile>&a=<activity>&t=<p330|s6.944|d3600>&s=<seed>[&h=<avg HR bpm>]
+// Share link: #v=1&r=<polyline>&p=<profile>&a=<activity>&t=<p330|s6.944|d3600>&s=<seed>[&h=<avg HR bpm>][&st=<start, epoch minutes>&so=<UTC offset, minutes>]
+// [&wm=manual][&wc=<humidity,wind,from,rain>][&wp=<pins, dotted>]. The weather keys are written only when they leave the
+// automatic, neutral default, so an ordinary link stays short.
 
 export interface SharePayload {
   coords: LngLat[];
@@ -159,6 +194,11 @@ export interface SharePayload {
   seed?: number;
   /** Average HR to match; absent when the link follows the athlete profile. */
   hrTarget?: number;
+  /** Start set by the sender (epoch ms, whole minutes) and its offset at the route; absent when the start followed "now". */
+  startTime?: number;
+  utcOffsetMin?: number;
+  /** Weather mode, manual values and pins; absent when the link left them at the automatic, neutral default. */
+  weather?: NonNullable<SessionSettings['weather']>;
 }
 
 export function encodeTarget(t: TargetSpec): string {
@@ -176,7 +216,7 @@ export function decodeTarget(text: string | null): TargetSpec | undefined {
   return t === none ? undefined : t;
 }
 
-export function encodeShare(s: Pick<AppState, 'waypoints' | 'profile' | 'session'>): string {
+export function encodeShare(s: Pick<AppState, 'waypoints' | 'profile' | 'session'> & Partial<Pick<AppState, 'startAuto'>>): string {
   const params = new URLSearchParams();
   params.set('v', '1');
   params.set('r', encodePolyline(s.waypoints.map((w) => [w.lon, w.lat])));
@@ -186,6 +226,20 @@ export function encodeShare(s: Pick<AppState, 'waypoints' | 'profile' | 'session
   params.set('s', String(s.session.seed));
   const hr = sanitizeHrTarget(s.session.hrTarget);
   if (hr !== null) params.set('h', String(hr));
+  if (s.startAuto === false && validStart(s.session.startTime)) {
+    // With automatic weather the start time shapes the file, so a link that set it carries it.
+    params.set('st', String(Math.round(s.session.startTime / 60_000)));
+    params.set('so', String(Math.round(s.session.utcOffsetMin)));
+  }
+  // Manual weather, hand-set values and pins all change the file, so a link carries whatever leaves the default.
+  const w = sanitiseWeatherSettings(s.session.weather) ?? defaultWeatherSettings();
+  const d = defaultWeatherSettings();
+  if (w.mode !== d.mode) params.set('wm', w.mode);
+  const m = w.manual;
+  if (m.humidityPct !== d.manual.humidityPct || m.windMps !== d.manual.windMps || m.windFromDeg !== d.manual.windFromDeg || m.rainMmH !== d.manual.rainMmH) {
+    params.set('wc', [m.humidityPct, m.windMps, m.windFromDeg, m.rainMmH].map((x) => Math.round(x * 10) / 10).join(','));
+  }
+  if (w.pinned.length > 0) params.set('wp', w.pinned.join('.'));
   return params.toString();
 }
 
@@ -209,6 +263,22 @@ export function decodeShare(hash: string): SharePayload | null {
   if (params.has('s') && Number.isInteger(seed) && seed >= 0 && seed <= 0xffffffff) payload.seed = seed;
   const hr = params.has('h') ? sanitizeHrTarget(Number(params.get('h'))) : null;
   if (hr !== null) payload.hrTarget = hr;
+  const st = Number(params.get('st'));
+  if (params.has('st') && Number.isInteger(st) && validStart(st * 60_000)) {
+    payload.startTime = st * 60_000;
+    const so = sanitizeOffset(Number(params.get('so')));
+    if (so !== null) payload.utcOffsetMin = so;
+  }
+  if (params.has('wm') || params.has('wc') || params.has('wp')) {
+    const c = (params.get('wc') ?? '').split(',').map(Number);
+    const manual = c.length === 4 && c.every((x) => Number.isFinite(x)) ? { humidityPct: c[0], windMps: c[1], windFromDeg: c[2], rainMmH: c[3] } : undefined;
+    const weather = sanitiseWeatherSettings({
+      mode: params.get('wm') ?? 'auto',
+      manual: manual ?? defaultWeatherSettings().manual,
+      pinned: params.has('wp') ? (params.get('wp') ?? '').split('.') : [],
+    });
+    if (weather) payload.weather = weather;
+  }
   return payload;
 }
 
@@ -256,6 +326,12 @@ export function buildInitialState(env: InitialEnv): AppState {
 
   const base = defaultSession('run', Math.floor(env.now / 60_000) * 60_000);
   let session = sanitizeSession(stored.session, base);
+  // A start the user set survives reloads; otherwise it follows "now".
+  let startAuto = true;
+  if (stored.startAuto === false && validStart(stored.startTime)) {
+    startAuto = false;
+    session = { ...session, startTime: stored.startTime, utcOffsetMin: sanitizeOffset(stored.utcOffsetMin) ?? session.utcOffsetMin };
+  }
   if (share?.activity && share.activity !== session.type) {
     session = { ...session, ...pickTypeDefaults(share.activity, session) };
   }
@@ -271,8 +347,13 @@ export function buildInitialState(env: InitialEnv): AppState {
     targetAuto = false;
     effortPreset = null;
   }
+  if (share?.weather) session = { ...session, weather: share.weather };
   if (share?.seed !== undefined) session = { ...session, seed: share.seed };
   if (share?.hrTarget !== undefined) session = { ...session, hrTarget: share.hrTarget };
+  if (share?.startTime !== undefined) {
+    startAuto = false;
+    session = { ...session, startTime: share.startTime, utcOffsetMin: share.utcOffsetMin ?? -new Date(share.startTime).getTimezoneOffset() };
+  }
   session.lapDistance = lapDistanceFor(units);
 
   const nameAuto = stored.nameAuto !== false || !session.name.trim();
@@ -307,16 +388,25 @@ export function buildInitialState(env: InitialEnv): AppState {
     terrain: { state: 'idle', profile: null },
     sim: { state: 'idle', result: null, activity: session.type, seq: 0 },
     terrainRetry: 0,
+    weather: { state: 'idle', key: '', series: null },
+    weatherRetry: 0,
+    weatherRefresh: 0,
+    routeZone: isTimeZone(stored.routeZone) ? stored.routeZone : '',
+    startAuto,
     view: sanitizeView(stored.view),
     viewRequest: null,
     notice: null,
   };
 }
 
-/** Target and name defaults when the activity type changes (a duration target is kept). */
-export function pickTypeDefaults(type: ActivityType, current: SessionSettings): Pick<SessionSettings, 'type' | 'target'> {
+/**
+ * Target, stops and mountain defaults when the activity type changes. A duration target is kept, and so are stops the
+ * new activity offers; mountaineering starts with mountain breaks, and the mountain settings follow the activity.
+ */
+export function pickTypeDefaults(type: ActivityType, current: SessionSettings): Pick<SessionSettings, 'type' | 'target' | 'stops'> & MountainSettings {
   const target = current.target.kind === 'duration' ? current.target : defaultSession(type, current.startTime).target;
-  return { type, target };
+  const stops = type === 'alpine' ? 'alpine' : stopsLevels(type).includes(current.stops) ? current.stops : 'none';
+  return { type, target, stops, ...mountainDefaults(type) };
 }
 
 export function loadStored(storage: Pick<Storage, 'getItem'> | undefined): unknown {

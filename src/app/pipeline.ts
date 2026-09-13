@@ -1,7 +1,10 @@
-// Waypoints → legs (only changed ones) → joined route → terrain profile → simulate() → result.
+// Waypoints → legs (only changed ones) → joined route → terrain profile → weather → simulate() → result.
 // Each stage is debounced and cancellable; the store carries status for the UI.
-import { joinLegs, legKey } from '../lib/route';
+import { joinLegs, legKey, type RouteLine } from '../lib/route';
 import { straightLeg, type LegGeometry } from '../lib/services/routing';
+import { WeatherError, weatherKey, type WeatherFetcher, type WeatherRequest } from '../lib/services/weather';
+import { weatherSamplePoints, weatherWindow } from '../lib/weather/points';
+import { isTimeZone } from '../lib/weather/time';
 import type { EffortPreset, PresetSolution } from '../lib/sim';
 import type {
   ActivityType,
@@ -12,26 +15,39 @@ import type {
   SimulationInput,
   SimulationResult,
   SnapProfile,
+  StopsLevel,
   TargetSpec,
   TerrainProfile,
   Units,
+  WaySpan,
   Waypoint,
+  WeatherSeries,
 } from '../lib/types';
 import { DELAYS } from './config';
-import type { LegCounts } from './i18n';
+import { defaultActivityName, type LegCounts } from './i18n';
 import { roundLeg } from './legCache';
-import type { AppState, RoutingStatus } from './state';
+import { localStartHour, type AppState, type RoutingStatus } from './state';
 import type { Store } from './store';
+import { rezoneStart } from './zone';
 
 type MaybePromise<T> = T | Promise<T>;
 
 export interface PipelineDeps {
   routeLeg: (a: LngLat, b: LngLat, profile: SnapProfile, signal: AbortSignal) => Promise<LegGeometry>;
-  buildProfile: (route: LngLat[], activity: ActivityType, signal: AbortSignal) => Promise<TerrainProfile>;
+  /** `ways`: way tags along the route when any leg carries them (see joinLegs). */
+  buildProfile: (route: LngLat[], activity: ActivityType, signal: AbortSignal, ways?: WaySpan[]) => Promise<TerrainProfile>;
   /** Synchronous, or asynchronous with latest-request-wins (a superseded promise rejects with name 'SupersededError'). */
   simulate: (input: SimulationInput) => MaybePromise<SimulationResult>;
   /** Solves the average speed for an effort preset; without it presets are not applied. */
   solvePreset?: (input: SimulationInput, preset: EffortPreset) => MaybePromise<PresetSolution | null>;
+  /** Fetches weather for automatic mode; without it the weather stage is off and the engine gets the manual conditions. */
+  fetchWeather?: WeatherFetcher;
+  /** Series kept across reloads, so a stored route and start simulate at once and identically. */
+  weatherCache?: { get(key: string): WeatherSeries | undefined; remember(series: WeatherSeries): void };
+  /** False skips the request and leaves the manual values in use. */
+  online?: () => boolean;
+  /** Clock that decides between forecast and archive, epoch ms. */
+  now?: () => number;
   delays?: Partial<Record<keyof typeof DELAYS, number>>;
 }
 
@@ -71,19 +87,50 @@ export function routeCoords(state: Pick<AppState, 'waypoints' | 'profile' | 'leg
     if (!leg) return null;
     legs.push(leg);
   }
-  return legs.length ? joinLegs(legs) : null;
+  return legs.length ? joinLegs(legs).coords : null;
 }
 
-/** Inputs that change the simulated streams (name, description and start time only label the file). */
-export function simKey(athlete: Athlete, session: SessionSettings): string {
+const STOP_ALLOWANCE: Readonly<Record<StopsLevel, number>> = { none: 0, few: 0.05, urban: 0.2, alpine: 0.25 };
+
+/** Elapsed seconds the weather should cover: the target's moving time plus a stop allowance, with 15 % to spare. */
+export function expectedElapsed(session: Pick<SessionSettings, 'target' | 'stops'>, distance: number): number {
+  const t = session.target;
+  let moving = t.kind === 'duration' ? t.seconds : t.kind === 'pace' ? (distance * t.secPerKm) / 1000 : distance / t.mps;
+  if (!(Number.isFinite(moving) && moving > 0)) moving = 3600;
+  return moving * (1 + (STOP_ALLOWANCE[session.stops] ?? 0)) * 1.15;
+}
+
+/** The weather request for a profile and start: sampled points and whole days around the activity (widened by `elapsedHint`, s). */
+export function weatherRequest(profile: TerrainProfile, session: SessionSettings, now: number, elapsedHint = 0): WeatherRequest {
+  const elapsed = Math.max(expectedElapsed(session, profile.totalDistance), 1.1 * elapsedHint);
+  return { points: weatherSamplePoints(profile), ...weatherWindow(session.startTime, elapsed), now };
+}
+
+/**
+ * What of the weather the simulated streams depend on: in automatic mode with a series, the series and the start (to
+ * the minute, with its offset); 'fallback' when automatic mode fell back to the manual values; '' otherwise.
+ */
+export function weatherIdentity(s: Pick<AppState, 'session' | 'weather'>): string {
+  if (s.session.weather?.mode !== 'auto') return '';
+  const w = s.weather;
+  if (w.state === 'done' && w.series) return `${w.series.key}|${w.series.fetchedAt}|${Math.floor(s.session.startTime / 60_000)}|${s.session.utcOffsetMin}`;
+  return w.state === 'error' ? 'fallback' : '';
+}
+
+/**
+ * Inputs that change the simulated streams: name and description only label the file, and so does the start time unless
+ * a weather series is active (pass weatherIdentity as `weather`).
+ */
+export function simKey(athlete: Athlete, session: SessionSettings, weather = ''): string {
   const { name: _n, description: _d, startTime: _s, utcOffsetMin: _o, ...rest } = session;
-  return JSON.stringify([athlete, rest]);
+  return JSON.stringify(weather ? [athlete, rest, weather] : [athlete, rest]);
 }
 
-/** Inputs that change what an effort preset solves to (everything the kinematics and VO2max see, not the target). */
-export function presetKey(s: Pick<AppState, 'athlete' | 'session' | 'effortPreset' | 'units'>): string {
+/** Inputs that change what an effort preset solves to (everything the kinematics, weather and VO2max see, not the target). */
+export function presetKey(s: Pick<AppState, 'athlete' | 'session' | 'effortPreset' | 'units'> & Partial<Pick<AppState, 'weather'>>): string {
   const { name: _n, description: _d, startTime: _s, utcOffsetMin: _o, target, hrTarget: _h, lapDistance: _l, ...rest } = s.session;
-  return JSON.stringify([s.athlete, rest, s.effortPreset, s.units, presetKind(s.session.type, target)]);
+  const weather = s.weather ? weatherIdentity({ session: s.session, weather: s.weather }) : '';
+  return JSON.stringify([s.athlete, rest, s.effortPreset, s.units, presetKind(s.session.type, target), ...(weather ? [weather] : [])]);
 }
 
 function presetKind(type: ActivityType, target: TargetSpec): TargetSpec['kind'] {
@@ -121,7 +168,22 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
   /** Increments whenever a started simulation must not land any more (newer request, new terrain, cleared route). */
   let simToken = 0;
   const preset = { done: '', pending: '' };
-  let seen: Pick<AppState, 'waypoints' | 'profile' | 'legs' | 'athlete' | 'session' | 'terrainRetry' | 'effortPreset' | 'units'> | null = null;
+  const now = deps.now ?? (() => Date.now());
+  const initial = store.get();
+  /** The weather request in use: its key, the retry and refresh counters it answered, and the pending fetch. */
+  const weather = {
+    key: '',
+    retry: initial.weatherRetry,
+    refresh: initial.weatherRefresh,
+    controller: null as AbortController | null,
+    timer: undefined as ReturnType<typeof setTimeout> | undefined,
+  };
+  /** Longest elapsed time simulated on the current terrain, s: a target that runs long widens the weather window once. */
+  let elapsedHint = { terrain: '', seconds: 0 };
+  let seen: Pick<
+    AppState,
+    'waypoints' | 'profile' | 'legs' | 'athlete' | 'session' | 'terrainRetry' | 'effortPreset' | 'units' | 'weather' | 'weatherRetry' | 'weatherRefresh'
+  > | null = null;
   let running = false;
   let dirty = false;
   let disposed = false;
@@ -167,11 +229,11 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
     terrain = { key: '', controller: null, profile: null };
   }
 
-  async function runTerrain(key: string, coords: LngLat[], activity: ActivityType) {
+  async function runTerrain(key: string, line: RouteLine, activity: ActivityType) {
     const controller = new AbortController();
     terrain.controller = controller;
     try {
-      const profile = await deps.buildProfile(coords, activity, controller.signal);
+      const profile = await deps.buildProfile(line.coords, activity, controller.signal, line.ways);
       if (disposed || terrain.key !== key) return;
       terrain.profile = profile;
       seen = null;
@@ -183,17 +245,125 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
     }
   }
 
+  function cancelWeather() {
+    clearTimeout(weather.timer);
+    weather.timer = undefined;
+    weather.controller?.abort();
+    weather.controller = null;
+  }
+
+  /** The series the engine simulates with: automatic mode with a series for the current request, otherwise none (manual values). */
+  const engineWeather = (s: AppState): WeatherSeries | null =>
+    deps.fetchWeather && s.session.weather?.mode === 'auto' && s.weather.state === 'done' && s.weather.key === weather.key ? s.weather.series : null;
+
+  /** A simulation started with other weather must not land. */
+  function dropPendingSim() {
+    clearTimeout(simTimer);
+    pendingSimKey = '';
+    simToken++;
+  }
+
+  /** Puts a series in use: points at the current route distances, and the start moved into the route's time zone. */
+  function applyWeather(key: string, req: WeatherRequest, series: WeatherSeries) {
+    const s = store.get();
+    const patch: Partial<AppState> = { weather: { state: 'done', key, series: { ...series, points: req.points.map((p) => ({ ...p })) } } };
+    if (isTimeZone(series.timezone)) {
+      if (series.timezone !== s.routeZone) patch.routeZone = series.timezone;
+      let session = rezoneStart(s.session, series.timezone, s.startAuto);
+      if (session !== s.session && s.nameAuto) session = { ...session, name: defaultActivityName(s.lang, session.type, localStartHour(session)) };
+      if (session !== s.session) patch.session = session;
+    }
+    store.set(patch);
+  }
+
+  async function runWeather(key: string, req: WeatherRequest, force: boolean) {
+    weather.timer = undefined;
+    const fetchWeather = deps.fetchWeather;
+    if (!fetchWeather) return;
+    const controller = new AbortController();
+    weather.controller = controller;
+    try {
+      const series = await fetchWeather(req, { signal: controller.signal, force });
+      if (disposed || controller.signal.aborted || weather.key !== key) return;
+      weather.controller = null;
+      deps.weatherCache?.remember(series);
+      applyWeather(key, req, series);
+    } catch (err) {
+      if (disposed || controller.signal.aborted || weather.key !== key) return;
+      weather.controller = null;
+      store.set({ weather: { state: 'error', key, series: null, error: err instanceof WeatherError ? err.kind : 'network' } });
+    }
+  }
+
+  /**
+   * Automatic weather for the route and start: a held or cached series is applied at once, otherwise it is fetched after
+   * a debounce. Returns false while presets and the simulation must wait. Errors leave the manual values in use.
+   */
+  function weatherStage(s: AppState, profile: TerrainProfile): boolean {
+    if (!deps.fetchWeather || s.session.weather?.mode !== 'auto') {
+      if (weather.key) {
+        cancelWeather();
+        weather.key = '';
+        if (s.weather.state === 'busy') {
+          store.set({ weather: { ...s.weather, state: 'idle' } });
+          return false;
+        }
+      }
+      return true;
+    }
+    const hint = elapsedHint.terrain === terrain.key ? elapsedHint.seconds : 0;
+    const req = weatherRequest(profile, s.session, now(), hint);
+    const key = weatherKey(req);
+    const refresh = s.weatherRefresh !== weather.refresh;
+    if (key !== weather.key || refresh || s.weatherRetry !== weather.retry) {
+      cancelWeather();
+      weather.key = key;
+      weather.retry = s.weatherRetry;
+      weather.refresh = s.weatherRefresh;
+      dropPendingSim();
+      const held = s.weather.key === key && s.weather.state === 'done' ? s.weather.series : null;
+      const cached = refresh ? null : (held ?? deps.weatherCache?.get(key) ?? null);
+      if (cached) {
+        applyWeather(key, req, cached);
+        return false;
+      }
+      if (deps.online && !deps.online()) {
+        store.set({ weather: { state: 'error', key, series: null, error: 'offline' } });
+        return false;
+      }
+      store.set({ weather: { state: 'busy', key, series: null }, ...(s.sim.state !== 'busy' ? { sim: { ...s.sim, state: 'busy' as const } } : {}) });
+      weather.timer = setTimeout(() => void runWeather(key, req, refresh), delays.weather);
+      return false;
+    }
+    if (s.weather.key !== key || s.weather.state === 'busy') {
+      if (s.sim.state !== 'busy') store.set({ sim: { ...s.sim, state: 'busy' } });
+      return false;
+    }
+    // The same series on an edited route: its points take the current distances along the route.
+    const series = s.weather.series;
+    if (s.weather.state === 'done' && series && series.points.some((p, i) => p.d !== req.points[i]?.d)) {
+      store.set({ weather: { ...s.weather, series: { ...series, points: req.points.map((p) => ({ ...p })) } } });
+      return false;
+    }
+    return true;
+  }
+
   function runSim() {
     simTimer = undefined;
     const s = store.get();
     const profile = terrain.profile;
     pendingSimKey = '';
     if (!profile) return;
-    lastSimKey = `${terrain.key}|${simKey(s.athlete, s.session)}`;
+    const terrainKey = terrain.key;
+    lastSimKey = `${terrainKey}|${simKey(s.athlete, s.session, weatherIdentity(s))}`;
     const token = ++simToken;
     const activity = s.session.type;
     const apply = (result: SimulationResult) => {
       if (disposed || token !== simToken) return;
+      const elapsed = result.summary?.elapsed;
+      if (typeof elapsed === 'number' && Number.isFinite(elapsed)) {
+        elapsedHint = { terrain: terrainKey, seconds: elapsedHint.terrain === terrainKey ? Math.max(elapsedHint.seconds, elapsed) : elapsed };
+      }
       const cur = store.get();
       const n = result.streams.t.length;
       store.set({
@@ -206,7 +376,7 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       store.set({ sim: { state: 'error', result: null, activity, error: message(err), seq: store.get().sim.seq }, playhead: null });
     };
     try {
-      const out = deps.simulate({ profile, athlete: s.athlete, session: s.session });
+      const out = deps.simulate({ profile, athlete: s.athlete, session: s.session, weather: engineWeather(s) });
       if (isPromise(out)) out.then(apply, fail);
       else apply(out);
     } catch (err) {
@@ -247,7 +417,7 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       finish(null);
     };
     try {
-      const out = solve({ profile, athlete: s.athlete, session: s.session }, chosen);
+      const out = solve({ profile, athlete: s.athlete, session: s.session, weather: engineWeather(s) }, chosen);
       if (isPromise(out)) out.then(finish, fail);
       else finish(out);
     } catch (err) {
@@ -266,7 +436,10 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       seen.session === s.session &&
       seen.terrainRetry === s.terrainRetry &&
       seen.effortPreset === s.effortPreset &&
-      seen.units === s.units
+      seen.units === s.units &&
+      seen.weather === s.weather &&
+      seen.weatherRetry === s.weatherRetry &&
+      seen.weatherRefresh === s.weatherRefresh
     ) {
       return;
     }
@@ -279,6 +452,9 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       terrainRetry: s.terrainRetry,
       effortPreset: s.effortPreset,
       units: s.units,
+      weather: s.weather,
+      weatherRetry: s.weatherRetry,
+      weatherRefresh: s.weatherRefresh,
     };
 
     const needed = neededLegs(s.waypoints, s.profile);
@@ -295,13 +471,16 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       routeTimerSig = '';
       clearTimeout(simTimer);
       cancelTerrain();
+      cancelWeather();
+      weather.key = '';
       lastSimKey = '';
       pendingSimKey = '';
       simToken++;
       preset.pending = '';
       setRouting({ state: 'idle', done: 0, total: 0 });
-      if (s.terrain.state !== 'idle' || s.sim.result || s.sim.state !== 'idle') {
-        store.set({ terrain: { state: 'idle', profile: null }, sim: { ...s.sim, state: 'idle', result: null, error: undefined }, playhead: null });
+      const weatherIdle = s.weather.state === 'busy' ? { weather: { ...s.weather, state: 'idle' as const } } : {};
+      if (s.terrain.state !== 'idle' || s.sim.result || s.sim.state !== 'idle' || s.weather.state === 'busy') {
+        store.set({ terrain: { state: 'idle', profile: null }, sim: { ...s.sim, state: 'idle', result: null, error: undefined }, playhead: null, ...weatherIdle });
       }
       return;
     }
@@ -336,15 +515,16 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       pendingSimKey = '';
       simToken++;
       terrain.key = terrainKey;
-      const coords = joinLegs(needed.map((n) => s.legs.get(n.key)!));
+      const line = joinLegs(needed.map((n) => s.legs.get(n.key)!));
       const activity = s.session.type;
       store.set({ terrain: { state: 'busy', profile: s.terrain.profile } });
-      terrainTimer = setTimeout(() => void runTerrain(terrainKey, coords, activity), delays.terrain);
+      terrainTimer = setTimeout(() => void runTerrain(terrainKey, line, activity), delays.terrain);
       return;
     }
     if (!terrain.profile) return;
+    if (!weatherStage(s, terrain.profile)) return;
 
-    // An effort preset is solved for this terrain before the session is simulated with its target.
+    // An effort preset is solved for this terrain and weather before the session is simulated with its target.
     if (s.effortPreset && deps.solvePreset) {
       const pk = `${terrain.key}|${presetKey(s)}`;
       if (pk !== preset.done) {
@@ -359,7 +539,7 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
       }
     }
 
-    const key = `${terrain.key}|${simKey(s.athlete, s.session)}`;
+    const key = `${terrain.key}|${simKey(s.athlete, s.session, weatherIdentity(s))}`;
     if (key !== lastSimKey && key !== pendingSimKey) {
       pendingSimKey = key;
       clearTimeout(simTimer);
@@ -395,6 +575,7 @@ export function startPipeline(store: Store<AppState>, deps: PipelineDeps): () =>
     clearTimeout(routeTimer);
     clearTimeout(simTimer);
     cancelTerrain();
+    cancelWeather();
     for (const controller of inflight.values()) controller.abort();
     inflight.clear();
   };

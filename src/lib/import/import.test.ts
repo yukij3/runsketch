@@ -3,11 +3,16 @@ import { describe, expect, it } from 'vitest';
 import type { LngLat } from '../types';
 import { FIXTURE_NAME, makeExportInput } from '../export/__fixtures__/activity';
 import { buildGpx, buildTcx } from '../export';
+import { recordPlan } from '../export/recording';
 import { RouteImportError, parseRouteFile } from './index';
 
 function expectedCoords(): LngLat[] {
-  const s = makeExportInput('run').result.streams;
-  const coords = Array.from(s.lat, (lat, i): LngLat => [Number(s.lon[i].toFixed(7)), Number(lat.toFixed(7))]);
+  const input = makeExportInput('run');
+  const s = input.result.streams;
+  const { written } = recordPlan(input);
+  const coords = Array.from(s.lat, (lat, i): LngLat => [Number(s.lon[i].toFixed(7)), Number(lat.toFixed(7))]).filter(
+    (_, i) => written[i] === 1,
+  );
   return coords.filter((c, i) => i === 0 || c[0] !== coords[i - 1][0] || c[1] !== coords[i - 1][1]);
 }
 

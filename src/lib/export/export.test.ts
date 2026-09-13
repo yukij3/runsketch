@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import FitParser from 'fit-file-parser';
 import { afterAll, describe, expect, it } from 'vitest';
-import type { ActivityType, ExportInput } from '../types';
+import type { ActivityType, ExportInput, SessionSettings } from '../types';
 import {
   FIXTURE_CALORIES,
   FIXTURE_DESCRIPTION,
@@ -16,8 +16,11 @@ import {
   fixtureLapBoundary,
   makeExportInput,
 } from './__fixtures__/activity';
+import { wholeCadence, wholeCadenceSeries } from './common';
 import { buildFit, buildGpx, buildTcx, exportActivity, exportFilename, slugify } from './index';
+import { defaultAthlete, defaultSession, flatProfile, simulate } from '../sim';
 import { apportion } from './laps';
+import { pausedSeconds, recordPlan } from './recording';
 
 const XSD_DIR = fileURLToPath(new URL('./__fixtures__/xsd/', import.meta.url));
 const hasXmllint = !spawnSync('xmllint', ['--version']).error;
@@ -33,13 +36,23 @@ function validate(xml: string, wrapper: 'gpx-tpx1.xsd' | 'tcx-ax2.xsd', label: s
   return { status: run.status, stderr: run.stderr.trim() };
 }
 
-const TYPES: ActivityType[] = ['run', 'ride', 'walk', 'hike'];
+const TYPES: ActivityType[] = ['run', 'ride', 'walk', 'hike', 'alpine'];
 const count = (text: string, needle: string) => text.split(needle).length - 1;
 const iso = (ms: number) => new Date(ms).toISOString().replace('.000Z', 'Z');
 
-/** An input whose streams hold out-of-range values that must be clamped to stay schema-valid. */
+/** Sample indices a writer puts in the file (auto-pauses and skipped seconds left out). */
+const writtenIndices = (input: ExportInput) => {
+  const { written } = recordPlan(input);
+  return Array.from(written.keys()).filter((i) => written[i] === 1);
+};
+/** The GPX trkpt chunk for elapsed second i. */
+const trkptAt = (gpx: string, i: number) =>
+  gpx.split('<trkpt ').find((chunk) => chunk.includes(`<time>${iso(FIXTURE_START + i * 1000)}</time>`));
+const PAUSED_SECONDS = FIXTURE_STOP.to + 1 - FIXTURE_STOP.from;
+
+/** An input whose streams hold out-of-range values that must be clamped to stay schema-valid (no skipped seconds). */
 function extremeInput(type: ActivityType): ExportInput {
-  const input = makeExportInput(type, { name: 'Ctlchars <&>', description: ']]> "q" \'a\'' });
+  const input = makeExportInput(type, { gpsNoise: 'off', name: 'Ctlchars <&>', description: ']]> "q" \'a\'' });
   const s = input.result.streams;
   s.cadence.fill(999);
   s.hr.fill(300);
@@ -52,28 +65,43 @@ function extremeInput(type: ActivityType): ExportInput {
 }
 
 describe('GPX', () => {
-  it('writes metadata, escaped text, sport type and one trkpt per second', () => {
-    const gpx = buildGpx(makeExportInput('run'));
+  it('writes metadata, escaped text, sport type and one trkpt per written second', () => {
+    const input = makeExportInput('run');
+    const gpx = buildGpx(input);
     expect(gpx).toContain('creator="Runsketch 0.1.0"');
     expect(gpx).toContain('<name>Tempo &lt;Run&gt; &amp; &quot;Hills&quot;</name>');
     expect(gpx).toContain('<desc>Easy &apos;shakeout&apos; &amp; strides — утро</desc>');
     expect(gpx).toContain(`<time>${iso(FIXTURE_START)}</time>`);
     expect(gpx).toContain('<type>running</type>');
-    expect(count(gpx, '<trkpt ')).toBe(FIXTURE_SAMPLES);
+    expect(count(gpx, '<trkpt ')).toBe(writtenIndices(input).length);
     expect(gpx).toMatch(/<trkpt lat="52\.5200000" lon="13\.4050000"><ele>34\.0<\/ele><time>2026-09-12T07:00:00Z<\/time>/);
     expect(gpx).toContain(`<time>${iso(FIXTURE_START + 119_000)}</time>`);
   });
 
-  it('halves foot cadence to strides/min and keeps TPX order atemp, hr, cad', () => {
+  it('halves foot cadence to rounded strides/min and keeps TPX order atemp, hr, cad', () => {
     const input = makeExportInput('run');
     const gpx = buildGpx(input);
     const first = gpx.split('<trkpt ')[1];
     const hr = Math.round(input.result.streams.hr[0]);
+    // 171 spm → 85.5 strides/min → 86. atemp is the device temperature stream (18 °C warming to 20 °C).
     expect(first).toContain(
-      `<gpxtpx:TrackPointExtension><gpxtpx:atemp>18.0</gpxtpx:atemp><gpxtpx:hr>${hr}</gpxtpx:hr><gpxtpx:cad>85</gpxtpx:cad></gpxtpx:TrackPointExtension>`,
+      `<gpxtpx:TrackPointExtension><gpxtpx:atemp>18.0</gpxtpx:atemp><gpxtpx:hr>${hr}</gpxtpx:hr><gpxtpx:cad>86</gpxtpx:cad></gpxtpx:TrackPointExtension>`,
     );
-    const stopped = gpx.split('<trkpt ')[FIXTURE_STOP.from + 1];
-    expect(stopped).toContain('<gpxtpx:cad>0</gpxtpx:cad>');
+    expect(gpx.split('<trkpt ').at(-1)).toContain('<gpxtpx:atemp>20.0</gpxtpx:atemp>');
+    expect(trkptAt(gpx, FIXTURE_STOP.from)).toContain('<gpxtpx:cad>0</gpxtpx:cad>');
+  });
+
+  it('leaves an auto-pause as a time gap in the track segment', () => {
+    const gpx = buildGpx(makeExportInput('run'));
+    for (let i = FIXTURE_STOP.from + 1; i <= FIXTURE_STOP.to; i++) expect(trkptAt(gpx, i)).toBeUndefined();
+    expect(trkptAt(gpx, FIXTURE_STOP.to + 1)).toBeDefined();
+    expect(count(gpx, '<trkseg>')).toBe(1);
+  });
+
+  it('writes mountaineering as the type Garmin Connect uses, and names blank ascents by part of day', () => {
+    const gpx = buildGpx(makeExportInput('alpine', { name: '', startTime: Date.UTC(2026, 8, 12, 0, 30) }));
+    expect(gpx).toContain('<type>mountaineering</type>');
+    expect(gpx).toContain('<name>Night Ascent</name>');
   });
 
   it('writes ride cadence as rpm and the cycling type', () => {
@@ -112,17 +140,18 @@ describe('GPX', () => {
 });
 
 describe('TCX', () => {
-  it('writes one Lap per summary lap covering every trackpoint once', () => {
+  it('writes one Lap per summary lap covering every written trackpoint once', () => {
     const input = makeExportInput('run');
     const tcx = buildTcx(input);
     const boundary = fixtureLapBoundary(input);
+    const written = writtenIndices(input);
     expect(tcx).toContain('<Activity Sport="Running">');
     expect(tcx).toContain(`<Id>${iso(FIXTURE_START)}</Id>`);
     expect(count(tcx, '<Lap StartTime=')).toBe(2);
     expect(tcx).toContain(`<Lap StartTime="${iso(FIXTURE_START + boundary * 1000)}">`);
-    expect(count(tcx, '<Trackpoint>')).toBe(FIXTURE_SAMPLES);
+    expect(count(tcx, '<Trackpoint>')).toBe(written.length);
     const laps = tcx.split('<Lap StartTime=').slice(1);
-    expect(count(laps[0], '<Trackpoint>')).toBe(boundary);
+    expect(count(laps[0], '<Trackpoint>')).toBe(written.filter((i) => i < boundary).length);
     expect(tcx).toContain('<TriggerMethod>Distance</TriggerMethod>');
     expect(tcx).toContain('<Notes>Easy &apos;shakeout&apos; &amp; strides — утро</Notes>');
     expect(tcx).toMatch(/<Creator xsi:type="Device_t">\s*<Name>Runsketch<\/Name>/);
@@ -146,9 +175,21 @@ describe('TCX', () => {
     expect(tcx).not.toContain('RunCadence');
   });
 
-  it('maps walks and hikes to Other (the XSD enum has no walking/hiking)', () => {
+  it('starts a new Track after an auto-pause and reports timer time and speed over it', () => {
+    const input = makeExportInput('run');
+    const laps = buildTcx(input).split('<Lap StartTime=').slice(1);
+    const lap = input.result.summary.laps[0];
+    const timer = lap.elapsed - PAUSED_SECONDS;
+    expect(count(laps[0], '<Track>')).toBe(2);
+    expect(count(laps[1], '<Track>')).toBe(1);
+    expect(laps[0]).toContain(`<TotalTimeSeconds>${timer.toFixed(1)}</TotalTimeSeconds>`);
+    expect(laps[0]).toContain(`<ns3:AvgSpeed>${(lap.distance / timer).toFixed(3)}</ns3:AvgSpeed>`);
+  });
+
+  it('maps walks, hikes and mountaineering to Other (the XSD enum has no walking/hiking)', () => {
     expect(buildTcx(makeExportInput('walk'))).toContain('<Activity Sport="Other">');
     expect(buildTcx(makeExportInput('hike'))).toContain('<Activity Sport="Other">');
+    expect(buildTcx(makeExportInput('alpine'))).toContain('<Activity Sport="Other">');
   });
 
   describe.skipIf(!hasXmllint)('validates against TrainingCenterDatabasev2.xsd + ActivityExtensionv2.xsd', () => {
@@ -215,40 +256,56 @@ describe('FIT', () => {
     const input = makeExportInput('run');
     const { streams: s, summary } = input.result;
     const fit = await decodeFit(input);
+    const written = writtenIndices(input);
 
     expect(fit.file_ids?.[0]).toMatchObject({ type: 'activity', manufacturer: 'development', product: 0 });
     expect(fit.device_infos?.[0]).toMatchObject({ product_name: 'Runsketch', software_version: 0.01 });
 
     const records = fit.records ?? [];
-    expect(records).toHaveLength(FIXTURE_SAMPLES);
+    const at = (i: number) => records.find((r) => ms(r.timestamp) === FIXTURE_START + i * 1000);
+    expect(records).toHaveLength(written.length);
     expect(ms(records[0].timestamp)).toBe(FIXTURE_START);
-    expect(ms(records[FIXTURE_SAMPLES - 1].timestamp)).toBe(FIXTURE_START + 119_000);
+    expect(ms(records[records.length - 1].timestamp)).toBe(FIXTURE_START + 119_000);
     expect(records[0].position_lat).toBeCloseTo(52.52, 6);
     expect(records[0].position_long).toBeCloseTo(13.405, 6);
-    expect(records.map((r) => r.heart_rate)).toEqual(Array.from(s.hr, (v) => Math.round(v)));
+    expect(records.map((r) => r.heart_rate)).toEqual(written.map((i) => Math.round(s.hr[i])));
     // 171 spm → 85 strides + 0.5; 170 spm → 85 + 0.
     expect(records[0]).toMatchObject({ cadence: 85, fractional_cadence: 0.5 });
-    expect(records[1]).toMatchObject({ cadence: 85, fractional_cadence: 0 });
-    expect(records[FIXTURE_STOP.from]).toMatchObject({ cadence: 0, enhanced_speed: 0 });
-    expect(records[10].enhanced_speed).toBeCloseTo(s.speed[10], 3);
-    expect(records[10].distance).toBeCloseTo(s.dist[10], 2);
+    expect(at(written.find((i) => i % 2 === 1)!)).toMatchObject({ cadence: 85, fractional_cadence: 0 });
+    expect(at(FIXTURE_STOP.from)).toMatchObject({ cadence: 0, enhanced_speed: 0 });
+    const k = written.find((i) => i >= 10)!;
+    expect(at(k)?.enhanced_speed).toBeCloseTo(s.speed[k], 3);
+    expect(at(k)?.distance).toBeCloseTo(s.dist[k], 2);
     // enhanced_altitude has 0.2 m resolution (scale 5).
-    expect(Math.abs((records[10].enhanced_altitude ?? Number.NaN) - s.ele[10])).toBeLessThanOrEqual(0.1);
-    expect(records[10].temperature).toBe(18);
-    expect(records[10].power).toBeUndefined();
+    expect(Math.abs((at(k)?.enhanced_altitude ?? Number.NaN) - s.ele[k])).toBeLessThanOrEqual(0.1);
+    expect(at(k)?.temperature).toBe(18);
+    expect(at(k)?.power).toBeUndefined();
 
+    // Auto-pause: timer stop_all (trigger auto = 1) at the stop's first second, no records while paused, then start.
     const events = fit.events ?? [];
-    expect(events.map((e) => [e.event, e.event_type])).toEqual([
-      ['timer', 'start'],
-      ['timer', 'stop_all'],
+    expect(events.map((e) => [e.event, e.event_type, e.data])).toEqual([
+      ['timer', 'start', 0],
+      ['timer', 'stop_all', 1],
+      ['timer', 'start', 1],
+      ['timer', 'stop_all', 0],
     ]);
+    const pausedFrom = ms(events[1].timestamp);
+    const pausedTo = ms(events[2].timestamp);
+    expect(pausedFrom).toBe(FIXTURE_START + FIXTURE_STOP.from * 1000);
+    expect(pausedTo).toBe(FIXTURE_START + (FIXTURE_STOP.to + 1) * 1000);
+    expect(records.filter((r) => ms(r.timestamp) > pausedFrom && ms(r.timestamp) < pausedTo)).toEqual([]);
 
+    const timer = summary.elapsed - PAUSED_SECONDS;
     const laps = fit.laps ?? [];
     expect(laps).toHaveLength(2);
     expect(ms(laps[1].start_time)).toBe(FIXTURE_START + fixtureLapBoundary(input) * 1000);
     expect(laps.reduce((a, l) => a + (l.total_calories as number), 0)).toBe(FIXTURE_CALORIES);
     expect(laps[0].lap_trigger).toBe('distance');
     expect(laps[1].lap_trigger).toBe('session_end');
+    expect(laps.reduce((a, l) => a + (l.total_timer_time as number), 0)).toBeCloseTo(timer, 3);
+    for (const lap of laps) {
+      expect(lap.avg_speed as number).toBeCloseTo((lap.total_distance as number) / (lap.total_timer_time as number), 2);
+    }
 
     const session = fit.sessions?.[0];
     expect(session).toMatchObject({
@@ -256,7 +313,7 @@ describe('FIT', () => {
       sub_sport: 'generic',
       num_laps: 2,
       total_elapsed_time: summary.elapsed,
-      total_timer_time: summary.elapsed,
+      total_timer_time: timer,
       total_calories: FIXTURE_CALORIES,
       total_ascent: Math.round(summary.ascent),
       total_descent: Math.round(summary.descent),
@@ -264,13 +321,38 @@ describe('FIT', () => {
       max_heart_rate: Math.round(summary.maxHr),
       avg_cadence: Math.floor(Math.round(summary.avgCadence) / 2),
       max_cadence: 85,
+      max_fractional_cadence: 0.5,
+      max_temperature: 20,
     });
     expect(session?.total_distance).toBeCloseTo(summary.distance, 2);
-    expect(session?.avg_speed).toBeCloseTo(summary.avgSpeed, 3);
+    expect(session?.avg_speed).toBeCloseTo(summary.distance / timer, 3);
     expect(ms(session?.start_time)).toBe(FIXTURE_START);
 
-    expect(fit.activity).toMatchObject({ num_sessions: 1, type: 'manual' });
+    expect(fit.activity).toMatchObject({ num_sessions: 1, type: 'manual', total_timer_time: timer });
     expect(ms(fit.activity.local_timestamp) - ms(fit.activity.timestamp)).toBe(FIXTURE_UTC_OFFSET_MIN * 60_000);
+  });
+
+  it('writes running dynamics derived from speed and cadence for chest-strap foot activities only', async () => {
+    const fit = await decodeFit(makeExportInput('run'));
+    const running = (fit.records ?? []).filter((r) => (r.enhanced_speed as number) > 1);
+    expect(running.length).toBeGreaterThan(50);
+    for (const r of running) {
+      const spm = 2 * ((r.cadence as number) + (r.fractional_cadence as number));
+      // ≈ 250 ms at 3 m/s falling 30 ms per m/s, plus a personal offset; 7–11 cm oscillation.
+      expect(r.stance_time as number).toBeGreaterThan(180);
+      expect(r.stance_time as number).toBeLessThan(320);
+      expect(r.vertical_oscillation as number).toBeGreaterThan(60);
+      expect(r.vertical_oscillation as number).toBeLessThan(120);
+      expect(Math.abs((r.step_length as number) - ((r.enhanced_speed as number) * 60_000) / spm)).toBeLessThan(1);
+      expect(r.stance_time_percent as number).toBeCloseTo(((r.stance_time as number) * spm) / 1200, 0);
+      expect(r.vertical_ratio as number).toBeCloseTo((100 * (r.vertical_oscillation as number)) / (r.step_length as number), 0);
+    }
+    expect(fit.sessions?.[0].avg_step_length as number).toBeGreaterThan(1000);
+    expect(fit.sessions?.[0].avg_step_length as number).toBeLessThan(1250);
+    for (const other of [makeExportInput('run', { hrSensor: 'optical' }), makeExportInput('ride')]) {
+      const records = (await decodeFit(other)).records ?? [];
+      expect(records.some((r) => r.stance_time !== undefined || r.step_length !== undefined)).toBe(false);
+    }
   });
 
   it('writes rides as cycling/road with rpm cadence and power', async () => {
@@ -287,6 +369,7 @@ describe('FIT', () => {
   it.each([
     ['walk', 'walking'],
     ['hike', 'hiking'],
+    ['alpine', 'mountaineering'],
   ] as const)('maps %s to sport %s', async (type, sport) => {
     const fit = await decodeFit(makeExportInput(type));
     expect(fit.sessions?.[0]).toMatchObject({ sport, sub_sport: 'generic' });
@@ -296,10 +379,29 @@ describe('FIT', () => {
   it('survives out-of-range and missing samples', async () => {
     const fit = await decodeFit(extremeInput('run'));
     const records = fit.records ?? [];
-    expect(records).toHaveLength(FIXTURE_SAMPLES);
+    expect(records).toHaveLength(FIXTURE_SAMPLES - (PAUSED_SECONDS - 1));
     expect(records[0]).toMatchObject({ heart_rate: 254, cadence: 254 });
     expect(records[4].heart_rate).toBeUndefined();
     expect(records[6].enhanced_altitude).toBeUndefined();
+  });
+});
+
+describe('averages over timer time', () => {
+  it('an urban run matched to 150 bpm reports the average HR its written records hold, in the summary, session and laps', async () => {
+    const athlete = defaultAthlete();
+    const session = { ...defaultSession('run', FIXTURE_START), seed: 7, stops: 'urban' as const, hrTarget: 150 };
+    const result = simulate({ profile: flatProfile(6000), athlete, session });
+    const fit = await decodeFit({ result, session, athlete, appName: '', appVersion: '0.2.0' });
+    const records = fit.records ?? [];
+    const meanHr = (list: typeof records) => list.reduce((a, r) => a + (r.heart_rate as number), 0) / list.length;
+    expect((fit.events ?? []).filter((e) => e.event_type === 'stop_all' && e.data === 1).length).toBeGreaterThanOrEqual(3);
+    expect(Math.abs((fit.sessions?.[0].avg_heart_rate as number) - meanHr(records))).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(result.summary.avgHr - meanHr(records))).toBeLessThan(0.2);
+    expect(Math.abs(result.summary.avgHr - 150)).toBeLessThanOrEqual(0.6);
+    for (const lap of fit.laps ?? []) {
+      const inLap = records.filter((r) => ms(r.timestamp) >= ms(lap.start_time) && ms(r.timestamp) <= ms(lap.timestamp));
+      expect(Math.abs((lap.avg_heart_rate as number) - meanHr(inLap))).toBeLessThanOrEqual(0.6);
+    }
   });
 });
 
@@ -334,6 +436,59 @@ describe('exportActivity', () => {
     expect(buildGpx(input)).toContain('strides — утро');
     expect(buildTcx(input)).toContain('strides — утро');
     expect(FIXTURE_DESCRIPTION).toContain('утро');
+  });
+});
+
+describe('record plan', () => {
+  /** The fixture stretched to `n` always-moving seconds (the plan only reads t, moving and the lap ranges). */
+  const longInput = (gpsNoise: SessionSettings['gpsNoise'], n = 20000): ExportInput => {
+    const input = makeExportInput('run', { gpsNoise });
+    const streams = { ...input.result.streams, t: Float64Array.from({ length: n }, (_, i) => i), moving: new Uint8Array(n).fill(1) };
+    return { ...input, result: { ...input.result, streams, summary: { ...input.result.summary, laps: [] } } };
+  };
+
+  it('skips about 0.7 % of 1 s intervals as 2–4 s gaps, deterministically, and none with GPS noise off', () => {
+    const input = longInput('normal');
+    const plan = recordPlan(input);
+    const n = plan.written.length;
+    const kept = Array.from(plan.written.keys()).filter((i) => plan.written[i] === 1);
+    const gaps = kept.slice(1).map((i, k) => i - kept[k]).filter((d) => d > 1);
+    expect(gaps.every((g) => g >= 2 && g <= 4)).toBe(true);
+    expect(gaps.filter((g) => g === 2).length).toBeGreaterThan(gaps.length / 2);
+    expect(gaps.length / (n - 1)).toBeGreaterThan(0.004);
+    expect(gaps.length / (n - 1)).toBeLessThan(0.01);
+    expect([plan.written[0], plan.written[n - 1]]).toEqual([1, 1]);
+    expect(plan.pauses).toEqual([]);
+    expect(recordPlan(input).written).toEqual(plan.written);
+    expect(recordPlan(longInput('off')).written.every((w) => w === 1)).toBe(true);
+  });
+
+  it('auto-pauses interior stops of 3 s or more, never a standing start or a 2 s halt', () => {
+    const input = makeExportInput('run', { gpsNoise: 'off' });
+    const s = input.result.streams;
+    s.moving[0] = 0;
+    s.moving[1] = 0;
+    s.moving[100] = 0;
+    s.moving[101] = 0;
+    const plan = recordPlan(input);
+    expect(plan.pauses).toEqual([{ from: FIXTURE_STOP.from, to: FIXTURE_STOP.to + 1 }]);
+    expect(pausedSeconds(plan, s.t, 0, FIXTURE_SAMPLES - 1)).toBe(PAUSED_SECONDS);
+    expect(pausedSeconds(plan, s.t, FIXTURE_STOP.to + 1, FIXTURE_SAMPLES - 1)).toBe(0);
+    expect(plan.written.reduce((a, b) => a + b, 0)).toBe(FIXTURE_SAMPLES - (PAUSED_SECONDS - 1));
+  });
+});
+
+describe('cadence in XML files', () => {
+  it('rounds to whole strides/min without favouring either neighbour of a half step', () => {
+    const steps = Float64Array.from([171, 171, 172, 173, 173, 170, 169, 0]);
+    expect(Array.from(wholeCadenceSeries(steps, 'run'))).toEqual([86, 86, 86, 86, 86, 85, 85, 0]);
+    expect(Array.from(wholeCadenceSeries(Float64Array.from([88.4, 88.6]), 'ride'))).toEqual([88, 89]);
+    expect(wholeCadence(171, 'run')).toBe(86);
+    // Over a wandering cadence the written strides average out to half the steps (flooring lost a quarter stride).
+    const wandering = Float64Array.from({ length: 5000 }, (_, i) => 170 + Math.round(4 * Math.sin(i / 37) + 2 * Math.sin(i / 5.3)));
+    const written = wholeCadenceSeries(wandering, 'run');
+    const bias = written.reduce((a, v, i) => a + v - wandering[i] / 2, 0) / wandering.length;
+    expect(Math.abs(bias)).toBeLessThan(0.06);
   });
 });
 

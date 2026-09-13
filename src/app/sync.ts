@@ -1,8 +1,10 @@
-// Mirrors preferences into localStorage, routed legs into the leg cache, and the route into location.hash (debounced).
+// Mirrors preferences into localStorage, routed legs and weather series into their caches, and the route into
+// location.hash (debounced).
 import type { LegCache } from './legCache';
 import { encodeShare, saveStored } from './persistence';
 import type { AppState } from './state';
 import type { Store } from './store';
+import type { WeatherCache } from './weatherCache';
 
 const PERSISTED: ReadonlyArray<keyof AppState> = [
   'athlete',
@@ -17,6 +19,9 @@ const PERSISTED: ReadonlyArray<keyof AppState> = [
   'waypoints',
   'view',
   'legs',
+  'startAuto',
+  'routeZone',
+  'weather',
 ];
 
 export interface SyncEnv {
@@ -25,6 +30,8 @@ export interface SyncEnv {
   history: Pick<History, 'replaceState'>;
   /** Routed legs survive reloads through this cache (optional). */
   legCache?: Pick<LegCache, 'remember' | 'save'>;
+  /** Weather series the pipeline remembered are written with the preferences (optional). */
+  weatherCache?: Pick<WeatherCache, 'save'>;
 }
 
 export function shareHash(state: AppState): string {
@@ -43,6 +50,7 @@ export function startSync(store: Store<AppState>, env: SyncEnv, delayMs = 300): 
       env.legCache.remember(s.legs);
       env.legCache.save(env.storage);
     }
+    env.weatherCache?.save(env.storage);
     const hash = shareHash(s);
     if (env.location.hash !== hash && !(hash === '' && env.location.hash === '#')) {
       env.history.replaceState(null, '', `${env.location.pathname}${env.location.search}${hash}`);

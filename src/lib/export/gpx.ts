@@ -6,14 +6,16 @@ import {
   assertSamples,
   creatorName,
   fileHeartRate,
+  fileTemperature,
   fixed,
   hasPosition,
   isoUtc,
   normalizeLon,
   sampleEpochSeconds,
-  wholeCadence,
+  wholeCadenceSeries,
   xmlEscape,
 } from './common';
+import { recordPlan } from './recording';
 
 const GPX_NS = 'http://www.topografix.com/GPX/1/1';
 const TPX_NS = 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1';
@@ -30,19 +32,22 @@ const GPX_TYPE: Record<ActivityType, string> = {
   ride: 'cycling',
   walk: 'walking',
   hike: 'hiking',
+  alpine: 'mountaineering',
 };
 
+/**
+ * GPX has no timer events, so an auto-pause is a time gap inside the one track segment, as in a device's own GPX
+ * export; skipped seconds are gaps too (see recordPlan).
+ */
 export function buildGpx(input: ExportInput): string {
   const { result, session, appName, appVersion } = input;
   const s = result.streams;
   const n = assertSamples(s);
+  const plan = recordPlan(input);
+  const cadence = wholeCadenceSeries(s.cadence, session.type);
   const title = xmlEscape(activityTitle(session));
   const desc = session.description.trim();
   const descLine = (indent: string) => (desc ? [`${indent}<desc>${xmlEscape(desc)}</desc>`] : []);
-  // Ambient temperature is constant for the session; TPX v1 sequence is atemp, wtemp, depth, hr, cad.
-  const atemp = Number.isFinite(session.temperatureC)
-    ? `<gpxtpx:atemp>${fixed(session.temperatureC, 1)}</gpxtpx:atemp>`
-    : '';
 
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -60,9 +65,14 @@ export function buildGpx(input: ExportInput): string {
   ];
 
   for (let i = 0; i < n; i++) {
-    if (!hasPosition(s, i)) continue; // lat/lon are required attributes of wptType
+    if (!plan.written[i] || !hasPosition(s, i)) continue; // lat/lon are required attributes of wptType
     const hr = fileHeartRate(s.hr[i]);
-    const ext = `${atemp}${hr !== undefined ? `<gpxtpx:hr>${hr}</gpxtpx:hr>` : ''}<gpxtpx:cad>${wholeCadence(s.cadence[i], session.type)}</gpxtpx:cad>`;
+    const temperature = fileTemperature(s, session, i);
+    // TPX v1 sequence is atemp, wtemp, depth, hr, cad; atemp is the device's temperature sensor.
+    const ext =
+      (temperature !== undefined ? `<gpxtpx:atemp>${fixed(temperature, 1)}</gpxtpx:atemp>` : '') +
+      (hr !== undefined ? `<gpxtpx:hr>${hr}</gpxtpx:hr>` : '') +
+      `<gpxtpx:cad>${cadence[i]}</gpxtpx:cad>`;
     lines.push(
       `   <trkpt lat="${fixed(s.lat[i], 7)}" lon="${fixed(normalizeLon(s.lon[i]), 7)}">` +
         (Number.isFinite(s.ele[i]) ? `<ele>${fixed(s.ele[i], 1)}</ele>` : '') +

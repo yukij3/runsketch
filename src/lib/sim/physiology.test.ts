@@ -5,7 +5,7 @@ import { hrKinetics } from './hr';
 import { paceFactor, runGradeMultiplier } from './models';
 import { climbProfile, descentProfile, flatProfile, rollingProfile, segmentProfile } from './scenarios';
 import { simulate } from './simulate';
-import { ensembleAround, firstIndex, indexAtDistance, meanRange, movingAverage } from './testing';
+import { ensembleAround, firstIndex, firstMovingIndex, indexAtDistance, meanRange, movingAverage } from './testing';
 
 const START = Date.UTC(2026, 5, 1, 6, 30);
 const session = (type: ActivityType, over: Partial<SessionSettings> = {}): SessionSettings => ({
@@ -59,21 +59,28 @@ describe('heart rate lags a climb (c)', () => {
     for (let k = 16; k < B + 300; k++) if (smooth[k] > smooth[peak]) peak = k;
     const atCrest = meanRange(hrFromCrest, B - 15, B + 15);
     const midClimb = meanRange(hrFromStart, B + 170, B + 190);
-    // Creep over the last three minutes is small (≈1 bpm) but always positive across seeds.
-    expect(atCrest).toBeGreaterThan(midClimb + 0.5);
-    expect(atCrest).toBeGreaterThan(smooth[peak] - 1);
+    // Creep over the last three minutes is small (the running slow component is 10 bpm) but positive. Level speed stays
+    // depressed for a while after the crest, so the ±15 s crest mean already includes the start of the fall.
+    expect(atCrest).toBeGreaterThan(midClimb + 0.2);
+    expect(atCrest).toBeGreaterThan(smooth[peak] - 1.5);
     expect(peak - B).toBeGreaterThanOrEqual(-120);
     expect(peak - B).toBeLessThanOrEqual(150);
     expect(demandFromCrest[B + 20]).toBeLessThan(meanRange(demandFromCrest, B - 30, B - 5) - 3);
-    expect(meanRange(hrFromCrest, B + 15, B + 25)).toBeGreaterThan(meanRange(hrFromCrest, B - 5, B + 5) - 1.5);
+    // Demand falls several bpm at once; HR lags it and loses less than 4 bpm in the first 20 s (τ ≈ 100 s).
+    expect(meanRange(hrFromCrest, B + 15, B + 25)).toBeGreaterThan(meanRange(hrFromCrest, B - 5, B + 5) - 4);
   });
 
-  it('recovers after the crest more slowly than it rose (d, route level)', () => {
+  it('recovers after the crest within 20–150 s, at most twice as slowly as it rose (d, route level)', () => {
+    // Off-transients between two running intensities are capped at twice the rise τ, and the slow component and
+    // economy loss keep the post-crest level creeping, so the route-level fall is no longer always the slower one.
+    // Level speed only returns over about a minute after the crest, so demand undershoots and HR falls sooner.
     const drop = plateau - post;
     expect(drop).toBeGreaterThan(3);
     const t63Up = firstIndex(hrFromStart, B, (x) => x >= pre + 0.63 * rise) - B;
     const t63Down = firstIndex(hrFromCrest, B, (x) => x <= plateau - 0.63 * drop) - B;
-    expect(t63Down).toBeGreaterThan(t63Up);
+    expect(t63Down).toBeGreaterThanOrEqual(20);
+    expect(t63Down).toBeLessThanOrEqual(150);
+    expect(t63Down).toBeLessThanOrEqual(2 * t63Up);
   });
 });
 
@@ -113,11 +120,12 @@ describe('cardiac drift (e)', () => {
     return meanRange(hr, hr.length - 600, hr.length) - meanRange(hr, 15 * 60, 25 * 60);
   };
 
-  it('90 min steady at 25 °C: last 10 min are 4–20 bpm above minutes 15–25; at 10 °C drift is smaller', () => {
+  it('90 min steady at 25 °C: last 10 min are 4–24 bpm above minutes 15–25; at 10 °C drift is smaller', () => {
+    // Drift plus the running economy a recreational runner loses over 90 min (a few bpm on its own).
     const warm = driftOf(steady(25));
     const cool = driftOf(steady(10));
     expect(warm).toBeGreaterThanOrEqual(4);
-    expect(warm).toBeLessThanOrEqual(20);
+    expect(warm).toBeLessThanOrEqual(24);
     expect(cool).toBeLessThan(warm - 3);
   });
 });
@@ -155,7 +163,7 @@ describe('downhill (f)', () => {
     expect(paceFactor(-8)).toBeLessThan(paceFactor(-2));
     expect(paceFactor(-16.2)).toBeCloseTo(1, 1);
     for (let g = -0.45; g <= 0.45; g += 0.01) expect(runGradeMultiplier(g)).toBeLessThanOrEqual(1.2);
-    expect(runGradeMultiplier(0.08)).toBeCloseTo(Math.pow(1.4064, -0.8), 3);
+    expect(runGradeMultiplier(0.08)).toBeCloseTo(Math.pow(1.4064, -0.7), 3);
   });
 });
 
@@ -166,8 +174,12 @@ describe('stops (g)', () => {
       { stops: [{ s: 3000, duration: 30 }] },
     );
     const s = r.streams;
+    // The activity starts with a few seconds standing still; the stop is the first pause after moving off.
+    const start = firstMovingIndex(s);
+    expect(start - 1).toBeGreaterThanOrEqual(2);
+    expect(start - 1).toBeLessThanOrEqual(5);
     const stopped: number[] = [];
-    for (let i = 1; i < s.t.length; i++) if (!s.moving[i]) stopped.push(i);
+    for (let i = start; i < s.t.length; i++) if (!s.moving[i]) stopped.push(i);
     expect(stopped.length).toBe(30);
     expect(stopped[29] - stopped[0]).toBe(29);
     const first = stopped[0];
@@ -184,7 +196,7 @@ describe('stops (g)', () => {
     expect(drop).toBeGreaterThanOrEqual(5);
     expect(drop).toBeLessThanOrEqual(25);
     expect(s.hrDemand[last]).toBeLessThan(s.hrDemand[first - 5] - 40);
-    expect(r.summary.elapsed - r.summary.moving).toBe(30);
+    expect(r.summary.elapsed - r.summary.moving).toBe(30 + start - 1);
     // Running resumes with acceleration, not a jump back to pace.
     expect(s.speed[last + 1]).toBeLessThanOrEqual(0.61);
   });
@@ -194,7 +206,8 @@ describe('stops (g)', () => {
       const r = simulate({ profile: flatProfile(15000), athlete: runner, session: session('run', { stops, target: { kind: 'pace', secPerKm: 330 } }) });
       let n = 0;
       let events = 0;
-      for (let i = 1; i < r.streams.t.length; i++) {
+      // The standing start before the first step is not a stop.
+      for (let i = firstMovingIndex(r.streams); i < r.streams.t.length; i++) {
         if (!r.streams.moving[i]) {
           n++;
           if (r.streams.moving[i - 1]) events++;
@@ -221,12 +234,12 @@ describe('effort model coherence', () => {
     expect(early / settled).toBeGreaterThan(0.93);
   });
 
-  it('fatigue: a 2 h 30 min run fades after 45 minutes at constant effort', () => {
+  it('fatigue: a 2 h 30 min run fades as load builds up at constant effort', () => {
     const r = simulate({ profile: flatProfile(27000), athlete: runner, session: session('run', { variability: 0, target: { kind: 'duration', seconds: 9000 } }) });
     expect(meanRange(r.streams.speed, 8400, 9000) / meanRange(r.streams.speed, 1200, 2400)).toBeLessThan(0.97);
   });
 
-  it('HR is integer bpm inside [rest − 5, max + 2] and a trained athlete runs the same pace at lower HR', () => {
+  it('HR is integer bpm between resting − 5 and the maximum, and a trained athlete runs the same pace at lower HR', () => {
     const input = { profile: rollingProfile(8000, 20, 2000), session: session('run', { target: { kind: 'pace' as const, secPerKm: 300 } }) };
     const rec = simulate({ ...input, athlete: runner });
     const fit = simulate({ ...input, athlete: { ...runner, fitness: 'trained' } });
@@ -249,15 +262,17 @@ describe('effort model coherence', () => {
     const r = simulate({
       profile: climbProfile({ before: 1000, climb: 1200, grade: 0.18, after: 1000 }, { smoothSigma: 20 }),
       athlete: runner,
-      session: session('run', { target: { kind: 'pace', secPerKm: 420 } }),
+      // Slow enough that the 18 % climb is mostly walked; faster targets now run much of it in run/walk bouts.
+      session: session('run', { target: { kind: 'pace', secPerKm: 540 } }),
     });
     expect(r.warnings.some((w) => w.includes('power-hiked'))).toBe(true);
     const s = r.streams;
     const climbCad = meanRange(s.cadence, indexAtDistance(s, 1300), indexAtDistance(s, 2000));
     expect(climbCad).toBeGreaterThan(90);
     expect(climbCad).toBeLessThan(135);
+    // Power-hiking is visibly slower than running the same climb, so demand stays near the flats rather than above.
     expect(meanRange(s.hrDemand, indexAtDistance(s, 1500), indexAtDistance(s, 2100))).toBeGreaterThan(
-      meanRange(s.hrDemand, indexAtDistance(s, 300), indexAtDistance(s, 900)),
+      meanRange(s.hrDemand, indexAtDistance(s, 300), indexAtDistance(s, 900)) - 5,
     );
   });
 
@@ -299,7 +314,10 @@ describe('effort model coherence', () => {
     expect(zones[0].min).toBe(120);
     expect(zones[4].max).toBe(190);
     expect(zones[2].min).toBe(zones[1].max);
-    expect(resolveVo2max({ ...runner, fitness: 'trained', sex: 'female' })).toBe(49);
+    // Table value for a 35-year-old, adjusted for age; an explicit VO2max is used as given.
+    expect(resolveVo2max({ ...runner, age: 35, fitness: 'trained', sex: 'female' })).toBe(49);
+    expect(resolveVo2max({ ...runner, fitness: 'trained', sex: 'female' })).toBeCloseTo(49 * 1.02, 9);
+    expect(resolveVo2max({ ...runner, age: 65 })).toBeLessThan(0.85 * resolveVo2max({ ...runner, age: 35 }));
     expect(resolveVo2max({ ...runner, vo2max: 61 })).toBe(61);
   });
 });

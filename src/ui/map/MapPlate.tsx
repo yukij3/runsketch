@@ -338,6 +338,7 @@ export function MapPlate() {
     const custom: string[] = [];
     if (providers.includes('brouter')) custom.push(link('https://brouter.de/', 'BRouter'));
     if (providers.includes('osrm')) custom.push(link('https://routing.openstreetmap.de/', 'FOSSGIS OSRM'));
+    if (providers.includes('valhalla')) custom.push(link('https://valhalla1.openstreetmap.de/', 'FOSSGIS Valhalla'));
     custom.push(link(FIX_THE_MAP_URL, t('fixMap')));
     const control = new maplibregl.AttributionControl({ compact: true, customAttribution: custom });
     if (attributionRef.current) map.removeControl(attributionRef.current);

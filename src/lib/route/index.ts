@@ -1,5 +1,8 @@
 // Waypoint-list operations and leg assembly (pure).
-import type { LngLat, RouteLeg, Waypoint } from '../types';
+import type { LngLat, RouteLeg, WaySpan, Waypoint } from '../types';
+import { pushWaySpan } from './ways';
+
+export { WAY_TAG_KEYS, filterWayTags, parseWayTags, pushWaySpan, remapWays, validWays } from './ways';
 
 let fallbackCounter = 0;
 
@@ -14,16 +17,30 @@ function samePoint(a: LngLat, b: LngLat): boolean {
   return a[0] === b[0] && a[1] === b[1];
 }
 
-/** Concatenate leg geometries, dropping duplicated joints (and any consecutive duplicate vertex). */
-export function joinLegs(legs: RouteLeg[]): LngLat[] {
-  const out: LngLat[] = [];
+/** A joined route: geometry, plus way tags when any leg carried them. */
+export interface RouteLine {
+  coords: LngLat[];
+  /** Covers every segment; stretches of untagged legs, and joints between legs that do not touch, have tags ''. */
+  ways?: WaySpan[];
+}
+
+/** Concatenate leg geometries, dropping duplicated joints (and any consecutive duplicate vertex), with their way tags. */
+export function joinLegs(legs: RouteLeg[]): RouteLine {
+  const coords: LngLat[] = [];
+  const ways: WaySpan[] = [];
+  let tagged = false;
   for (const leg of legs) {
-    for (const p of leg.coords) {
-      if (out.length > 0 && samePoint(out[out.length - 1], p)) continue;
-      out.push(p);
-    }
+    const spans = leg.ways;
+    if (spans) tagged = true;
+    let span = 0;
+    leg.coords.forEach((p, i) => {
+      if (coords.length === 0 || !samePoint(coords[coords.length - 1], p)) coords.push(p);
+      if (spans) while (span < spans.length - 1 && spans[span].end < i) span++;
+      // Vertex i closes the leg's segment i − 1; its first vertex closes the joint from the previous leg.
+      pushWaySpan(ways, coords.length - 1, i > 0 && spans ? spans[span].tags : '');
+    });
   }
-  return out;
+  return tagged ? { coords, ways } : { coords };
 }
 
 // 1e-7° ≈ 1 cm: a waypoint placed back on the start counts as closed.

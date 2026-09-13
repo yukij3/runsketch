@@ -86,7 +86,7 @@ export function syntheticResult({ seconds = 600, stop = [520, 540], flat = false
   const distance = n > 0 ? dist[n - 1] : 0;
 
   return {
-    streams: { t, lat, lon, ele, dist, speed, hr, hrDemand, cadence, power, grade, moving },
+    streams: { t, lat, lon, ele, dist, speed, hr, hrDemand, cadence, power, grade, moving, temperature: new Float64Array(n) },
     summary: {
       distance,
       elapsed: Math.max(0, n - 1),

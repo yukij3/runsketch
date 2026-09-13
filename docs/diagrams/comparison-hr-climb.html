@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heart rate over one climb · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-hr-climb.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Row 3 of docs/comparison.md. 6 km flat approach then 2 km at +8 %, 5:30/km, chest strap, GPS noise off.
+       t = 0 is the foot of the climb. The drawn line is the ENSEMBLE MEAN OF 16 SEEDS aligned on the foot,
+       plotted at 20 s steps from -300 to +700 s, and the figure says so on its face.
+       That is not presentation polish. Heart rate wanders a couple of beats on its own, so on a single seed
+       the 63 % crossing lands anywhere from 0 to 290 s (observed across eight seeds: 0, 6, 27, 63, 70, 91,
+       147, 290). Averaging first and measuring once is the only estimate here worth trusting, and a
+       single-seed line would invite exactly the reading the spread forbids.
+       Settled flat mean 166.6 bpm (the five minutes before the foot), climb plateau 178.9, rise 12.3 bpm.
+       63 % threshold = 166.6 + 0.63*12.3 = 174.3 bpm, crossed at t = 104 s measured on the full 1 Hz mean.
+       The plotted series is a 20 s downsample, so eye-reading the crossing off the drawn vertices gives
+       about 114 s; the marker is placed at the measured 104 s, not at the downsampled crossing.
+       THERE IS NO FIELD REFERENCE FOR THIS ROW, so no reference band is drawn and none should be added. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Heart rate over one climb, averaged across 16 seeds</h1>
+
+    <svg viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-hr-climb-title comparison-hr-climb-desc">
+      <title id="comparison-hr-climb-title">Heart rate over one climb, averaged across 16 seeds</title>
+      <desc id="comparison-hr-climb-desc">The mean heart rate of sixteen simulated runs aligned on the foot of a climb, from five minutes before it to the crest. Heart rate sits at a settled 166.6 bpm on the flat approach, rises once the climb begins and levels off at a plateau of 178.9 bpm, a rise of 12.3 bpm. It covers 63 per cent of that rise, reaching 174.3 bpm, 104 seconds after the foot of the climb. The line is an ensemble mean because on any single run the crossing time ranges from 0 to 290 seconds, which reflects where the noise sat rather than physiology. There is no published field reference for this measurement, so none is drawn.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="260.0" x2="912" y2="260.0" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80" y1="249.1" x2="912" y2="249.1" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="194.7" x2="912" y2="194.7" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="140.2" x2="912" y2="140.2" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="85.8" x2="912" y2="85.8" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72" y="252.6" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">165</text>
+      <text x="72" y="198.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">170</text>
+      <text x="72" y="143.7" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">175</text>
+      <text x="72" y="89.3" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">180 bpm</text>
+
+      <!-- baseline / plateau / 63 % threshold guides -->
+      <line x1="80" y1="231.7" x2="329.6" y2="231.7" stroke="#636973" stroke-width="1" stroke-dasharray="4,3"/>
+      <!-- Lifted clear of the trace: over the flat approach the ensemble mean swings between y 216 and 249,
+           so at its old y 226 the red line ran straight through this label. Nothing sits above y 210 there. -->
+      <text x="84" y="206" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">settled flat 166.6 bpm</text>
+      <line x1="329.6" y1="97.8" x2="912" y2="97.8" stroke="#636973" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="908" y="92" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">climb plateau 178.9 bpm</text>
+      <line x1="329.6" y1="147.8" x2="912" y2="147.8" stroke="rgba(194,31,58,0.45)" stroke-width="1" stroke-dasharray="2,2"/>
+      <text x="908" y="142" fill="#c21f3a" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">63 % of the rise = 174.3 bpm</text>
+
+      <!-- foot of the climb -->
+      <line x1="329.6" y1="64" x2="329.6" y2="260" stroke="rgba(27,29,34,0.35)" stroke-width="1"/>
+      <text x="334" y="76" fill="#1b1d22" font-size="11" font-weight="600" font-family="'Red Hat Mono', monospace">foot of the climb</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="260" x2="80.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−300</text>
+      <line x1="229.8" y1="260" x2="229.8" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="229.8" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">−120</text>
+      <line x1="329.6" y1="260" x2="329.6" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="329.6" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="429.4" y1="260" x2="429.4" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="429.4" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">120</text>
+      <line x1="529.3" y1="260" x2="529.3" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="529.3" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">240</text>
+      <line x1="629.1" y1="260" x2="629.1" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="629.1" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">360</text>
+      <line x1="729.0" y1="260" x2="729.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="729.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">480</text>
+      <line x1="828.8" y1="260" x2="828.8" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="828.8" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">600</text>
+      <text x="496" y="296" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">seconds from the foot of the climb</text>
+
+      <!-- ensemble mean -->
+      <polyline points="80.0,242.6 96.6,243.7 113.3,229.5 129.9,229.5 146.6,224.1 163.2,216.4 179.8,221.9 196.5,236.0 213.1,241.5 229.8,223.0 246.4,235.0 263.0,245.8 279.7,235.0 296.3,229.5 313.0,226.2 329.6,231.7 346.2,201.2 362.9,193.6 379.5,184.9 396.2,178.3 412.8,155.5 429.4,143.5 446.1,146.8 462.7,150.0 479.4,147.8 496.0,139.1 512.6,126.1 529.3,131.5 545.9,122.8 562.6,125.0 579.2,119.5 595.8,111.9 612.5,109.7 629.1,114.1 645.8,106.5 662.4,103.2 679.0,101.0 695.7,98.8 712.3,97.8 729.0,93.4 745.6,108.6 762.2,106.5 778.9,104.3 795.5,98.8 812.2,97.8 828.8,93.4 845.4,91.2 862.1,97.8 878.7,101.0 895.4,93.4 912.0,95.6" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+
+      <!-- the 63 % crossing, measured on the full 1 Hz mean -->
+      <line x1="416.1" y1="147.8" x2="416.1" y2="260" stroke="rgba(194,31,58,0.45)" stroke-width="1" stroke-dasharray="2,2"/>
+      <circle cx="416.1" cy="147.8" r="3" fill="#c21f3a"/>
+      <text x="424" y="168" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif">63 % of the rise in 104 s</text>
+
+      <!-- legend -->
+      <line x1="40" y1="312" x2="920" y2="312" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="344" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="340" x2="152" y2="340" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Mean of 16 seeds, 20 s steps</text>
+      <line x1="420" y1="340" x2="444" y2="340" stroke="#636973" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="452" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Settled flat and plateau levels</text>
+      <text x="740" y="344" fill="#636973" font-size="12" font-family="'Public Sans', sans-serif">No field reference exists</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -14,13 +14,26 @@ export function estimateMaxHr(age: number): number {
   return Math.round(208 - 0.7 * a);
 }
 
-const VO2MAX_BY_FITNESS: Record<FitnessLevel, number> = { beginner: 35, recreational: 45, trained: 55, elite: 66 };
+/** Default VO2max by level for a 35-year-old man, ml/kg/min. */
+export const VO2MAX_BY_FITNESS: Record<FitnessLevel, number> = { beginner: 35, recreational: 45, trained: 55, elite: 66 };
 
-/** ml/kg/min; athlete.vo2max wins, otherwise fitness table (female −6). */
+/**
+ * Default VO2max relative to age 35. People who keep training lose endurance capacity slowly until their fifties and
+ * faster after (Tanaka & Seals 2008); population VO2max falls by roughly a tenth per decade (FRIEND registry; Kaminsky
+ * 2015), which overstates the loss for a given fitness level. Curvilinear HEURISTIC fit: 1.02 at 25, 0.945 at 45,
+ * 0.88 at 55, 0.8 at 65, 0.72 at 75.
+ */
+export function ageVo2maxFactor(age: number): number {
+  const a = Math.min(90, Math.max(20, Number.isFinite(age) ? age : 35));
+  if (a <= 35) return 1 + 0.002 * (35 - Math.max(25, a));
+  return 1 - 0.005 * (a - 35) - 0.00005 * (a - 35) * (a - 35);
+}
+
+/** ml/kg/min; athlete.vo2max wins, otherwise the fitness table (female −6) adjusted for age. */
 export function resolveVo2max(athlete: Athlete): number {
   if (athlete.vo2max !== undefined && Number.isFinite(athlete.vo2max) && athlete.vo2max > 10) return athlete.vo2max;
   const base = VO2MAX_BY_FITNESS[athlete.fitness] ?? 45;
-  return athlete.sex === 'female' ? base - 6 : base;
+  return (athlete.sex === 'female' ? base - 6 : base) * ageVo2maxFactor(athlete.age);
 }
 
 export interface FitnessParams {
@@ -30,15 +43,13 @@ export interface FitnessParams {
   fracLT: number;
   /** Warm-up: first 5 min this fraction slower, ramping to 0. */
   warmup: number;
-  /** Speed fade per hour after 45 min. */
-  fatiguePerHour: number;
 }
 
 export const FITNESS: Record<FitnessLevel, FitnessParams> = {
-  beginner: { tauScale: 1.4, fracLT: 0.7, warmup: 0.06, fatiguePerHour: 0.05 },
-  recreational: { tauScale: 1.0, fracLT: 0.75, warmup: 0.05, fatiguePerHour: 0.03 },
-  trained: { tauScale: 0.75, fracLT: 0.83, warmup: 0.04, fatiguePerHour: 0.015 },
-  elite: { tauScale: 0.6, fracLT: 0.88, warmup: 0.03, fatiguePerHour: 0.01 },
+  beginner: { tauScale: 1.4, fracLT: 0.7, warmup: 0.06 },
+  recreational: { tauScale: 1.0, fracLT: 0.75, warmup: 0.05 },
+  trained: { tauScale: 0.75, fracLT: 0.83, warmup: 0.04 },
+  elite: { tauScale: 0.6, fracLT: 0.88, warmup: 0.03 },
 };
 
 export function fitnessParams(level: FitnessLevel): FitnessParams {
@@ -104,9 +115,25 @@ const DEFAULT_TARGET: Record<ActivityType, SessionSettings['target']> = {
   walk: { kind: 'pace', secPerKm: 720 },
   hike: { kind: 'pace', secPerKm: 900 },
   ride: { kind: 'speed', mps: 25 / 3.6 },
+  alpine: { kind: 'duration', seconds: 8 * 3600 },
 };
 
-const TYPE_NOUN: Record<ActivityType, string> = { run: 'Run', ride: 'Ride', walk: 'Walk', hike: 'Hike' };
+const TYPE_NOUN: Record<ActivityType, string> = { run: 'Run', ride: 'Ride', walk: 'Walk', hike: 'Hike', alpine: 'Ascent' };
+
+export type MountainSettings = Required<Pick<SessionSettings, 'acclimatisation' | 'packKg' | 'footwear' | 'crampons' | 'snow'>> & {
+  snowlineM: number | null;
+};
+
+/**
+ * Mountain settings an activity starts with. Mountaineering: about a week at altitude, an 8 kg summit-day pack, mountain
+ * boots and crampons, firm snow (common guide kit lists; HEURISTIC). Everything else: no acclimatisation, no pack, light
+ * shoes, so other activities are unchanged until the user sets a pack or acclimatisation.
+ */
+export function mountainDefaults(type: ActivityType): MountainSettings {
+  return type === 'alpine'
+    ? { acclimatisation: 'partial', packKg: 8, footwear: 'mountain-boots', crampons: true, snow: 'firm', snowlineM: null }
+    : { acclimatisation: 'none', packKg: 0, footwear: 'trail-shoes', crampons: false, snow: 'firm', snowlineM: null };
+}
 
 function partOfDay(hour: number): string {
   if (hour < 5) return 'Night';
@@ -127,7 +154,7 @@ export function defaultSession(type: ActivityType, now: number): SessionSettings
     target: DEFAULT_TARGET[type],
     variability: 0.35,
     pacing: 'even',
-    stops: 'none',
+    stops: type === 'alpine' ? 'alpine' : 'none',
     gpsNoise: 'normal',
     hrSensor: 'optical',
     temperatureC: 15,
@@ -135,5 +162,6 @@ export function defaultSession(type: ActivityType, now: number): SessionSettings
     name: `${partOfDay(date.getHours())} ${TYPE_NOUN[type]}`,
     description: '',
     lapDistance: 1000,
+    ...mountainDefaults(type),
   };
 }

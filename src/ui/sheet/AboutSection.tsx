@@ -26,6 +26,15 @@ const CREDITS: ReadonlyArray<{ key: MessageKey; links: ReadonlyArray<readonly [l
     links: [
       ['BRouter', 'https://brouter.de/'],
       ['FOSSGIS OSRM', 'https://routing.openstreetmap.de/'],
+      ['FOSSGIS Valhalla', 'https://valhalla1.openstreetmap.de/'],
+    ],
+  },
+  {
+    key: 'credit_weather',
+    links: [
+      ['Open-Meteo.com', 'https://open-meteo.com/'],
+      ['CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/'],
+      ['ERA5, Copernicus Climate Change Service', 'https://cds.climate.copernicus.eu/'],
     ],
   },
   { key: 'credit_search', links: [['Photon by Komoot', 'https://photon.komoot.io/']] },

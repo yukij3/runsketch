@@ -28,14 +28,14 @@ describe('elevation timeouts', () => {
 });
 
 describe('routing timeouts', () => {
-  it('gives BRouter a longer per-attempt limit than OSRM', async () => {
+  it('gives BRouter and Valhalla a longer per-attempt limit than OSRM', async () => {
     const seen: Array<[string, number | undefined]> = [];
     const route = createRouter({
       fetchText: async (url, init) => {
-        seen.push([url.includes('brouter') ? 'brouter' : 'osrm', init.timeoutMs]);
+        seen.push([url.includes('brouter') ? 'brouter' : url.includes('valhalla') ? 'valhalla' : 'osrm', init.timeoutMs]);
         throw new Error('offline');
       },
-      queues: { osrm: new HostQueue(0), brouter: new HostQueue(0) },
+      queues: { osrm: new HostQueue(0), brouter: new HostQueue(0), valhalla: new HostQueue(0) },
     });
     const a: LngLat = [6.63, 46.52];
     const b: LngLat = [6.64, 46.53];
@@ -43,8 +43,10 @@ describe('routing timeouts', () => {
     expect(leg.fallback).toBe(true);
     expect(seen).toEqual([
       ['brouter', PROVIDER_TIMEOUT_MS.brouter],
+      ['valhalla', PROVIDER_TIMEOUT_MS.valhalla],
       ['osrm', DEFAULT_TIMEOUT_MS],
     ]);
     expect(PROVIDER_TIMEOUT_MS.brouter).toBeGreaterThanOrEqual(15_000);
+    expect(PROVIDER_TIMEOUT_MS.valhalla).toBeGreaterThan(DEFAULT_TIMEOUT_MS);
   });
 });

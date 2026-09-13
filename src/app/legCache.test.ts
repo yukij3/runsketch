@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RouteLeg } from '../lib/types';
+import { legKey } from '../lib/route';
 import { LEG_CACHE_KEY, LegCache, roundCoord, roundLeg } from './legCache';
+import { buildInitialState } from './persistence';
 
 function memoryStorage() {
   const data = new Map<string, string>();
@@ -83,5 +85,63 @@ describe('leg cache', () => {
     expect(calls).toBeGreaterThan(1);
     expect(cache.size).toBeLessThan(8);
     expect(cache.get('k7')).toBeDefined();
+  });
+
+  it('keeps way tags through rounding, storage and reload; entries without them still load', () => {
+    const g = roundLeg({
+      coords: [
+        [7.1, 46.1],
+        [7.1000001, 46.1000001],
+        [7.101, 46.1],
+        [7.102, 46.1],
+      ],
+      distance: 0,
+      provider: 'brouter',
+      fallback: false,
+      ways: [
+        { end: 1, tags: 'highway=steps' },
+        { end: 3, tags: 'highway=path sac_scale=hiking' },
+      ],
+    });
+    // Vertex 1 rounds onto vertex 0, so the steps span has no length left.
+    expect(g.coords).toHaveLength(3);
+    expect(g.ways).toEqual([{ end: 2, tags: 'highway=path sac_scale=hiking' }]);
+
+    const storage = memoryStorage();
+    const cache = LegCache.load(storage);
+    cache.remember(
+      new Map([
+        ['tagged', { ...g, fromId: 'a', toId: 'b' }],
+        ['plain', leg(0)],
+      ]),
+    );
+    cache.save(storage);
+    const stored = JSON.parse(storage.data.get(LEG_CACHE_KEY)!).legs;
+    storage.data.set(LEG_CACHE_KEY, JSON.stringify({ v: 1, legs: [...stored, ['bad', stored[0][1], 'brouter', [[9, 'highway=path']]]] }));
+    const reloaded = LegCache.load(storage);
+    expect(reloaded.get('tagged')).toEqual({ coords: g.coords, distance: g.distance, provider: 'brouter', fallback: false, ways: g.ways });
+    expect(reloaded.get('plain')).not.toHaveProperty('ways');
+    expect(reloaded.get('bad')!.coords).toEqual(g.coords);
+    expect(reloaded.get('bad')).not.toHaveProperty('ways');
+  });
+
+  it('restores tagged legs into the initial state', () => {
+    const g = roundLeg({
+      coords: [
+        [7.1, 46.1],
+        [7.102, 46.1],
+      ],
+      distance: 0,
+      provider: 'brouter',
+      fallback: false,
+      ways: [{ end: 1, tags: 'highway=track' }],
+    });
+    const state = buildInitialState({
+      stored: { v: 1, profile: 'hiking', waypoints: [g.coords[0], g.coords[1]] },
+      hash: '',
+      now: 0,
+      legs: { get: (key) => (key === legKey(g.coords[0], g.coords[1], 'hiking') ? g : undefined) },
+    });
+    expect([...state.legs.values()][0].ways).toEqual([{ end: 1, tags: 'highway=track' }]);
   });
 });

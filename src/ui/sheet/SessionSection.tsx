@@ -2,17 +2,21 @@ import { Dices } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { routeCoords } from '../../app/pipeline';
 import { useActions, useApp, useT } from '../../app/runtime';
-import { ACTIVITIES } from '../../app/state';
-import { formatDecimal, parseClock } from '../../lib/format';
+import { ACTIVITIES, stopsLevels } from '../../app/state';
+import { FEET_PER_METER, formatDecimal, parseClock } from '../../lib/format';
 import { polylineLength } from '../../lib/geo';
-import { EFFORT_PRESETS, PRESET_GOALS, defaultSession, type EffortPreset } from '../../lib/sim';
-import type { ActivityType, GpsNoiseLevel, PacingStrategy, StopsLevel, TargetSpec } from '../../lib/types';
+import { EFFORT_PRESETS, PRESET_GOALS, defaultSession, defaultSnowline, type EffortPreset } from '../../lib/sim';
+import type { Acclimatisation, ActivityType, Footwear, GpsNoiseLevel, PacingStrategy, SnowCondition, TargetSpec } from '../../lib/types';
+import { startFromWallClock } from '../../app/zone';
 import { FieldRow, IconButton, NumberField, Section, Segmented, ValueField } from '../controls';
-import { KM_PER_MI, cToF, fToC, formatHms, formatMss, toDateTimeLocal, unitLabels } from '../units';
+import { KG_PER_LB, KM_PER_MI, formatHms, formatMss, parseDateTimeLocal, toDateTimeLocal, unitLabels } from '../units';
+import { WeatherRows } from './WeatherRows';
 
 const PACING: PacingStrategy[] = ['even', 'negative', 'positive'];
-const STOPS: StopsLevel[] = ['none', 'few', 'urban'];
 const GPS: GpsNoiseLevel[] = ['off', 'low', 'normal', 'high'];
+const ACCLIMATISATION: Acclimatisation[] = ['none', 'partial', 'full'];
+const FOOTWEAR: Footwear[] = ['trail-shoes', 'mountain-boots', 'double-boots'];
+const SNOW: SnowCondition[] = ['firm', 'soft', 'deep'];
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -57,7 +61,8 @@ function TargetRow() {
   const u = unitLabels(units, t);
   const ride = session.type === 'ride';
   const target = session.target;
-  const kinds: Array<TargetSpec['kind']> = ride ? ['speed', 'duration'] : ['pace', 'duration'];
+  // A pace per km says little on a summit day: mountaineering targets a finish time (or an effort preset).
+  const kinds: Array<TargetSpec['kind']> = ride ? ['speed', 'duration'] : session.type === 'alpine' ? ['duration'] : ['pace', 'duration'];
   if (!kinds.includes(target.kind)) kinds.unshift(target.kind);
   const perUnit = units === 'metric' ? 1 : KM_PER_MI;
   const speedFactor = units === 'metric' ? 3.6 : 3600 / 1609.344;
@@ -162,6 +167,178 @@ function PresetRow() {
   );
 }
 
+/** "UTC+05:45" for an offset in minutes east of UTC. */
+function utcLabel(offsetMin: number): string {
+  const abs = Math.abs(offsetMin);
+  return `UTC${offsetMin < 0 ? '−' : '+'}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+}
+
+// The start is a wall-clock time at the route: shown at the offset it was set with and typed in the route's zone once a
+// weather response has named it (until then at the same fixed offset).
+function StartRow() {
+  const t = useT();
+  const actions = useActions();
+  const startTime = useApp((s) => s.session.startTime);
+  const utcOffsetMin = useApp((s) => s.session.utcOffsetMin);
+  const routeZone = useApp((s) => s.routeZone);
+  const browserOffset = -new Date(startTime).getTimezoneOffset();
+  const zone = routeZone || (utcOffsetMin !== browserOffset ? utcLabel(utcOffsetMin) : '');
+  return (
+    <FieldRow label={t('start')} htmlFor="rs-start" hint={zone ? t('startZone', { zone }) : undefined}>
+      <input
+        id="rs-start"
+        className="input input--datetime num"
+        type="datetime-local"
+        value={toDateTimeLocal(startTime, utcOffsetMin)}
+        onChange={(e) => {
+          const wall = parseDateTimeLocal(e.target.value);
+          if (!wall) return;
+          const next = startFromWallClock(routeZone, wall, utcOffsetMin);
+          if (Number.isFinite(next.startTime)) actions.setStart(next.startTime, next.utcOffsetMin);
+        }}
+      />
+    </FieldRow>
+  );
+}
+
+function PackRow() {
+  const t = useT();
+  const actions = useActions();
+  const packKg = useApp((s) => s.session.packKg ?? 0);
+  const units = useApp((s) => s.units);
+  const u = unitLabels(units, t);
+  const range = (min: number, max: number) => t('invalidNumber', { min, max });
+  return (
+    <FieldRow label={t('pack')} htmlFor="rs-pack">
+      {units === 'metric' ? (
+        <NumberField id="rs-pack" value={Math.round(packKg)} min={0} max={60} width="xs" unit={u.weight} invalidText={range(0, 60)} onCommit={(kg) => actions.updateSession({ packKg: kg })} />
+      ) : (
+        <NumberField
+          id="rs-pack"
+          value={Math.round(packKg / KG_PER_LB)}
+          min={0}
+          max={132}
+          width="xs"
+          unit={u.weight}
+          invalidText={range(0, 132)}
+          onCommit={(lb) => actions.updateSession({ packKg: lb * KG_PER_LB })}
+        />
+      )}
+    </FieldRow>
+  );
+}
+
+// Snow counts from this altitude where the ground is unknown; it follows the route's latitude until edited.
+function SnowlineRow() {
+  const t = useT();
+  const actions = useActions();
+  const snowlineM = useApp((s) => s.session.snowlineM ?? null);
+  const lat = useApp((s) => s.terrain.profile?.points[0]?.lat ?? s.waypoints[0]?.lat ?? Number.NaN);
+  const units = useApp((s) => s.units);
+  const u = unitLabels(units, t);
+  const auto = snowlineM === null;
+  const metres = auto ? Math.round(defaultSnowline(lat) / 10) * 10 : snowlineM;
+  const metric = units === 'metric';
+  const max = metric ? 9000 : 29500;
+  return (
+    <FieldRow label={t('snowline')} htmlFor="rs-snowline" hint={auto ? t('snowlineAuto') : undefined}>
+      {!auto ? (
+        <button type="button" className="link-btn row__inline-action" onClick={() => actions.updateSession({ snowlineM: null })}>
+          {t('snowlineUseAuto')}
+        </button>
+      ) : null}
+      <NumberField
+        id="rs-snowline"
+        value={metric ? metres : Math.round(metres * FEET_PER_METER)}
+        min={0}
+        max={max}
+        step={100}
+        unit={u.elevation}
+        invalidText={t('invalidNumber', { min: 0, max })}
+        onCommit={(value) => actions.updateSession({ snowlineM: Math.round(metric ? value : value / FEET_PER_METER) })}
+      />
+    </FieldRow>
+  );
+}
+
+/** How long the athlete has been at altitude: it sets both VO2max and what stays sustainable for hours up high. */
+function AcclimatisationRow({ fallback }: { fallback: Acclimatisation }) {
+  const t = useT();
+  const actions = useActions();
+  const session = useApp((s) => s.session);
+  return (
+    <FieldRow label={t('acclimatisation')} labelId="rs-acclimatisation-label" stacked>
+      <Segmented<Acclimatisation>
+        fill
+        labelledBy="rs-acclimatisation-label"
+        value={session.acclimatisation ?? fallback}
+        onChange={(acclimatisation) => actions.updateSession({ acclimatisation })}
+        options={ACCLIMATISATION.map((a) => ({ value: a, label: t(`acclimatisation_${a}`), title: t(`acclimatisationTitle_${a}`) }))}
+      />
+    </FieldRow>
+  );
+}
+
+/** A trek is not a climb, but its climbs are still capped by the air up high, so a hike asks about acclimatisation too. */
+function AltitudeGroup() {
+  const t = useT();
+  return (
+    <>
+      <h3 className="subhead">{t('mountain')}</h3>
+      <div className="table">
+        <AcclimatisationRow fallback="none" />
+      </div>
+    </>
+  );
+}
+
+/** Mountaineering settings: acclimatisation, pack, footwear, crampons, snow and the snowline. */
+function MountainGroup() {
+  const t = useT();
+  const actions = useActions();
+  const session = useApp((s) => s.session);
+  return (
+    <>
+      <h3 className="subhead">{t('mountain')}</h3>
+      <div className="table">
+        <AcclimatisationRow fallback="partial" />
+        <PackRow />
+        <FieldRow label={t('footwear')} labelId="rs-footwear-label" stacked>
+          <Segmented<Footwear>
+            fill
+            labelledBy="rs-footwear-label"
+            value={session.footwear ?? 'mountain-boots'}
+            onChange={(footwear) => actions.updateSession({ footwear })}
+            options={FOOTWEAR.map((f) => ({ value: f, label: t(`footwear_${f}`) }))}
+          />
+        </FieldRow>
+        <FieldRow label={t('crampons')} labelId="rs-crampons-label" stacked>
+          <Segmented<'on' | 'off'>
+            fill
+            labelledBy="rs-crampons-label"
+            value={session.crampons === false ? 'off' : 'on'}
+            onChange={(v) => actions.updateSession({ crampons: v === 'on' })}
+            options={[
+              { value: 'on', label: t('crampons_on') },
+              { value: 'off', label: t('crampons_off') },
+            ]}
+          />
+        </FieldRow>
+        <FieldRow label={t('snow')} labelId="rs-snow-label" stacked>
+          <Segmented<SnowCondition>
+            fill
+            labelledBy="rs-snow-label"
+            value={session.snow ?? 'firm'}
+            onChange={(snow) => actions.updateSession({ snow })}
+            options={SNOW.map((v) => ({ value: v, label: t(`snow_${v}`) }))}
+          />
+        </FieldRow>
+        <SnowlineRow />
+      </div>
+    </>
+  );
+}
+
 function NameField() {
   const t = useT();
   const actions = useActions();
@@ -201,7 +378,6 @@ export function SessionSection() {
   const session = useApp((s) => s.session);
   const units = useApp((s) => s.units);
   const u = unitLabels(units, t);
-  const metric = units === 'metric';
   const variabilityWord = session.variability < 0.2 ? 'steady' : session.variability < 0.55 ? 'natural' : 'uneven';
   const range = (min: number, max: number) => t('invalidNumber', { min, max });
 
@@ -211,6 +387,7 @@ export function SessionSection() {
         <FieldRow label={t('activity')} labelId="rs-activity-label" stacked>
           <Segmented
             fill
+            proportional
             labelledBy="rs-activity-label"
             value={session.type}
             onChange={(type) => actions.updateSession({ type })}
@@ -220,18 +397,8 @@ export function SessionSection() {
         <FieldRow label={t('name')} htmlFor="rs-name" stacked>
           <NameField />
         </FieldRow>
-        <FieldRow label={t('start')} htmlFor="rs-start">
-          <input
-            id="rs-start"
-            className="input input--datetime num"
-            type="datetime-local"
-            value={toDateTimeLocal(session.startTime)}
-            onChange={(e) => {
-              const d = new Date(e.target.value);
-              if (!Number.isNaN(d.getTime())) actions.updateSession({ startTime: d.getTime(), utcOffsetMin: -d.getTimezoneOffset() });
-            }}
-          />
-        </FieldRow>
+        <StartRow />
+        <WeatherRows />
         <TargetRow />
         <PresetRow />
         <FieldRow label={t('pacing')} labelId="rs-pacing-label" stacked>
@@ -266,9 +433,10 @@ export function SessionSection() {
             labelledBy="rs-stops-label"
             value={session.stops}
             onChange={(stops) => actions.updateSession({ stops })}
-            options={STOPS.map((v) => ({ value: v, label: t(`stops_${v}`) }))}
+            options={stopsLevels(session.type).map((v) => ({ value: v, label: t(`stops_${v}`) }))}
           />
         </FieldRow>
+        {session.type === 'hike' ? <PackRow /> : null}
         <FieldRow label={t('gpsNoise')} labelId="rs-gps-label" stacked>
           <Segmented
             fill
@@ -277,29 +445,6 @@ export function SessionSection() {
             onChange={(gpsNoise) => actions.updateSession({ gpsNoise })}
             options={GPS.map((v) => ({ value: v, label: t(`gps_${v}`) }))}
           />
-        </FieldRow>
-        <FieldRow label={t('temperature')} htmlFor="rs-temperature">
-          {metric ? (
-            <NumberField
-              id="rs-temperature"
-              value={Math.round(session.temperatureC)}
-              min={-30}
-              max={45}
-              unit={u.temperature}
-              invalidText={range(-30, 45)}
-              onCommit={(temperatureC) => actions.updateSession({ temperatureC })}
-            />
-          ) : (
-            <NumberField
-              id="rs-temperature"
-              value={Math.round(cToF(session.temperatureC))}
-              min={-22}
-              max={113}
-              unit={u.temperature}
-              invalidText={range(-22, 113)}
-              onCommit={(f) => actions.updateSession({ temperatureC: fToC(f) })}
-            />
-          )}
         </FieldRow>
         <FieldRow label={t('seed')} htmlFor="rs-seed">
           <NumberField id="rs-seed" value={session.seed} min={0} max={4294967295} width="md" invalidText={range(0, 4294967295)} onCommit={(seed) => actions.updateSession({ seed })} />
@@ -320,6 +465,7 @@ export function SessionSection() {
           />
         </FieldRow>
       </div>
+      {session.type === 'alpine' ? <MountainGroup /> : session.type === 'hike' ? <AltitudeGroup /> : null}
     </Section>
   );
 }

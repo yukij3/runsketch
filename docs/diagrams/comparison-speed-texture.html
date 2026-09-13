@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two minutes of speed, second by second · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-speed-texture.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Row 7 of docs/comparison.md. 120 samples at 1 Hz.
+         Runsketch  flat 10 km at 5:00/km, chest strap, seed 3, seconds 1200-1319. Mean 3.436 m/s.
+         fenix2     the decoded 47-minute, 9 km file over the same offset. Mean 3.949 m/s.
+         fakemy.run computed from its published formula, not captured from the tool.
+
+       EACH SERIES IS PLOTTED AS A PERCENTAGE OF ITS OWN MEAN. That is the whole reason the figure works:
+       the excerpts average 3.44 and 3.95 m/s, so on a shared absolute axis the two traces would sit at
+       visibly different heights and a reader would take that as a pace mismatch. This figure is about
+       TEXTURE — the shape of the wobble — and says so on its face. Nothing here compares absolute pace.
+
+       The recorded file skipped 2 seconds in this window. They are drawn as GAPS, not interpolated: a
+       skipped second is part of what a real recording looks like.
+       Deviation ranges over the window: Runsketch -10.1..+11.8 %, fenix 2 -2.8..+3.1 %, fakemy.run
+       -1.5..+1.5 %. fakemy.run's band is narrow but has no memory from one second to the next: its lag-1
+       autocorrelation is near zero where this recording sits at 0.948. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Two minutes of speed: the shape of the wobble, not the pace</h1>
+
+    <svg viewBox="0 0 960 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-speed-texture-title comparison-speed-texture-desc">
+      <title id="comparison-speed-texture-title">Two minutes of speed: the shape of the wobble, not the pace</title>
+      <desc id="comparison-speed-texture-desc">Two minutes of speed sampled every second, with each series drawn as a percentage of its own mean so the comparison is about texture rather than pace. The Runsketch trace and the Garmin fenix 2 recording both wander smoothly, drifting several per cent above and below their own averages over tens of seconds, and the two seconds the watch skipped are left as gaps. The Runsketch trace swings wider, from about 10 per cent below its mean to 12 per cent above, against roughly 3 per cent either way for the recording. The fakemy.run formula is a narrow flat band jittering about 1.5 per cent either side with no memory from one second to the next, because its noise is drawn independently at every point.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="243.7" x2="912" y2="243.7" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="202.8" x2="912" y2="202.8" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="162.0" x2="912" y2="162.0" stroke="rgba(27,29,34,0.28)" stroke-width="1"/>
+      <line x1="80" y1="121.2" x2="912" y2="121.2" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="80.3" x2="912" y2="80.3" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72" y="247.2" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">−10</text>
+      <text x="72" y="206.3" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">−5</text>
+      <text x="72" y="165.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <text x="72" y="124.7" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+5</text>
+      <text x="72" y="83.8" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+10 %</text>
+      <!-- Dropped to the quiet band below the traces. At its old y 156 it sat right on the zero rule, which
+           is exactly where the fenix 2 and fakemy.run lines live, so both ran through the text. Over
+           x 84-282 no series goes below y 189, so y 232-240 is clear. -->
+      <text x="84" y="240" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">each series against its own mean</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="260" x2="80.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="219.9" y1="260" x2="219.9" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="219.9" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">20</text>
+      <line x1="359.8" y1="260" x2="359.8" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="359.8" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">40</text>
+      <line x1="499.7" y1="260" x2="499.7" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="499.7" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">60</text>
+      <line x1="639.5" y1="260" x2="639.5" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="639.5" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">80</text>
+      <line x1="779.4" y1="260" x2="779.4" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="779.4" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">100</text>
+      <line x1="912.0" y1="260" x2="912.0" y2="264" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="912.0" y="276" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">120 s</text>
+      <text x="496" y="296" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">seconds</text>
+
+      <path d="M 80.0,160.7 L 87.0,166.3 L 94.0,162.6 L 101.0,165.1 L 108.0,161.4 L 115.0,171.2 L 121.9,157.3 L 128.9,162.2 L 135.9,164.8 L 142.9,161.4 L 149.9,150.9 L 156.9,150.4 L 163.9,151.1 L 170.9,169.0 L 177.9,150.4 L 184.9,170.5 L 191.9,169.5 L 198.9,160.9 L 205.8,150.9 L 212.8,164.4 L 219.8,165.6 L 226.8,157.3 L 233.8,170.7 L 240.8,154.8 L 247.8,157.0 L 254.8,166.1 L 261.8,166.8 L 268.8,151.9 L 275.8,160.4 L 282.8,153.1 L 289.7,150.1 L 296.7,161.7 L 303.7,171.7 L 310.7,167.3 L 317.7,156.5 L 324.7,154.1 L 331.7,170.0 L 338.7,174.2 L 345.7,172.2 L 352.7,163.9 L 359.7,164.4 L 366.7,167.5 L 373.6,160.9 L 380.6,166.8 L 387.6,171.5 L 394.6,163.1 L 401.6,152.1 L 408.6,157.5 L 415.6,172.0 L 422.6,161.4 L 429.6,152.8 L 436.6,154.1 L 443.6,167.1 L 450.6,159.9 L 457.5,165.8 L 464.5,154.8 L 471.5,171.5 L 478.5,169.3 L 485.5,152.8 L 492.5,159.0 L 499.5,167.8 L 506.5,171.2 L 513.5,154.8 L 520.5,161.9 L 527.5,150.9 L 534.5,167.1 L 541.4,156.5 L 548.4,150.4 L 555.4,173.9 L 562.4,173.9 L 569.4,153.8 L 576.4,157.0 L 583.4,160.4 L 590.4,166.6 L 597.4,158.0 L 604.4,157.7 L 611.4,164.8 L 618.4,164.4 L 625.3,157.7 L 632.3,157.7 L 639.3,155.3 L 646.3,166.8 L 653.3,152.8 L 660.3,150.6 L 667.3,154.8 L 674.3,159.2 L 681.3,172.0 L 688.3,160.7 L 695.3,171.0 L 702.3,170.2 L 709.2,160.9 L 716.2,164.8 L 723.2,154.8 L 730.2,163.1 L 737.2,161.9 L 744.2,170.5 L 751.2,150.9 L 758.2,153.8 L 765.2,166.3 L 772.2,173.9 L 779.2,165.3 L 786.2,170.7 L 793.1,158.5 L 800.1,171.2 L 807.1,158.5 L 814.1,165.1 L 821.1,170.5 L 828.1,158.7 L 835.1,151.9 L 842.1,167.5 L 849.1,171.2 L 856.1,167.1 L 863.1,156.5 L 870.1,150.9 L 877.0,160.7 L 884.0,167.3 L 891.0,169.0 L 898.0,166.1 L 905.0,160.7 L 912.0,161.2" fill="none" stroke="#5e7a9b" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M 80.0,168.1 L 87.0,159.8 L 94.0,161.9 L 101.0,151.5 L 108.0,145.3 L 115.0,141.2 L 121.9,137.1 L 128.9,143.3 L 135.9,143.3 L 142.9,143.3 L 149.9,147.4 L 156.9,151.5 L 163.9,159.8 L 170.9,163.9 L 177.9,168.1 L 184.9,172.2 L 191.9,170.1 L 198.9,170.1 L 205.8,166.0 L 212.8,163.9 L 219.8,161.9 L 226.8,161.9 L 233.8,163.9 L 240.8,166.0 L 247.8,166.0 L 254.8,163.9 L 261.8,163.9 L 268.8,166.0 L 275.8,168.1 L 282.8,163.9 L 289.7,161.9 L 296.7,161.9 L 303.7,161.9 L 310.7,163.9 L 317.7,166.0 L 324.7,166.0 L 331.7,168.1 L 338.7,168.1 L 345.7,161.9 L 352.7,159.8 L 359.7,157.7 L 366.7,155.7 L 373.6,153.6 L 380.6,155.7 L 387.6,155.7 L 394.6,155.7 L 401.6,155.7 L 408.6,153.6 L 415.6,155.7 L 422.6,157.7 L 429.6,161.9 L 436.6,166.0 L 443.6,168.1 L 450.6,168.1 L 457.5,172.2 L 464.5,176.4 L 471.5,176.4 L 478.5,178.4 L 485.5,176.4 L 492.5,174.3 L 499.5,170.1 L 506.5,170.1 L 513.5,172.2 L 520.5,172.2 L 527.5,172.2 L 534.5,170.1 L 541.4,168.1 L 548.4,166.0 M 569.4,166.0 L 576.4,170.1 L 583.4,172.2 L 590.4,172.2 L 597.4,174.3 L 604.4,178.4 L 611.4,180.5 L 618.4,184.6 L 625.3,184.6 L 632.3,180.5 L 639.3,178.4 L 646.3,176.4 L 653.3,174.3 L 660.3,172.2 L 667.3,170.1 L 674.3,166.0 L 681.3,161.9 L 688.3,161.9 L 695.3,157.7 L 702.3,159.8 L 709.2,161.9 L 716.2,161.9 L 723.2,161.9 L 730.2,159.8 L 737.2,159.8 L 744.2,163.9 L 751.2,166.0 L 758.2,166.0 L 765.2,163.9 L 772.2,166.0 L 779.2,159.8 L 786.2,155.7 L 793.1,155.7 L 800.1,155.7 L 807.1,155.7 L 814.1,153.6 L 821.1,153.6 L 828.1,151.5 L 835.1,149.5 L 842.1,149.5 L 849.1,147.4 L 856.1,145.3 L 863.1,145.3 L 870.1,145.3 L 877.0,147.4 L 884.0,147.4 L 891.0,145.3 L 898.0,145.3 L 905.0,143.3 L 912.0,141.2" fill="none" stroke="#474c55" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M 80.0,130.0 L 87.0,139.5 L 94.0,139.5 L 101.0,139.5 L 108.0,134.8 L 115.0,115.8 L 121.9,92.0 L 128.9,70.6 L 135.9,65.8 L 142.9,70.6 L 149.9,82.5 L 156.9,82.5 L 163.9,92.0 L 170.9,101.5 L 177.9,106.3 L 184.9,106.3 L 191.9,96.7 L 198.9,103.9 L 205.8,108.6 L 212.8,111.0 L 219.8,125.3 L 226.8,132.4 L 233.8,130.0 L 240.8,141.9 L 247.8,156.2 L 254.8,175.2 L 261.8,177.6 L 268.8,177.6 L 275.8,182.3 L 282.8,187.1 L 289.7,189.5 L 296.7,172.8 L 303.7,165.7 L 310.7,153.8 L 317.7,151.4 L 324.7,163.3 L 331.7,158.6 L 338.7,158.6 L 345.7,163.3 L 352.7,163.3 L 359.7,163.3 L 366.7,172.8 L 373.6,163.3 L 380.6,168.1 L 387.6,177.6 L 394.6,156.2 L 401.6,151.4 L 408.6,160.9 L 415.6,156.2 L 422.6,163.3 L 429.6,160.9 L 436.6,158.6 L 443.6,163.3 L 450.6,170.4 L 457.5,160.9 L 464.5,168.1 L 471.5,158.6 L 478.5,163.3 L 485.5,165.7 L 492.5,177.6 L 499.5,213.2 L 506.5,227.5 L 513.5,241.8 L 520.5,244.1 L 527.5,232.2 L 534.5,225.1 L 541.4,222.7 L 548.4,191.8 L 555.4,177.6 L 562.4,179.9 L 569.4,179.9 L 576.4,177.6 L 583.4,168.1 L 590.4,165.7 L 597.4,163.3 L 604.4,149.0 L 611.4,151.4 L 618.4,160.9 L 625.3,184.7 L 632.3,189.5 L 639.3,184.7 L 646.3,177.6 L 653.3,170.4 L 660.3,160.9 L 667.3,170.4 L 674.3,168.1 L 681.3,151.4 L 688.3,160.9 L 695.3,163.3 L 702.3,172.8 L 709.2,177.6 L 716.2,168.1 L 723.2,168.1 L 730.2,182.3 L 737.2,172.8 L 744.2,172.8 L 751.2,170.4 L 758.2,187.1 L 765.2,179.9 L 772.2,189.5 L 779.2,196.6 L 786.2,203.7 L 793.1,182.3 L 800.1,179.9 L 807.1,160.9 L 814.1,153.8 L 821.1,151.4 L 828.1,137.2 L 835.1,132.4 L 842.1,151.4 L 849.1,168.1 L 856.1,165.7 L 863.1,165.7 L 870.1,179.9 L 877.0,191.8 L 884.0,206.1 L 891.0,213.2 L 898.0,218.0 L 905.0,199.0 L 912.0,191.8" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+
+      <!-- legend -->
+      <line x1="40" y1="312" x2="920" y2="312" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="344" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="340" x2="152" y2="340" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Runsketch (mean 3.44 m/s)</text>
+      <line x1="380" y1="340" x2="404" y2="340" stroke="#474c55" stroke-width="1.6"/>
+      <text x="412" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Garmin fēnix 2 file (mean 3.95 m/s)</text>
+      <line x1="688" y1="340" x2="712" y2="340" stroke="#5e7a9b" stroke-width="1.2"/>
+      <text x="720" y="344" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">fakemy.run formula</text>
+
+      <text x="40" y="372" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Each series is plotted against its own mean, because the excerpts average 3.44 and 3.95 m/s — this figure compares texture, never absolute pace.</text>
+      <text x="40" y="388" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Gaps in the recorded line are the two seconds the watch did not record, left as gaps rather than interpolated.</text>
+    </svg>
+  </div>
+</body>
+</html>

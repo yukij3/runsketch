@@ -5,7 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Architecture · Runsketch</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Source for architecture.svg (profile: runsketch, see .diagram-design). Architecture grammar, doc-wide, left-to-right. -->
+  <!-- Source for architecture.svg (profile: runsketch, see .diagram-design). Architecture grammar, doc-wide, left-to-right.
+       Five open services, all reached from the page with no key and no backend of ours:
+         Map tiles   OpenFreeMap vector tiles; Mapterhorn raster-DEM tiles for the hillshade layer
+         Routing     BRouter, FOSSGIS OSRM and FOSSGIS Valhalla. The order is per profile, not fixed:
+                     foot = OSRM then BRouter; hiking = BRouter, Valhalla, OSRM; alpine = BRouter then
+                     Valhalla only; bike/road-bike/mtb = BRouter then OSRM; then a local straight line.
+                     Valhalla also answers POST /trace_attributes for each leg, which is where surface,
+                     sac_scale, bridge and tunnel come from -- BRouter returns no bridge or tunnel tags.
+         Elevation   Mapterhorn z13, Mapterhorn z12, AWS Terrain Tiles z13, then the Open-Meteo point API
+         Weather     Open-Meteo, chosen by the route's date: forecast, historical-forecast, archive
+                     (ERA5), or a climatology "analog year" past the 15-day forecast horizon
+         Search      Photon by komoot
+       "No server of ours" is an editorial callout rather than a box: the browser-boundary zone and the
+       legend already carry it, and a ninth node would spend the budget on a thing that does not exist. -->
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -29,9 +42,9 @@
     <p class="eyebrow">Architecture · Runsketch</p>
     <h1>Browser only, open services, no server of ours</h1>
 
-    <svg viewBox="0 0 1056 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
+    <svg viewBox="0 0 1056 608" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
       <title id="architecture-title">Runsketch architecture</title>
-      <desc id="architecture-desc">GitHub Pages serves static files once; everything else runs in the browser, where the map and route editor calls key-less open services for map tiles, routing, elevation and search, the simulation engine turns the route into 1 Hz streams, and the writers save FIT, TCX and GPX files on the user's device; there is no project server.</desc>
+      <desc id="architecture-desc">GitHub Pages serves static files once; everything else runs in the browser, where the map and route editor calls five key-less open services for map tiles, routing, elevation, weather and place search, the simulation engine turns the route and its weather into 1 Hz streams, and the writers save FIT, TCX and GPX files on the user's device; there is no project server.</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#474c55"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#c21f3a"/></marker>
@@ -42,119 +55,125 @@
 
       <!-- ─── Zones (bg → zones → arrows → nodes) ─── -->
       <!-- Browser boundary: the focal trust boundary -->
-      <rect x="264" y="52" width="352" height="416" rx="8" fill="rgba(194,31,58,0.03)" stroke="rgba(194,31,58,0.55)" stroke-width="1" stroke-dasharray="4,4"/>
-      <rect x="276" y="44" width="148" height="16" rx="2" fill="#f5f6f4"/>
-      <text x="284" y="56" fill="#c21f3a" font-size="11" font-weight="500" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">YOUR BROWSER ONLY</text>
+      <rect x="264" y="56" width="352" height="460" rx="8" fill="rgba(194,31,58,0.03)" stroke="rgba(194,31,58,0.55)" stroke-width="1" stroke-dasharray="4,4"/>
+      <rect x="276" y="48" width="148" height="16" rx="2" fill="#f5f6f4"/>
+      <text x="284" y="60" fill="#c21f3a" font-size="11" font-weight="500" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">YOUR BROWSER ONLY</text>
 
       <!-- External services -->
-      <rect x="696" y="52" width="320" height="416" rx="8" fill="rgba(27,29,34,0.02)" stroke="rgba(27,29,34,0.16)" stroke-width="0.8"/>
-      <rect x="708" y="44" width="200" height="16" rx="2" fill="#f5f6f4"/>
-      <text x="716" y="56" fill="#636973" font-size="11" font-weight="500" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">OPEN SERVICES · NO KEYS</text>
+      <rect x="696" y="56" width="320" height="460" rx="8" fill="rgba(27,29,34,0.02)" stroke="rgba(27,29,34,0.16)" stroke-width="0.8"/>
+      <rect x="708" y="48" width="200" height="16" rx="2" fill="#f5f6f4"/>
+      <text x="716" y="60" fill="#636973" font-size="11" font-weight="500" font-family="'Red Hat Mono', monospace" letter-spacing="0.14em">OPEN SERVICES · NO KEYS</text>
 
       <!-- ─── Arrows ─── -->
       <!-- Static app bundle from GitHub Pages -->
-      <line x1="232" y1="140" x2="294" y2="140" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <rect x="236" y="116" width="56" height="14" rx="2" fill="#f5f6f4"/>
-      <text x="264" y="127" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTML+JS</text>
+      <line x1="232" y1="156" x2="294" y2="156" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <rect x="236" y="132" width="56" height="14" rx="2" fill="#f5f6f4"/>
+      <text x="264" y="143" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTML+JS</text>
 
-      <!-- Editor → services: fanned attach points 124/140/156/172, staggered verticals 680/664/648 -->
-      <line x1="584" y1="124" x2="710" y2="124" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <path d="M 584,140 H 672 Q 680,140 680,148 V 208 Q 680,216 688,216 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <path d="M 584,156 H 656 Q 664,156 664,164 V 300 Q 664,308 672,308 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <path d="M 584,172 H 640 Q 648,172 648,180 V 392 Q 648,400 656,400 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <rect x="622" y="98" width="68" height="14" rx="2" fill="#f5f6f4"/>
-      <text x="656" y="109" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTTPS GET</text>
+      <!-- Editor → services: fanned attach points 126/146/166/186/206, staggered verticals 700/684/668/652 -->
+      <line x1="584" y1="126" x2="710" y2="126" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <path d="M 584,146 H 692 Q 700,146 700,154 V 202 Q 700,210 708,210 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <path d="M 584,166 H 676 Q 684,166 684,174 V 286 Q 684,294 692,294 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <path d="M 584,186 H 660 Q 668,186 668,194 V 370 Q 668,378 676,378 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <path d="M 584,206 H 644 Q 652,206 652,214 V 454 Q 652,462 660,462 H 710" fill="none" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <rect x="622" y="100" width="68" height="14" rx="2" fill="#f5f6f4"/>
+      <text x="656" y="111" fill="#2154c4" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTTPS GET</text>
 
       <!-- In-browser data -->
-      <line x1="440" y1="196" x2="440" y2="234" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <rect x="448" y="208" width="108" height="16" rx="2" fill="#f5f6f4"/>
-      <text x="452" y="220" fill="#474c55" font-size="11" font-family="'Red Hat Mono', monospace">terrain profile</text>
+      <line x1="440" y1="226" x2="440" y2="254" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="448" y="232" width="164" height="16" rx="2" fill="#f5f6f4"/>
+      <text x="452" y="244" fill="#474c55" font-size="11" font-family="'Red Hat Mono', monospace">terrain profile + weather</text>
 
-      <line x1="440" y1="324" x2="440" y2="362" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <rect x="448" y="336" width="88" height="16" rx="2" fill="#f5f6f4"/>
-      <text x="452" y="348" fill="#474c55" font-size="11" font-family="'Red Hat Mono', monospace">1 Hz streams</text>
+      <line x1="440" y1="354" x2="440" y2="390" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="448" y="364" width="112" height="16" rx="2" fill="#f5f6f4"/>
+      <text x="452" y="376" fill="#474c55" font-size="11" font-family="'Red Hat Mono', monospace">1 Hz streams</text>
 
       <!-- ─── Left column ─── -->
       <!-- GitHub Pages (external host) -->
-      <rect x="40" y="96" width="192" height="88" rx="6" fill="#f5f6f4"/>
-      <rect x="40" y="96" width="192" height="88" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
-      <text x="56" y="130" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">GitHub Pages</text>
-      <text x="56" y="152" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">static files</text>
-      <text x="56" y="170" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">loaded once</text>
+      <rect x="40" y="112" width="192" height="88" rx="6" fill="#f5f6f4"/>
+      <rect x="40" y="112" width="192" height="88" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="56" y="146" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">GitHub Pages</text>
+      <text x="56" y="168" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">static files</text>
+      <text x="56" y="186" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">loaded once</text>
 
-      <!-- No server of ours (absent, deliberately unconnected) -->
-      <rect x="40" y="236" width="192" height="88" rx="6" fill="#f5f6f4"/>
-      <rect x="40" y="236" width="192" height="88" rx="6" fill="rgba(27,29,34,0.02)" stroke="rgba(27,29,34,0.28)" stroke-width="1" stroke-dasharray="4,3"/>
-      <text x="56" y="270" fill="#474c55" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">No server of ours</text>
-      <text x="56" y="292" fill="#636973" font-size="12" font-family="'Red Hat Mono', monospace">no accounts, keys</text>
-      <text x="56" y="310" fill="#636973" font-size="12" font-family="'Red Hat Mono', monospace">or uploads</text>
+      <!-- The absence, as a callout rather than a box -->
+      <text x="40" y="284" fill="#1b1d22" font-size="20" font-style="italic" font-family="'Instrument Serif', serif">No server of ours.</text>
+      <text x="40" y="312" fill="#636973" font-size="12" font-family="'Red Hat Mono', monospace">no accounts, no keys,</text>
+      <text x="40" y="330" fill="#636973" font-size="12" font-family="'Red Hat Mono', monospace">nothing uploaded</text>
 
       <!-- ─── Browser nodes ─── -->
-      <rect x="296" y="84" width="288" height="112" rx="6" fill="#f5f6f4"/>
-      <rect x="296" y="84" width="288" height="112" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <rect x="296" y="88" width="288" height="136" rx="6" fill="#f5f6f4"/>
+      <rect x="296" y="88" width="288" height="136" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
       <text x="312" y="118" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Map &amp; route editor</text>
       <text x="312" y="142" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">MapLibre GL · draw, drag, undo</text>
       <text x="312" y="160" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">snap to paths · place search</text>
-      <text x="312" y="178" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">DEM sampling, grade</text>
+      <text x="312" y="178" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">route legs, DEM, weather</text>
+      <text x="312" y="196" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">de-spike, smooth, grade</text>
 
-      <rect x="296" y="236" width="288" height="88" rx="6" fill="#f5f6f4"/>
-      <rect x="296" y="236" width="288" height="88" rx="6" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
-      <text x="312" y="270" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Simulation engine</text>
-      <text x="312" y="292" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">one effort model, 1 Hz</text>
-      <text x="312" y="310" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">seeded: preview = file</text>
+      <rect x="296" y="256" width="288" height="96" rx="6" fill="#f5f6f4"/>
+      <rect x="296" y="256" width="288" height="96" rx="6" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
+      <text x="312" y="286" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Simulation engine</text>
+      <text x="312" y="310" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">one effort model, 1 Hz</text>
+      <text x="312" y="328" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">seeded: preview = file</text>
 
-      <rect x="296" y="364" width="288" height="88" rx="6" fill="#f5f6f4"/>
-      <rect x="296" y="364" width="288" height="88" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
-      <text x="312" y="398" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">FIT · TCX · GPX writers</text>
-      <text x="312" y="420" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">built in the page</text>
-      <text x="312" y="438" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">saved to your device</text>
+      <rect x="296" y="392" width="288" height="96" rx="6" fill="#f5f6f4"/>
+      <rect x="296" y="392" width="288" height="96" rx="6" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="312" y="422" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">FIT · TCX · GPX writers</text>
+      <text x="312" y="446" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">built in the page</text>
+      <text x="312" y="464" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">saved to your device</text>
 
       <!-- ─── Services ─── -->
-      <rect x="712" y="84" width="288" height="80" rx="6" fill="#f5f6f4"/>
-      <rect x="712" y="84" width="288" height="80" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <rect x="712" y="88" width="288" height="76" rx="6" fill="#f5f6f4"/>
+      <rect x="712" y="88" width="288" height="76" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
       <text x="728" y="114" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Map tiles</text>
       <text x="728" y="136" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">OpenFreeMap vector tiles</text>
-      <text x="728" y="154" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">OpenStreetMap data</text>
+      <text x="728" y="154" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Mapterhorn DEM hillshade</text>
 
-      <rect x="712" y="176" width="288" height="80" rx="6" fill="#f5f6f4"/>
-      <rect x="712" y="176" width="288" height="80" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
-      <text x="728" y="206" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Routing</text>
-      <text x="728" y="228" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">BRouter → FOSSGIS OSRM</text>
-      <text x="728" y="246" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">→ straight line (local)</text>
+      <rect x="712" y="172" width="288" height="76" rx="6" fill="#f5f6f4"/>
+      <rect x="712" y="172" width="288" height="76" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="728" y="198" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Routing</text>
+      <text x="728" y="220" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">BRouter · OSRM · Valhalla</text>
+      <text x="728" y="238" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">tags: surface, sac_scale</text>
 
-      <rect x="712" y="268" width="288" height="80" rx="6" fill="#f5f6f4"/>
-      <rect x="712" y="268" width="288" height="80" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
-      <text x="728" y="298" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Elevation</text>
-      <text x="728" y="320" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Mapterhorn DEM →</text>
-      <text x="728" y="338" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">AWS Terrain Tiles → Open-Meteo</text>
+      <rect x="712" y="256" width="288" height="76" rx="6" fill="#f5f6f4"/>
+      <rect x="712" y="256" width="288" height="76" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="728" y="282" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Elevation</text>
+      <text x="728" y="304" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Mapterhorn → AWS Terrain</text>
+      <text x="728" y="322" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Tiles → Open-Meteo</text>
 
-      <rect x="712" y="360" width="288" height="80" rx="6" fill="#f5f6f4"/>
-      <rect x="712" y="360" width="288" height="80" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
-      <text x="728" y="390" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Place search</text>
-      <text x="728" y="412" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Photon by komoot</text>
-      <text x="728" y="430" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">debounced autocomplete</text>
+      <rect x="712" y="340" width="288" height="76" rx="6" fill="#f5f6f4"/>
+      <rect x="712" y="340" width="288" height="76" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="728" y="366" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Weather</text>
+      <text x="728" y="388" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Open-Meteo for date &amp; place</text>
+      <text x="728" y="406" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">forecast · archive · analog</text>
+
+      <rect x="712" y="424" width="288" height="76" rx="6" fill="#f5f6f4"/>
+      <rect x="712" y="424" width="288" height="76" rx="6" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="728" y="450" fill="#1b1d22" font-size="16" font-weight="600" font-family="'Public Sans', sans-serif">Place search</text>
+      <text x="728" y="472" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">Photon by komoot</text>
+      <text x="728" y="490" fill="#474c55" font-size="12" font-family="'Red Hat Mono', monospace">debounced autocomplete</text>
 
       <!-- ─── Legend strip ─── -->
-      <line x1="40" y1="500" x2="1016" y2="500" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
-      <text x="40" y="532" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="40" y1="548" x2="1016" y2="548" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="580" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
 
-      <rect x="124" y="522" width="16" height="12" rx="2" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
-      <text x="148" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Engine (focal)</text>
+      <rect x="128" y="570" width="16" height="12" rx="2" fill="rgba(194,31,58,0.08)" stroke="#c21f3a" stroke-width="1.2"/>
+      <text x="152" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Engine (focal)</text>
 
-      <rect x="256" y="522" width="16" height="12" rx="2" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
-      <text x="280" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">In-browser module</text>
+      <rect x="260" y="570" width="16" height="12" rx="2" fill="#fbfbfa" stroke="#1b1d22" stroke-width="1"/>
+      <text x="284" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">In-browser module</text>
 
-      <rect x="412" y="522" width="16" height="12" rx="2" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
-      <text x="436" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">External, open</text>
+      <rect x="416" y="570" width="16" height="12" rx="2" fill="rgba(27,29,34,0.03)" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="440" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">External, open</text>
 
-      <rect x="548" y="522" width="16" height="12" rx="2" fill="rgba(194,31,58,0.03)" stroke="rgba(194,31,58,0.55)" stroke-width="1" stroke-dasharray="3,2"/>
-      <text x="572" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Browser boundary</text>
+      <rect x="552" y="570" width="16" height="12" rx="2" fill="rgba(194,31,58,0.03)" stroke="rgba(194,31,58,0.55)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="576" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Browser boundary</text>
 
-      <line x1="708" y1="528" x2="734" y2="528" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <text x="744" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">HTTPS request</text>
+      <line x1="712" y1="576" x2="738" y2="576" stroke="#2154c4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text x="748" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">HTTPS request</text>
 
-      <line x1="856" y1="528" x2="882" y2="528" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <text x="892" y="532" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">In-memory data</text>
+      <line x1="860" y1="576" x2="886" y2="576" stroke="#474c55" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="896" y="580" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">In-memory data</text>
     </svg>
   </div>
 </body>

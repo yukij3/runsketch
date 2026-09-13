@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Live contract check for the key-less services Runsketch calls from the browser.
 // Runs the real src/lib modules (Node >= 23.6 strips TypeScript types natively) against
-// OSRM, BRouter, Photon, Open-Meteo, Mapterhorn and AWS terrarium, once each, sending a
+// OSRM, BRouter, Valhalla, Photon, Open-Meteo, Mapterhorn and AWS terrarium, once each, sending a
 // browser-like Origin header and verifying that every response carries CORS.
 //
 //   node scripts/smoke-services.mjs
@@ -16,6 +16,15 @@ const BERLIN = [
 const LAUSANNE = [
   [6.6323, 46.519],
   [6.65, 46.53],
+];
+// Aconcagua normal route, Cólera camp → Independencia hut (T5); Kazbek, Betlemi hut → summit (T2–T5, glacier).
+const ACONCAGUA = [
+  [-70.0183, -32.63736],
+  [-70.01557, -32.64619],
+];
+const KAZBEK = [
+  [44.53383, 42.67988],
+  [44.51811, 42.69694],
 ];
 
 // The app imports '../geo' and './http' without extensions (bundler resolution); map them to .ts files.
@@ -147,25 +156,37 @@ const assert = (cond, msg) => {
 // shows up as a latency warning instead of a contract failure.
 const APP_TIMEOUT_MS = 8000;
 const providerErrors = [];
-const router = routing.createRouter({
+const onProviderError = (spec, err) => providerErrors.push(`${spec.provider}: ${err instanceof Error ? err.message : String(err)}`);
+const router = routing.createRouter({ timeoutMs: 20_000, onProviderError });
+// Valhalla is only a fallback in the app; this router asks it directly.
+const valhallaRouter = routing.createRouter({
   timeoutMs: 20_000,
-  onProviderError: (spec, err) => providerErrors.push(`${spec.provider}: ${err instanceof Error ? err.message : String(err)}`),
+  chains: { alpine: routing.PROVIDER_CHAINS.alpine.filter((spec) => spec.provider === 'valhalla') },
+  onProviderError,
 });
 
-async function routeCheck(a, b, profile, expected) {
+async function routeCheck(a, b, profile, expected, via = router) {
   providerErrors.length = 0;
   const t0 = performance.now();
-  const leg = await router(a, b, profile);
+  const leg = await via(a, b, profile);
   const ms = performance.now() - t0;
   assert(leg.provider === expected && !leg.fallback, `expected ${expected}, got ${leg.provider} fallback=${leg.fallback}; ${providerErrors.join('; ')}`);
   assert(leg.coords.length > 5, 'too few vertices');
+  // BRouter and Valhalla legs carry way tags covering every segment (surface, highway, sac_scale, …); OSRM legs carry none.
+  const spans = leg.ways ?? [];
+  if (expected !== 'osrm') assert(spans.length > 0 && spans[spans.length - 1].end === leg.coords.length - 1, `no way tags covering the leg; ${providerErrors.join('; ')}`);
+  const tags = spans.length ? `, ${spans.length} tag spans (${[...new Set(spans.map((w) => w.tags))].slice(0, 2).join('; ')})` : '';
   const slow = ms > APP_TIMEOUT_MS ? ` — WARNING: slower than the app's ${APP_TIMEOUT_MS} ms budget, the app would fall back` : '';
-  return `${leg.coords.length} vertices, ${Math.round(leg.distance)} m${slow}`;
+  return `${leg.coords.length} vertices, ${Math.round(leg.distance)} m${tags}${slow}`;
 }
 
 await check('OSRM routed-foot · Berlin', () => routeCheck(BERLIN[0], BERLIN[1], 'foot', 'osrm'));
 
 await check('BRouter hiking-mountain · Lausanne', () => routeCheck(LAUSANNE[0], LAUSANNE[1], 'hiking', 'brouter'));
+
+await check('BRouter hiking-mountain, SAC limit 6 · Aconcagua', () => routeCheck(ACONCAGUA[0], ACONCAGUA[1], 'alpine', 'brouter'));
+
+await check('Valhalla pedestrian, hiking difficulty 6, trace_attributes · Kazbek', () => routeCheck(KAZBEK[0], KAZBEK[1], 'alpine', 'valhalla', valhallaRouter));
 
 await check('Photon search (lang ru → default)', async () => {
   const places = await geocode.searchPlaces('Brandenburger Tor', { bias: BERLIN[0], lang: 'ru' });

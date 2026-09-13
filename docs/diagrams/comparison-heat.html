@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving time against air temperature · Runsketch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Source for comparison-heat.svg (profile: runsketch, see .diagram-design). Line chart, doc-wide.
+       Row 10 of docs/comparison.md. Flat 10 km solved at a fixed effort preset, sweeping air temperature
+       away from the neutral baseline of 15 C, 60 % humidity, calm and dry. y = moving time lost against
+       that baseline, %.
+       Below 15 C the loss is EXACTLY ZERO at every preset: we model no cold penalty at all. That flat
+       stretch is drawn, and labelled, because it is a known simplification, not a measurement — the
+       published curve is a shallow U with an optimum around 4-10 C and losses on both sides.
+       The 35 C tempo and race points are drawn as hollow markers on a dashed continuation, because they are
+       the solver running into what is sustainable rather than a smooth physiological curve (7.36 % and
+       8.85 %, against 4.35 % and 4.28 % for easy and steady). They are not joined into the solid line.
+       DELIBERATELY NOT DRAWN: the published per-degree slope (-0.3 to -0.4 % per C) and the Ely quartile
+       points (1.7, 2.5, 3.3, 4.5 %) are both in WET-BULB GLOBE TEMPERATURE, and the Ely figures are reported
+       by WBGT quartile with no temperatures attached at all. Plotting either on an air-temperature axis
+       would invent the x-coordinates. Both are stated in the footer instead, in their own units. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f6f4; --color-ink: #1b1d22; --color-muted: #474c55; --color-accent: #c21f3a; --font-sans: 'Public Sans', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Red Hat Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 860px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Line chart · Runsketch</p>
+    <h1>Moving time lost to heat, and the cold side we do not model</h1>
+
+    <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="comparison-heat-title comparison-heat-desc">
+      <title id="comparison-heat-title">Moving time lost to heat, and the cold side we do not model</title>
+      <desc id="comparison-heat-desc">Moving time lost over a flat 10 km against air temperature, for four effort presets, measured against a neutral baseline of 15 degrees. Below 15 degrees every preset is exactly zero, because no cold penalty is modelled at all, where the published curve is a shallow U with losses on both sides. Above 15 degrees the four presets rise together: at 25 degrees they span 2.19 to 2.52 per cent, and at 32 degrees 3.46 to 4.48 per cent. At 35 degrees easy and steady reach 4.35 and 4.28 per cent, but tempo and race jump to 7.36 and 8.85 per cent, drawn as hollow markers on dashed lines because they are the solver reaching the limit of what is sustainable rather than a smooth physiological curve. The published slope and the Ely quartile figures are given in the footer in wet-bulb globe temperature, not plotted, because they carry no air temperatures.</desc>
+      <rect width="100%" height="100%" fill="#f5f6f4"/>
+
+      <!-- gridlines -->
+      <line x1="80" y1="280" x2="912" y2="280" stroke="rgba(27,29,34,0.22)" stroke-width="1"/>
+      <line x1="80" y1="232" x2="912" y2="232" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="184" x2="912" y2="184" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="136" x2="912" y2="136" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <line x1="80" y1="88" x2="912" y2="88" stroke="rgba(27,29,34,0.08)" stroke-width="0.8"/>
+      <text x="72" y="283.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">0</text>
+      <text x="72" y="235.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+2</text>
+      <text x="72" y="187.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+4</text>
+      <text x="72" y="139.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+6</text>
+      <text x="72" y="91.5" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="end">+8 %</text>
+
+      <!-- the neutral baseline -->
+      <line x1="436.6" y1="64" x2="436.6" y2="280" stroke="rgba(27,29,34,0.35)" stroke-width="1"/>
+      <text x="432" y="76" fill="#1b1d22" font-size="11" font-weight="600" font-family="'Red Hat Mono', monospace" text-anchor="end">neutral 15 °C</text>
+      <rect x="80" y="64" width="356.6" height="216" fill="rgba(27,29,34,0.03)"/>
+      <text x="258" y="268" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">no cold penalty modelled — exactly zero, not a measurement</text>
+
+      <!-- x ticks -->
+      <line x1="80.0" y1="280" x2="80.0" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="80.0" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">0</text>
+      <line x1="198.9" y1="280" x2="198.9" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="198.9" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">5</text>
+      <line x1="317.7" y1="280" x2="317.7" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="317.7" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">10</text>
+      <line x1="436.6" y1="280" x2="436.6" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="436.6" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">15</text>
+      <line x1="555.4" y1="280" x2="555.4" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="555.4" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">20</text>
+      <line x1="674.3" y1="280" x2="674.3" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="674.3" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">25</text>
+      <line x1="793.1" y1="280" x2="793.1" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="793.1" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">30</text>
+      <line x1="912.0" y1="280" x2="912.0" y2="284" stroke="rgba(27,29,34,0.30)" stroke-width="1"/>
+      <text x="912.0" y="296" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" text-anchor="middle">35 °C</text>
+      <text x="496" y="316" fill="#636973" font-size="11" font-family="'Public Sans', sans-serif" text-anchor="middle">air temperature</text>
+
+      <!-- presets: solid through 32 °C -->
+      <polyline points="80.0,280.0 436.6,280.0 555.4,238.2 674.3,219.5 793.1,206.6 840.7,194.8 912.0,175.6" fill="none" stroke="#7c8f6f" stroke-width="1.6" stroke-linejoin="round"/>
+      <polyline points="80.0,280.0 436.6,280.0 555.4,239.9 674.3,227.4 793.1,207.0 840.7,197.0 912.0,177.3" fill="none" stroke="#c21f3a" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="80.0,280.0 436.6,280.0 555.4,238.5 674.3,222.9 793.1,196.2 840.7,184.0" fill="none" stroke="#5e7a9b" stroke-width="1.6" stroke-linejoin="round"/>
+      <polyline points="80.0,280.0 436.6,280.0 555.4,242.3 674.3,220.2 793.1,199.4 840.7,172.5" fill="none" stroke="#b8915a" stroke-width="1.6" stroke-linejoin="round"/>
+      <!-- the 35 °C solver limit, not part of the curve -->
+      <line x1="840.7" y1="184.0" x2="912.0" y2="103.4" stroke="#5e7a9b" stroke-width="1.4" stroke-dasharray="4,3"/>
+      <line x1="840.7" y1="172.5" x2="912.0" y2="67.6" stroke="#b8915a" stroke-width="1.4" stroke-dasharray="4,3"/>
+      <circle cx="912.0" cy="103.4" r="3.5" fill="#f5f6f4" stroke="#5e7a9b" stroke-width="1.4"/>
+      <circle cx="912.0" cy="67.6" r="3.5" fill="#f5f6f4" stroke="#b8915a" stroke-width="1.4"/>
+      <text x="906" y="58" fill="#1b1d22" font-size="15" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">the solver hitting what is sustainable, not physiology</text>
+
+      <!-- preset labels at 25 °C -->
+      <text x="668" y="214" fill="#7c8f6f" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">easy</text>
+      <text x="668" y="238" fill="#c21f3a" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif" text-anchor="end">steady</text>
+      <text x="700" y="212" fill="#5e7a9b" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif">tempo</text>
+      <text x="700" y="232" fill="#b8915a" font-size="11" font-weight="600" font-family="'Public Sans', sans-serif">race</text>
+
+      <!-- legend -->
+      <line x1="40" y1="336" x2="920" y2="336" stroke="rgba(27,29,34,0.12)" stroke-width="0.8"/>
+      <text x="40" y="368" fill="#474c55" font-size="10" font-family="'Red Hat Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="128" y1="364" x2="152" y2="364" stroke="#c21f3a" stroke-width="2"/>
+      <text x="160" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Steady effort</text>
+      <line x1="288" y1="364" x2="312" y2="364" stroke="#7c8f6f" stroke-width="1.6"/>
+      <text x="320" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Easy</text>
+      <line x1="400" y1="364" x2="424" y2="364" stroke="#5e7a9b" stroke-width="1.6"/>
+      <text x="432" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Tempo</text>
+      <line x1="520" y1="364" x2="544" y2="364" stroke="#b8915a" stroke-width="1.6"/>
+      <text x="552" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Race</text>
+      <circle cx="664" cy="364" r="3.5" fill="#f5f6f4" stroke="#474c55" stroke-width="1.4"/>
+      <text x="676" y="368" fill="#474c55" font-size="12" font-family="'Public Sans', sans-serif">Solver limit, not a curve point</text>
+
+      <text x="40" y="396" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Published references are in wet-bulb globe temperature, not air temperature, so they are not plotted here.</text>
+      <text x="40" y="412" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">The published slope is −0.3 to −0.4 % per °C WBGT outside 7.5–15 °C.</text>
+      <text x="40" y="428" fill="#636973" font-size="10" font-family="'Red Hat Mono', monospace">Ely's marathon figures (1.7, 2.5, 3.3, 4.5 % behind the course record) are reported by WBGT quartile, with no temperatures given.</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 // Lap ranges and per-lap aggregates that the contract's Lap does not carry (max speed, power, calories).
+import { timerSamples } from '../sim/summary';
 import type { ActivitySummary, Lap, SimulationResult } from '../types';
 import { clamp } from './common';
 
@@ -83,29 +84,31 @@ export function exportLaps(result: SimulationResult): ExportLap[] {
     })
     .filter((r) => r.end > r.start);
 
+  const timer = timerSamples(s.moving, n);
   const stats = ranges.map(({ start, end }) => {
     let maxSpeed = 0;
     let maxCadence = 0;
     let maxPower = 0;
     let powerSum = 0;
-    let movingPowerSum = 0;
-    let movingSamples = 0;
+    let timerPowerSum = 0;
+    let timerCount = 0;
     let cycles = 0;
     for (let i = start; i < end; i++) {
       const power = Math.max(0, num(s.power[i]));
+      powerSum += power;
+      // 1 Hz samples: cadence per minute / 60 = cycles in that second.
+      cycles += Math.max(0, num(s.cadence[i])) / 60;
+      if (!timer[i]) continue;
       maxSpeed = Math.max(maxSpeed, num(s.speed[i]));
       maxCadence = Math.max(maxCadence, num(s.cadence[i]));
       maxPower = Math.max(maxPower, power);
-      powerSum += power;
-      if (s.moving[i]) {
-        movingPowerSum += power;
-        movingSamples += 1;
+      if (i > 0) {
+        timerPowerSum += power;
+        timerCount += 1;
       }
-      // 1 Hz samples: cadence per minute / 60 = cycles in that second.
-      cycles += Math.max(0, num(s.cadence[i])) / 60;
     }
-    // Over moving samples, like avgSpeed over moving time, so a stop does not dilute the lap average.
-    const avgPower = movingSamples > 0 ? movingPowerSum / movingSamples : powerSum / (end - start);
+    // Over timer time like the summary, so an auto-paused stop does not dilute the lap average.
+    const avgPower = timerCount > 0 ? timerPowerSum / timerCount : powerSum / (end - start);
     return { maxSpeed, maxCadence, maxPower, powerSum, cycles, avgPower };
   });
 

@@ -64,6 +64,7 @@
 }
 
 .toolbar {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -205,6 +206,71 @@
 .search__detail {
   color: var(--ink-3);
   font-size: var(--text-xs);
+}
+
+/* Examples menu: anchored to the toolbar's right edge so it stays inside the toolbar width when the groups wrap. */
+.examples {
+  display: inline-flex;
+}
+
+.icon-btn.is-open {
+  background: var(--wash-press);
+}
+
+.examples__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -1px;
+  z-index: 50;
+  width: min(320px, calc(100% + 2px));
+  padding: 4px 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-2);
+  background: var(--sheet);
+  box-shadow: var(--shadow-float);
+}
+
+.examples__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  padding: 7px 12px;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.examples__item:first-child {
+  border-top: 0;
+}
+
+.examples__item:hover {
+  background: var(--wash-hover);
+}
+
+.examples__item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  background: var(--wash-selected);
+}
+
+.examples__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.examples__meta {
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+
+.examples__meta .num {
+  color: var(--ink-2);
 }
 
 .notice-slot {

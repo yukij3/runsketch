@@ -1,7 +1,7 @@
 // Synthetic TerrainProfiles for tests, reviewers and demos. Pure functions, no DEM or network.
 // Routes are laid out in local metres (x east, y north) around an origin and resampled like the
 // terrain module does: fixed spacing, optional Gaussian elevation smoothing, grade on a centred 40 m baseline.
-import type { LngLat, ProfilePoint, TerrainProfile } from '../types';
+import type { LngLat, ProfilePoint, TerrainProfile, WeatherPoint, WeatherSeries } from '../types';
 import { DEG, M_PER_DEG } from './track';
 
 export interface ScenarioOptions {
@@ -210,6 +210,67 @@ export function outAndBackProfile(oneWay = 2500, opts: ScenarioOptions = {}): Te
     () => 50,
     opts,
   );
+}
+
+/** Hourly values by hour relative to the start (negative before it) and point index. */
+export type WeatherCurve = (hour: number, point: number) => number | null;
+
+export interface WeatherScenarioOptions {
+  /** Epoch ms of the activity start; slots sit on whole UTC hours around it. */
+  start: number;
+  /** Route the points lie on (lon, lat and elevation at their distances); a flat origin point when absent. */
+  profile?: TerrainProfile;
+  /** Route distances of the sampled points, metres (default: the start only). */
+  at?: number[];
+  /** Hours covered before and after the start (default 48 and 30). */
+  before?: number;
+  after?: number;
+  temperature?: WeatherCurve;
+  dewPoint?: WeatherCurve;
+  /** mm over the preceding hour. */
+  precipitation?: WeatherCurve;
+  windSpeed?: WeatherCurve;
+  windFrom?: WeatherCurve;
+  pressure?: WeatherCurve;
+  shortwave?: WeatherCurve;
+  cloudCover?: WeatherCurve;
+}
+
+/** A synthetic weather series for tests: 15 °C, dew point 7 °C, calm, dry, 1013 hPa and overcast unless overridden. */
+export function weatherScenario(o: WeatherScenarioOptions): WeatherSeries {
+  const before = o.before ?? 48;
+  const after = o.after ?? 30;
+  const startHour = Math.floor(o.start / 3_600_000);
+  const t0 = (startHour - before) * 3600;
+  const slots = before + after + 1;
+  const pts = o.profile?.points ?? [];
+  const points: WeatherPoint[] = (o.at ?? [0]).map((d) => {
+    let best = pts[0];
+    for (const p of pts) if (Math.abs(p.d - d) < Math.abs((best?.d ?? 0) - d)) best = p;
+    return { d, lon: best?.lon ?? DEFAULT_ORIGIN[0], lat: best?.lat ?? DEFAULT_ORIGIN[1], ele: Math.round((best?.ele ?? 50) / 10) * 10 };
+  });
+  const grid = (curve: WeatherCurve | undefined, fallback: number): Array<Array<number | null>> =>
+    points.map((_, p) => Array.from({ length: slots }, (_, k) => (curve ? curve((t0 + k * 3600 - o.start / 1000) / 3600, p) : fallback)));
+  return {
+    v: 1,
+    key: 'scenario',
+    source: 'forecast',
+    timezone: 'UTC',
+    t0,
+    stepS: 3600,
+    points,
+    temperature: grid(o.temperature, 15),
+    dewPoint: grid(o.dewPoint, 7),
+    precipitation: grid(o.precipitation, 0),
+    snowfall: grid(undefined, 0),
+    windSpeed: grid(o.windSpeed, 0),
+    windFrom: grid(o.windFrom, 0),
+    windGust: grid(o.windSpeed, 0),
+    surfacePressure: grid(o.pressure, 1013),
+    shortwave: grid(o.shortwave, 0),
+    cloudCover: grid(o.cloudCover, 100),
+    fetchedAt: 0,
+  };
 }
 
 /** The smallest valid route: two points `distance` metres apart. */

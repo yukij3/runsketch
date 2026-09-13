@@ -116,6 +116,10 @@ describe('i18n', () => {
     expect(defaultActivityName('ru', 'run', 7)).toBe('Утренняя пробежка');
     expect(defaultActivityName('ru', 'ride', 19)).toBe('Вечерний заезд');
     expect(defaultActivityName('ru', 'hike', 12)).toBe('Дневной поход');
+    // Восхождение is neuter.
+    expect(defaultActivityName('ru', 'alpine', 2)).toBe('Ночное восхождение');
+    expect(defaultActivityName('ru', 'alpine', 8)).toBe('Утреннее восхождение');
+    expect(defaultActivityName('en', 'alpine', 2)).toBe('Night ascent');
   });
 });
 

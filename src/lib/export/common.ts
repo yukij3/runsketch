@@ -64,9 +64,37 @@ export function fileCadence(value: number, type: ActivityType): number {
   return Math.min(v, 254);
 }
 
-/** Integer cadence for XML formats and the FIT `cadence` byte. */
+/** Integer cadence for XML summary fields (strides/min or rpm), rounded to nearest. */
 export function wholeCadence(value: number, type: ActivityType): number {
-  return Math.floor(fileCadence(value, type));
+  return Math.round(fileCadence(value, type));
+}
+
+/**
+ * Per-sample integer cadence for XML trackpoints. Whole steps/min halve to x.0 or x.5 strides/min; always rounding
+ * the halves up (or down, as flooring did) would bias every odd step count by a quarter stride. An exact half keeps
+ * the previous value when that is one of its two neighbours, and rounds up otherwise.
+ */
+export function wholeCadenceSeries(cadence: ArrayLike<number>, type: ActivityType): Int16Array {
+  const out = new Int16Array(cadence.length);
+  let prev = -1;
+  for (let i = 0; i < cadence.length; i++) {
+    const c = fileCadence(cadence[i], type);
+    const lo = Math.floor(c);
+    const v = c - lo === 0.5 && (prev === lo || prev === lo + 1) ? prev : Math.round(c);
+    out[i] = v;
+    prev = v;
+  }
+  return out;
+}
+
+/**
+ * Device temperature at sample i as files store it (whole °C, FIT sint8), from the recorded temperature stream, or
+ * the session's air temperature for streams without one.
+ */
+export function fileTemperature(streams: ActivityStreams, session: SessionSettings, i: number): number | undefined {
+  const stream = streams.temperature;
+  const value = stream && stream.length === streams.t.length ? stream[i] : session.temperatureC;
+  return Number.isFinite(value) ? clamp(Math.round(value), -127, 127) : undefined;
 }
 
 /** Heart rate as files store it (XSD positiveByte, FIT uint8 with 255 invalid), or undefined when absent. */
@@ -119,7 +147,7 @@ export function localParts(startTime: number, utcOffsetMin: number): LocalParts 
   };
 }
 
-const SPORT_LABEL: Record<ActivityType, string> = { run: 'Run', ride: 'Ride', walk: 'Walk', hike: 'Hike' };
+const SPORT_LABEL: Record<ActivityType, string> = { run: 'Run', ride: 'Ride', walk: 'Walk', hike: 'Hike', alpine: 'Ascent' };
 
 function partOfDay(hour: number): string {
   if (hour >= 5 && hour < 12) return 'Morning';

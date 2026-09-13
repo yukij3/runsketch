@@ -27,12 +27,15 @@ describe('effort presets', () => {
     const easy = run(hilly, 'run', solutions[0].mps);
     const race = run(hilly, 'run', solutions[3].mps);
     expect(race.summary.avgHr).toBeGreaterThan(easy.summary.avgHr + 10);
-    expect(Math.abs(solutions[1].goal - 0.7)).toBeLessThan(1e-9);
+    // Steady is 70 % of VO2 reserve in any weather: weather changes how long that effort takes, not the effort itself.
+    expect(Math.abs(solutions[1].goal - presetGoal('run', 'steady', solutions[1].movingTime, { fitness: 'recreational' }))).toBeLessThan(1e-9);
+    expect(solutions[1].goal).toBe(0.7);
   });
 
   it('solves a sustainable Steady ride on a hilly route (no 150 % VO2 reserve default)', () => {
     const s = solveEffortPreset(input(hilly, 'ride'), 'steady')!;
-    expect(Math.abs(s.effort - 0.7)).toBeLessThan(0.01);
+    expect(Math.abs(s.effort - s.goal)).toBeLessThan(0.01);
+    expect(s.goal).toBeGreaterThan(0.68);
     const r = run(hilly, 'ride', s.mps);
     expect(r.warnings.filter((w) => /VO2 reserve|could not be matched/.test(w))).toEqual([]);
     expect(s.mps * 3.6).toBeGreaterThan(15);
